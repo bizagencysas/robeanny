@@ -15,13 +15,21 @@ export default function Portfolio() {
 
     useEffect(() => {
         // Client-side execution ONLY (prevent hydration errors)
-        // Fisher-Yates array shuffle algorithm for the chaotic editorial requested look.
-        const mixArray = [...domainPhotos];
-        for (let i = mixArray.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [mixArray[i], mixArray[j]] = [mixArray[j], mixArray[i]];
+        // Step-based Structural Interleaving:
+        // We divide the array into 5 imaginary columns to forcefully separate 
+        // sequential photos (which are usually from the same physical shoot).
+        const originalArray = [...domainPhotos];
+        const interleavedArray: string[] = [];
+        const spreadFactor = 5;
+
+        for (let i = 0; i < spreadFactor; i++) {
+            for (let j = i; j < originalArray.length; j += spreadFactor) {
+                if (originalArray[j]) {
+                    interleavedArray.push(originalArray[j]);
+                }
+            }
         }
-        setShuffledPhotos(mixArray);
+        setShuffledPhotos(interleavedArray);
     }, []);
 
     const loadMorePhotos = () => {
