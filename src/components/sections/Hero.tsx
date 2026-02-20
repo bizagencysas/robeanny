@@ -50,14 +50,21 @@ export default function Hero() {
                 ref={bgRef}
                 className="relative w-full h-full md:w-[60vw] xl:w-[45vw] md:h-[90vh] overflow-hidden will-change-transform bg-black"
             >
-                {/* 1. Mobile Experience: Muted Video Background (Hidden on Desktop) */}
-                <video
-                    src="/hero.mp4"
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    className="block md:hidden w-full h-full object-cover filter brightness-[0.75] scale-105"
+                {/* 1. Mobile Experience: Muted Video Background injected raw to bypass Apple/React blocking */}
+                <div
+                    className="block md:hidden absolute inset-0 w-full h-full pointer-events-none"
+                    dangerouslySetInnerHTML={{
+                        __html: `
+                        <video
+                            src="/hero.mp4"
+                            autoplay
+                            loop
+                            muted
+                            playsinline
+                            style="width: 100%; height: 100%; object-fit: cover; filter: brightness(0.75); transform: scale(1.05);"
+                        ></video>
+                        `
+                    }}
                 />
 
                 {/* 2. Desktop Experience: Cinematic Fullscreen Image Slideshow (16:9) (Hidden on Mobile) */}

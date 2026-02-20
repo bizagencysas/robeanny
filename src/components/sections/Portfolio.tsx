@@ -143,7 +143,7 @@ export default function Portfolio() {
           that flows vertically without horizontal scrolling.
       */}
             <div className="w-full max-w-[1600px] mx-auto columns-1 md:columns-2 lg:columns-3 gap-6 md:gap-8 space-y-6 md:space-y-8 min-h-[50vh]">
-                {shuffledPhotos.length > 0 && shuffledPhotos.slice(0, visibleCount).map((photo, i) => {
+                {domainPhotos.slice(0, visibleCount).map((photo, i) => {
                     // Add some editorial empty space occasionally by injecting a block quote
                     if (i === 12) {
                         return (
@@ -196,7 +196,7 @@ export default function Portfolio() {
                 })}
             </div>
 
-            {visibleCount < shuffledPhotos.length && (
+            {visibleCount < domainPhotos.length && (
                 <div className="w-full flex justify-center mt-24">
                     <button
                         onClick={loadMorePhotos}

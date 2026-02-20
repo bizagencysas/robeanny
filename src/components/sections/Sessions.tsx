@@ -75,7 +75,7 @@ export default function Sessions() {
         <section className="relative w-full h-[100svh] min-h-[700px] bg-black text-white flex flex-col items-center justify-center overflow-hidden">
 
             {/* Background massive title */}
-            <h2 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[25vw] md:text-[20vw] lg:text-[18vw] font-serif text-white/5 whitespace-nowrap tracking-tighter select-none pointer-events-none z-0">
+            <h2 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[25vw] md:text-[20vw] lg:text-[18vw] font-serif text-white/20 whitespace-nowrap tracking-tighter select-none pointer-events-none z-[1]">
                 SESIONES
             </h2>
 
