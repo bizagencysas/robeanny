@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { heroImage, aboutImage, biographyShort, portfolioTeaser, sessionsTeaser, personalData } from "@/lib/data";
+import { aboutImage, biographyShort, portfolioTeaser, sessionsTeaser, personalData } from "@/lib/data";
 
 export default function HomePage() {
   return (
@@ -19,59 +19,114 @@ export default function HomePage() {
 }
 
 // ========================================
-// 1. HERO — Full Viewport Cinematic
+// 1. HERO — Dual Slideshow (Mobile-First)
 // ========================================
+
+// Mobile hero photos (portrait aspect ratio)
+const mobileHeroImages = ["/he.jpg", "/he2.jpg", "/he3.jpg", "/he4.jpg"];
+// Desktop hero photos (16:9 landscape)
+const desktopHeroImages = ["/014A7144-2.jpg", "/014A7221-2.jpg", "/014A7227-2.jpg"];
+
 function HeroSection() {
   const [y, setY] = useState(0);
+  const [currentImage, setCurrentImage] = useState(0);
+  const [isMobile, setIsMobile] = useState(true); // Mobile-first default
   const bgRef = useRef<HTMLDivElement>(null);
 
+  // Device detection + scroll
   useEffect(() => {
     const handleScroll = () => setY(window.scrollY);
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+
+    handleScroll();
+    handleResize();
+
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("resize", handleResize, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleResize);
+    };
   }, []);
 
+  // Parallax
   useEffect(() => {
     if (bgRef.current) {
       bgRef.current.style.transform = `translateY(${y * 0.15}px) scale(1.05)`;
     }
   }, [y]);
 
+  // Auto slideshow
+  const activeImages = isMobile ? mobileHeroImages : desktopHeroImages;
+
+  useEffect(() => {
+    setCurrentImage(0); // Reset on device change
+  }, [isMobile]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImage((prev) => (prev + 1) % activeImages.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [activeImages.length]);
+
   return (
-    <section className="relative w-full h-[100svh] overflow-hidden flex items-center justify-center">
-      {/* Background Image */}
+    <section className="relative w-full h-[100svh] overflow-hidden flex items-center justify-center bg-black">
+      {/* Background Slideshow — Only renders one set based on device */}
       <div ref={bgRef} className="absolute inset-0 w-full h-full will-change-transform">
-        <Image
-          src={heroImage}
-          alt="Robeanny Bastardo - Modelo Profesional"
-          fill
-          priority
-          className="object-cover object-center filter brightness-[0.6]"
-          sizes="100vw"
-        />
+        {activeImages.map((src, index) => (
+          <div
+            key={src}
+            className={`absolute inset-0 w-full h-full transition-opacity duration-[1500ms] ease-in-out ${index === currentImage ? "opacity-100 z-10" : "opacity-0 z-0"
+              }`}
+          >
+            <Image
+              src={src}
+              alt={`Robeanny Hero ${index + 1}`}
+              fill
+              priority={index === 0}
+              className={`object-cover filter brightness-[0.55] ${isMobile ? "object-top" : "object-center"
+                }`}
+              sizes="100vw"
+            />
+          </div>
+        ))}
       </div>
 
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center text-center px-6">
-        <h1 className="font-serif text-[15vw] md:text-[10vw] lg:text-[8vw] text-white tracking-[0.1em] leading-[0.85] font-light mb-6">
+        <h1 className="font-serif text-[16vw] md:text-[10vw] lg:text-[8vw] text-white tracking-[0.1em] leading-[0.85] font-light mb-4 md:mb-6">
           ROBEANNY
         </h1>
-        <p className="font-sans text-[10px] md:text-xs tracking-[0.4em] uppercase text-white/60 mb-12">
+        <p className="font-sans text-[9px] md:text-xs tracking-[0.4em] uppercase text-white/60 mb-8 md:mb-12">
           {personalData.subtitle}
         </p>
         <Link
           href="/portfolio"
-          className="group font-sans text-[10px] md:text-xs tracking-[0.3em] uppercase border border-white/30 px-8 py-4 hover:bg-white hover:text-black transition-all duration-500"
+          className="group font-sans text-[9px] md:text-xs tracking-[0.3em] uppercase border border-white/30 px-6 py-3 md:px-8 md:py-4 hover:bg-white hover:text-black transition-all duration-500"
         >
           Explore Portfolio
           <span className="inline-block ml-2 transition-transform group-hover:translate-x-1">→</span>
         </Link>
       </div>
 
+      {/* Slide Indicators */}
+      <div className="absolute bottom-20 left-1/2 -translate-x-1/2 flex items-center gap-2 z-20">
+        {activeImages.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setCurrentImage(i)}
+            className={`w-8 h-[2px] transition-all duration-500 ${i === currentImage ? "bg-white" : "bg-white/20"
+              }`}
+            aria-label={`Slide ${i + 1}`}
+          />
+        ))}
+      </div>
+
       {/* Scroll Indicator */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-pulse">
-        <div className="w-px h-12 bg-gradient-to-b from-transparent to-white/40" />
-        <span className="font-sans text-[8px] tracking-[0.3em] uppercase text-white/30">Scroll</span>
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-pulse">
+        <div className="w-px h-8 md:h-12 bg-gradient-to-b from-transparent to-white/40" />
+        <span className="font-sans text-[7px] md:text-[8px] tracking-[0.3em] uppercase text-white/30">Scroll</span>
       </div>
     </section>
   );
