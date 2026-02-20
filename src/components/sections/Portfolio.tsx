@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useSpring, useMotionValue } from "framer-motion";
 import { photos } from "@/lib/photos";
 import Image from "next/image";
 import Lightbox from "./Lightbox";
@@ -9,119 +9,148 @@ import { useTranslations } from "next-intl";
 
 export default function Portfolio() {
     const t = useTranslations("portfolio");
-    const targetRef = useRef<HTMLDivElement>(null);
-    const { scrollYProgress } = useScroll({
-        target: targetRef,
-    });
-
-    // Transform vertical scroll into horizontal movement
-    const x = useTransform(scrollYProgress, [0, 1], ["10%", "-85%"]);
-
     const [activePhoto, setActivePhoto] = useState<number | null>(null);
 
+    // Limit portfolio to the first 11 photos, the rest are for Sessions
+    const portfolioPhotos = photos.slice(0, 11);
+
     const handleNext = () => {
-        setActivePhoto((prev) => (prev !== null && prev < photos.length - 1 ? prev + 1 : 0));
+        setActivePhoto((prev) => (prev !== null && prev < portfolioPhotos.length - 1 ? prev + 1 : 0));
     };
 
     const handlePrev = () => {
-        setActivePhoto((prev) => (prev !== null && prev > 0 ? prev - 1 : photos.length - 1));
+        setActivePhoto((prev) => (prev !== null && prev > 0 ? prev - 1 : portfolioPhotos.length - 1));
     };
 
     return (
-        <section id="portfolio" className="relative bg-black min-h-[300vh]" ref={targetRef}>
-            <div className="sticky top-0 h-screen w-full overflow-hidden flex flex-col justify-center bg-near-black">
-                {/* Header */}
-                <div className="absolute top-24 md:top-32 left-8 md:left-24 z-20">
-                    <motion.h2
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        className="text-4xl md:text-6xl font-serif text-white tracking-widest"
-                    >
-                        {t("title")}
-                    </motion.h2>
-                    <motion.p
-                        initial={{ opacity: 0 }}
-                        whileInView={{ opacity: 1 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: 0.2 }}
-                        className="text-platinum/60 font-sans tracking-[0.3em] uppercase text-xs sm:text-sm mt-4"
-                    >
-                        {t("subtitle")}
-                    </motion.p>
-                </div>
-
-                {/* Horizontal Track Container */}
-                <motion.div style={{ x }} className="flex items-center space-x-8 md:space-x-16 px-16 lg:px-[10vw]">
-                    {photos.map((photo, i) => (
-                        <PhotoCard key={i} photo={photo} index={i} onClick={() => setActivePhoto(i)} />
-                    ))}
-                </motion.div>
-
-                {/* Lightbox */}
-                <Lightbox
-                    isOpen={activePhoto !== null}
-                    photoUrl={activePhoto !== null ? photos[activePhoto] : ""}
-                    onClose={() => setActivePhoto(null)}
-                    onNext={handleNext}
-                    onPrev={handlePrev}
-                />
+        <section id="portfolio" className="py-24 md:py-32 bg-near-black relative min-h-screen">
+            <div className="container mx-auto px-6 mb-16 md:mb-24 text-center">
+                <motion.h2
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    className="text-4xl md:text-6xl font-serif text-white tracking-widest uppercase mb-4"
+                >
+                    {t("title")}
+                </motion.h2>
+                <motion.p
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.2 }}
+                    className="text-platinum/60 font-sans tracking-[0.3em] uppercase text-xs sm:text-sm"
+                >
+                    {t("subtitle")}
+                </motion.p>
             </div>
+
+            {/* Magnetic Repulsion Masonry Grid */}
+            <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4 md:gap-6 px-4 md:px-8 max-w-[2000px] mx-auto">
+                {portfolioPhotos.map((photo, i) => (
+                    <PhotoCard key={i} photo={photo} index={i} onClick={() => setActivePhoto(i)} />
+                ))}
+            </div>
+
+            {/* Lightbox */}
+            <Lightbox
+                isOpen={activePhoto !== null}
+                photoUrl={activePhoto !== null ? portfolioPhotos[activePhoto] : ""}
+                onClose={() => setActivePhoto(null)}
+                onNext={handleNext}
+                onPrev={handlePrev}
+            />
         </section>
     );
 }
 
 function PhotoCard({ photo, index, onClick }: { photo: string; index: number; onClick: () => void }) {
     const cardRef = useRef<HTMLDivElement>(null);
-    const [isCentered, setIsCentered] = useState(false);
+    const [isMobile, setIsMobile] = useState(true); // Default strictly mobile to prevent SSR hydration mismatch on desktop
+
+    const x = useMotionValue(0);
+    const y = useMotionValue(0);
+
+    const springX = useSpring(x, { stiffness: 150, damping: 15, mass: 0.5 });
+    const springY = useSpring(y, { stiffness: 150, damping: 15, mass: 0.5 });
 
     useEffect(() => {
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                // Checking if the image is roughly in the center third of the viewport
-                if (entry.boundingClientRect.left > window.innerWidth * 0.2 && entry.boundingClientRect.right < window.innerWidth * 0.8) {
-                    setIsCentered(true);
-                } else {
-                    setIsCentered(false);
-                }
-            },
-            {
-                root: null,
-                threshold: [0, 0.5, 1],
-                rootMargin: "0px -20% 0px -20%"
-            }
-        );
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth < 1024);
+        };
+        checkMobile();
 
-        if (cardRef.current) observer.observe(cardRef.current);
-        return () => observer.disconnect();
-    }, []);
+        const handleMove = (e: MouseEvent) => {
+            if (!cardRef.current || isMobile) return;
+            const rect = cardRef.current.getBoundingClientRect();
+            const cardCenterX = rect.left + rect.width / 2;
+            const cardCenterY = rect.top + rect.height / 2;
+
+            const distanceX = e.clientX - cardCenterX;
+            const distanceY = e.clientY - cardCenterY;
+            const distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+
+            // Radius in pixels where the repulsion starts
+            const repulsionRadius = 400;
+            const maxRepulsion = 60; // Max distance to shift
+
+            if (distance < repulsionRadius) {
+                const force = Math.pow((repulsionRadius - distance) / repulsionRadius, 2); // easing
+                x.set(-(distanceX / distance) * force * maxRepulsion);
+                y.set(-(distanceY / distance) * force * maxRepulsion);
+            } else {
+                x.set(0);
+                y.set(0);
+            }
+        };
+
+        const handleLeave = () => {
+            x.set(0);
+            y.set(0);
+        };
+
+        if (!isMobile) {
+            window.addEventListener("mousemove", handleMove);
+            window.addEventListener("mouseleave", handleLeave);
+        }
+
+        return () => {
+            window.removeEventListener("mousemove", handleMove);
+            window.removeEventListener("mouseleave", handleLeave);
+        };
+    }, [x, y, isMobile]);
 
     return (
         <motion.div
             ref={cardRef}
-            className={`relative cursor-pointer transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] flex-shrink-0 ${isCentered ? "scale-100 z-10 mx-8 md:mx-16 brightness-110" : "scale-[0.6] opacity-60 z-0 grayscale-[50%]"
-                }`}
+            className="relative cursor-pointer w-full mb-4 md:mb-6 break-inside-avoid overflow-hidden group rounded-sm"
             style={{
-                width: isCentered ? "350px" : "280px",
-                height: isCentered ? "550px" : "400px",
-                boxShadow: isCentered ? "0 25px 50px -12px rgba(0, 0, 0, 0.8)" : "none",
+                x: isMobile ? 0 : springX,
+                y: isMobile ? 0 : springY
             }}
             onClick={onClick}
-            whileHover={{ scale: isCentered ? 1.05 : 0.65 }}
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true, margin: "50px" }}
+            transition={{ duration: 0.6, delay: index * 0.05 }}
         >
-            <Image
-                src={photo}
-                alt={`Portfolio ${index}`}
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 350px"
-                loading="lazy"
-            />
-            {/* Golden accent border on hover/centered */}
-            <div
-                className={`absolute inset-0 border border-t-[1px] border-l-[1px] transition-colors duration-500 pointer-events-none ${isCentered ? "border-white/20" : "border-transparent"
-                    }`}
-            />
+            <div className="relative w-full transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
+                style={{
+                    // To give varying heights for masonry effect
+                    aspectRatio: index % 3 === 0 ? "3/4" : index % 2 === 0 ? "4/5" : "1/1"
+                }}
+            >
+                <Image
+                    src={photo}
+                    alt={`Portfolio ${index}`}
+                    fill
+                    className="object-cover grayscale-[70%] group-hover:grayscale-0 transition-all duration-700"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    loading="lazy"
+                />
+            </div>
+            {/* Minimal overlay effect */}
+            <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-500" />
+            <div className="absolute inset-0 border border-white/0 group-hover:border-white/10 transition-colors duration-500 pointer-events-none" />
         </motion.div>
     );
 }

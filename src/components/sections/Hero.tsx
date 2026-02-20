@@ -59,7 +59,7 @@ export default function Hero() {
             <div className="relative z-10 flex flex-col items-center text-center px-4 w-full">
                 {/* Staggered Name entrance */}
                 <motion.h1
-                    className="text-[16vw] md:text-[10vw] font-serif leading-none tracking-widest text-platinum flex mix-blend-difference drop-shadow-lg"
+                    className="text-[16vw] md:text-[10vw] font-serif leading-none tracking-widest text-black flex drop-shadow-sm"
                     initial="hidden"
                     animate="visible"
                     variants={{
@@ -95,7 +95,7 @@ export default function Hero() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 1, delay: 4.5, ease: "easeOut" }}
-                    className="mt-6 md:mt-4 text-xs md:text-base font-sans font-light tracking-[0.5em] uppercase text-white/80"
+                    className="mt-6 md:mt-4 text-xs md:text-base font-sans font-bold tracking-[0.5em] uppercase text-black/80"
                 >
                     {t("subtitle")}
                 </motion.p>
@@ -106,7 +106,7 @@ export default function Hero() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 5, duration: 1 }}
-                className="absolute bottom-10 z-10 flex flex-col items-center justify-center"
+                className="absolute bottom-10 z-10 flex flex-col items-center justify-center mix-blend-difference"
             >
                 <motion.div
                     animate={{ y: [0, 10, 0] }}

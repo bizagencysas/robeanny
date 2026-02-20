@@ -7,7 +7,7 @@ import Image from "next/image";
 
 function AnimatedCounter({ from = 0, to, duration = 2 }: { from?: number; to: number; duration?: number }) {
     const nodeRef = useRef<HTMLSpanElement>(null);
-    const isInView = useInView(nodeRef, { once: true, margin: "-100px" });
+    const isInView = useInView(nodeRef, { once: true, margin: "0px" });
     const [value, setValue] = useState(from);
 
     useEffect(() => {

@@ -1,54 +1,113 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { motion, useAnimationFrame } from "framer-motion";
+import { motion, useAnimationFrame, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { photos } from "@/lib/photos";
 import Image from "next/image";
-import { Pause, Play } from "lucide-react";
+import Lightbox from "./Lightbox";
 
 export default function Sessions() {
     const t = useTranslations("sessions");
-    const [isHovered, setIsHovered] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
-    const [isPaused, setIsPaused] = useState(false);
+    const sceneRef = useRef<HTMLDivElement>(null);
 
-    const rotationRef = useRef(0);
-    const SPEED = 0.05; // degrees per frame
+    const isHovering = useRef(false);
+    const isDragging = useRef(false);
 
-    // Start from photo 11 to differentiate from Portfolio section array
-    const sessionPhotos = photos.slice(11, 27); // 16 photos
+    // Lightbox state
+    const [activePhoto, setActivePhoto] = useState<number | null>(null);
+    const resumeTimeout = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
-        const checkMobile = () => {
-            setIsMobile(window.innerWidth < 768);
-        };
-        checkMobile();
+        const checkMobile = () => setIsMobile(window.innerWidth < 1024);
+        checkMobile(); // Run once on mount
         window.addEventListener("resize", checkMobile);
         return () => window.removeEventListener("resize", checkMobile);
     }, []);
 
-    useAnimationFrame(() => {
-        if (!isHovered && !isPaused && !isMobile) {
-            rotationRef.current -= SPEED;
-            if (rotationRef.current <= -360) rotationRef.current = 0;
+    // Filter to last 32 photos (Desktop) or 16 photos (Mobile)
+    const maxPhotos = isMobile ? 16 : 32;
+    // We only have ~30 photos right now in photos.ts total, so just use what we can safely
+    const sessionPhotos = photos.slice(11, 11 + maxPhotos);
 
-            const carousel = document.getElementById("disko-carousel");
-            if (carousel) {
-                carousel.style.transform = `rotateY(${rotationRef.current}deg)`;
-            }
+    // 3D Carousel state
+    const rotation = useMotionValue(0);
+    const smoothRotation = useSpring(rotation, { stiffness: 80, damping: 20, mass: 1 });
+
+    // Scene Parallax (Global tilt based on mouse for Desktop)
+    const mouseXPct = useMotionValue(0);
+    const mouseYPct = useMotionValue(0);
+    const sceneRotateX = useTransform(mouseYPct, [-0.5, 0.5], [5, -15]); // Tilt up/down
+    const sceneRotateY = useTransform(mouseXPct, [-0.5, 0.5], [-10, 10]);
+
+    const handleMouseMove = (e: React.MouseEvent) => {
+        if (isMobile) return;
+        const xPct = e.clientX / window.innerWidth - 0.5;
+        const yPct = e.clientY / window.innerHeight - 0.5;
+        mouseXPct.set(xPct);
+        mouseYPct.set(yPct);
+    };
+
+    useAnimationFrame((time, delta) => {
+        if (!isHovering.current && !isDragging.current) {
+            // Auto-rotate at a subtle constant speed
+            rotation.set(rotation.get() - delta * 0.015);
         }
     });
 
+    const handleDragStart = () => {
+        isDragging.current = true;
+        if (resumeTimeout.current) clearTimeout(resumeTimeout.current);
+    };
+
+    const handleDragEnd = () => {
+        // Resume rotation after 2 seconds
+        resumeTimeout.current = setTimeout(() => {
+            isDragging.current = false;
+        }, 2000);
+    };
+
+    const handlePhotoTap = (idx: number) => {
+        // If it's already paused on this photo, open Lightbox
+        if (isHovering.current) {
+            setActivePhoto(idx);
+        } else {
+            // First tap: pause and zoom
+            isHovering.current = true;
+            if (resumeTimeout.current) clearTimeout(resumeTimeout.current);
+
+            // Resume after 2 seconds if no second tap
+            resumeTimeout.current = setTimeout(() => {
+                isHovering.current = false;
+            }, 2000);
+        }
+    };
+
+    const handleLightboxNext = () => {
+        setActivePhoto((prev) => (prev !== null && prev < sessionPhotos.length - 1 ? prev + 1 : 0));
+    };
+
+    const handleLightboxPrev = () => {
+        setActivePhoto((prev) => (prev !== null && prev > 0 ? prev - 1 : sessionPhotos.length - 1));
+    };
+
+    // Radius of the circle
+    const radius = isMobile ? 300 : 900;
+
     return (
-        <section id="sessions" className="py-24 md:py-32 bg-near-black relative overflow-hidden min-h-screen flex flex-col items-center justify-center">
+        <section
+            id="sessions"
+            className="py-24 md:py-32 bg-black relative overflow-hidden min-h-screen flex flex-col items-center justify-center cursor-default"
+            onMouseMove={handleMouseMove}
+        >
             {/* Header */}
-            <div className="absolute top-24 z-20 text-center w-full px-4">
+            <div className="absolute top-24 z-30 text-center w-full px-4 pointer-events-none">
                 <motion.h2
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    className="text-4xl md:text-6xl font-serif text-white tracking-[0.2em] uppercase"
+                    className="text-4xl md:text-7xl font-serif text-white tracking-[0.2em] uppercase mix-blend-difference"
                 >
                     {t("title")}
                 </motion.h2>
@@ -57,88 +116,106 @@ export default function Sessions() {
                     whileInView={{ opacity: 1 }}
                     viewport={{ once: true }}
                     transition={{ delay: 0.2 }}
-                    className="text-platinum/60 font-sans tracking-[0.3em] uppercase text-xs sm:text-sm mt-4"
+                    className="text-platinum/80 font-sans tracking-[0.3em] uppercase text-xs sm:text-sm mt-4 mix-blend-difference"
                 >
                     {t("subtitle")}
                 </motion.p>
-
-                {/* Play/Pause control for Desktop */}
-                {!isMobile && (
-                    <button
-                        onClick={() => setIsPaused(!isPaused)}
-                        className="mt-8 text-white/50 hover:text-accent transition-colors hidden md:inline-block"
-                        aria-label="Pause or Play Animation"
-                    >
-                        {isPaused || isHovered ? <Play className="w-6 h-6" /> : <Pause className="w-6 h-6" />}
-                    </button>
-                )}
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    transition={{ delay: 1 }}
+                    className="mt-8 text-white/30 font-sans text-[10px] sm:text-xs tracking-[0.3em] uppercase"
+                >
+                    {isMobile ? "Swipe to explore · Tap to view" : "Drag to explore · Click to view"}
+                </motion.div>
             </div>
 
-            {isMobile ? (
-                // Mobile 2D Horizontal Scroll
-                <div className="w-full mt-32 px-4 flex overflow-x-auto snap-x snap-mandatory gap-6 pb-8 hidescrollbar">
-                    {sessionPhotos.map((photo, i) => (
-                        <div key={i} className="snap-center shrink-0 w-[80vw] h-[60vh] relative">
-                            <Image
-                                src={photo}
-                                alt={`Session ${i}`}
-                                fill
-                                className="object-cover rounded-sm grayscale-[30%]"
-                                sizes="80vw"
-                                loading="lazy"
-                            />
-                        </div>
-                    ))}
-                </div>
-            ) : (
-                // Desktop 3D Disk'O Gallery
-                <div className="relative w-full h-[600px] mt-24 perspective-[2000px] flex items-center justify-center">
-                    <div
-                        id="disko-carousel"
-                        className="w-full h-full absolute preserve-3d transition-transform duration-75"
-                        onMouseEnter={() => setIsHovered(true)}
-                        onMouseLeave={() => setIsHovered(false)}
+            {/* AAA 3D Interactive Carousel (Mobile & Desktop) */}
+            <div className="relative w-full h-[60vh] md:h-[80vh] flex items-center justify-center z-10 perspective-[2000px] overflow-hidden md:overflow-visible">
+                {/* Transparent drag surface that overlays the carousel entirely */}
+                <motion.div
+                    className="absolute inset-0 z-20 cursor-grab active:cursor-grabbing"
+                    drag="x"
+                    dragConstraints={{ left: 0, right: 0 }}
+                    dragElastic={0}
+                    onDragStart={handleDragStart}
+                    onDragEnd={handleDragEnd}
+                    onDrag={(e, info) => {
+                        // Amplify drag effect
+                        rotation.set(rotation.get() + info.delta.x * (isMobile ? 0.8 : 0.4));
+                    }}
+                />
+
+                {/* Scene Parallax Wrapper */}
+                <motion.div
+                    ref={sceneRef}
+                    className="w-full h-full absolute preserve-3d"
+                    style={{
+                        rotateX: isMobile ? 0 : sceneRotateX,
+                        rotateY: isMobile ? 0 : sceneRotateY,
+                    }}
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    whileInView={{ scale: 1, opacity: 1 }}
+                    viewport={{ once: true, margin: "100px" }}
+                    transition={{ duration: 1.5, ease: "easeOut" }}
+                >
+                    {/* The Rotary Cylinder */}
+                    <motion.div
+                        className="w-full h-full absolute preserve-3d"
+                        style={{ rotateY: smoothRotation }}
                     >
                         {sessionPhotos.map((photo, idx) => {
-                            // Calculate 3D position
                             const angle = (360 / sessionPhotos.length) * idx;
-                            const zTranslate = 800; // Radius of the cylinder
 
                             return (
                                 <div
                                     key={idx}
-                                    className="absolute top-1/2 left-1/2 w-[300px] h-[450px] -mt-[225px] -ml-[150px] group cursor-pointer backface-hidden"
+                                    className={`absolute top-1/2 left-1/2 ${isMobile ? "w-[200px] h-[300px] -mt-[150px] -ml-[100px]" : "w-[320px] h-[480px] -mt-[240px] -ml-[160px]"} backface-hidden pointer-events-auto z-30`}
                                     style={{
-                                        transform: `rotateY(${angle}deg) translateZ(${zTranslate}px)`,
+                                        transform: `rotateY(${angle}deg) translateZ(${radius}px)`,
                                     }}
+                                    onMouseEnter={() => { if (!isMobile) isHovering.current = true; }}
+                                    onMouseLeave={() => { if (!isMobile) isHovering.current = false; }}
+                                    onClick={() => isMobile ? handlePhotoTap(idx) : setActivePhoto(idx)}
                                 >
-                                    <div className="w-full h-full relative overflow-hidden transition-transform duration-500 group-hover:scale-110 shadow-2xl">
+                                    <div className="w-full h-full relative overflow-hidden transition-all duration-700 hover:scale-105 group cursor-pointer shadow-2xl">
                                         <Image
                                             src={photo}
-                                            alt={`Gallery ${idx}`}
+                                            alt={`Session ${idx}`}
                                             fill
-                                            className="object-cover transition-all duration-500 grayscale group-hover:grayscale-0 group-hover:brightness-110"
-                                            sizes="300px"
+                                            className="object-cover grayscale-[80%] brightness-75 group-hover:grayscale-0 group-hover:brightness-110 transition-all duration-700"
+                                            sizes={isMobile ? "200px" : "320px"}
                                             loading="lazy"
                                         />
-                                        <div className="absolute inset-0 border border-white/10 group-hover:border-accent transition-colors duration-500"></div>
+                                        {/* Edge light reflection */}
+                                        <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent mix-blend-overlay pointer-events-none" />
+                                        {/* Border hover accent */}
+                                        <div className="absolute inset-0 border border-white/5 group-hover:border-accent/40 transition-colors duration-700 pointer-events-none" />
                                     </div>
                                 </div>
                             );
                         })}
-                    </div>
-                </div>
-            )}
+                    </motion.div>
+                </motion.div>
+            </div>
 
-            {/* Styles for 3D specific features */}
+            {/* Lightbox for viewing photos full screen */}
+            <Lightbox
+                isOpen={activePhoto !== null}
+                photoUrl={activePhoto !== null ? sessionPhotos[activePhoto] : ""}
+                onClose={() => setActivePhoto(null)}
+                onNext={handleLightboxNext}
+                onPrev={handleLightboxPrev}
+            />
+
             <style dangerouslySetInnerHTML={{
                 __html: `
-        .perspective-[2000px] { perspective: 2000px; }
-        .preserve-3d { transform-style: preserve-3d; }
-        .backface-hidden { backface-visibility: hidden; }
-        .hidescrollbar::-webkit-scrollbar { display: none; }
-        .hidescrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-      `}} />
+                .perspective-[2000px] { perspective: 2000px; }
+                .preserve-3d { transform-style: preserve-3d; }
+                .backface-hidden { backface-visibility: hidden; }
+                .hidescrollbar::-webkit-scrollbar { display: none; }
+                .hidescrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+            `}} />
         </section>
     );
 }
