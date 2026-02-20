@@ -44,11 +44,11 @@ export default function Hero() {
     return (
         <section
             ref={containerRef}
-            className="relative w-full h-screen overflow-hidden bg-white flex items-center justify-center"
+            className="relative w-full h-screen overflow-hidden bg-white flex items-center justify-center bg-black"
         >
             <div
                 ref={bgRef}
-                className="relative w-full h-full overflow-hidden will-change-transform"
+                className="relative w-full h-full md:w-[60vw] xl:w-[45vw] md:h-[90vh] overflow-hidden will-change-transform bg-black"
             >
                 {/* 1. Mobile Experience: Muted Video Background (Hidden on Desktop) */}
                 <video
