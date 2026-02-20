@@ -1,17 +1,19 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { unstable_setRequestLocale } from "next-intl/server";
+import { locales } from "@/i18n";
 import { journalPosts } from "@/lib/data";
 import type { Metadata } from "next";
 
 type Props = {
-    params: Promise<{ slug: string }>;
+    params: Promise<{ locale: string; slug: string }>;
 };
 
 export async function generateStaticParams() {
-    return journalPosts.map((post) => ({
-        slug: post.slug,
-    }));
+    return locales.flatMap((locale) =>
+        journalPosts.map((post) => ({ locale, slug: post.slug }))
+    );
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -26,7 +28,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function JournalPostPage({ params }: Props) {
-    const { slug } = await params;
+    const { locale, slug } = await params;
+    unstable_setRequestLocale(locale);
     const post = journalPosts.find(p => p.slug === slug);
 
     if (!post) notFound();

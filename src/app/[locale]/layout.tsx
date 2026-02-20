@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { NextIntlClientProvider } from "next-intl";
-import { getMessages } from "next-intl/server";
+import { getMessages, unstable_setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { locales } from "@/i18n";
 
@@ -16,7 +16,7 @@ type Props = {
     params: Promise<{ locale: string }>;
 };
 
-export async function generateStaticParams() {
+export function generateStaticParams() {
     return locales.map((locale) => ({ locale }));
 }
 
@@ -110,6 +110,9 @@ export default async function LocaleLayout({ children, params }: Props) {
     if (!locales.includes(locale as typeof locales[number])) {
         notFound();
     }
+
+    // Enable static rendering for next-intl
+    unstable_setRequestLocale(locale);
 
     const messages = await getMessages();
 
