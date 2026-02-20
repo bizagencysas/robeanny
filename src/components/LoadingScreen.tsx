@@ -7,7 +7,7 @@ export default function LoadingScreen() {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        // Hide loading screen after 2.5 seconds (gives time for animation)
+        // V2 specification: Total silence, stagger 80ms -> 8 chars * 80ms = 640ms + pulse duration
         const timer = setTimeout(() => {
             setIsLoading(false);
         }, 2500);
@@ -17,11 +17,11 @@ export default function LoadingScreen() {
     const name = "ROBEANNY".split("");
 
     const containerVariants = {
-        hidden: { opacity: 0 },
+        hidden: { opacity: 1 }, // Keep black background fully opaque initially
         visible: {
             opacity: 1,
             transition: {
-                staggerChildren: 0.1,
+                staggerChildren: 0.08, // 80ms requested stagger
             },
         },
         exit: {
@@ -31,8 +31,14 @@ export default function LoadingScreen() {
     };
 
     const letterVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: { duration: 0.8, ease: "easeOut" }
+        },
+        exit: {
+            opacity: 0
+        }
     };
 
     return (
@@ -45,25 +51,26 @@ export default function LoadingScreen() {
                     exit="exit"
                     className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black"
                 >
-                    {/* Text Animation */}
-                    <div className="flex space-x-[0.3em] overflow-hidden text-2xl md:text-5xl font-serif tracking-widest text-white mb-8">
+                    {/* V2 Loading Sequence */}
+                    <motion.div
+                        className="flex space-x-[0.2em] overflow-hidden text-3xl md:text-5xl lg:text-7xl font-serif tracking-widest text-white"
+                        // The final simultaneous pulse animation before fading out
+                        animate={{
+                            scale: [1, 1.02, 1],
+                            opacity: [1, 1, 0.5]
+                        }}
+                        transition={{
+                            duration: 1.5,
+                            ease: "easeInOut",
+                            delay: 1.2, // trigger pulse after letters finish appearing
+                        }}
+                    >
                         {name.map((letter, i) => (
-                            <motion.span key={i} variants={letterVariants}>
+                            <motion.span key={i} variants={letterVariants} className="inline-block">
                                 {letter}
                             </motion.span>
                         ))}
-                    </div>
-
-                    {/* Progress Bar Container */}
-                    <div className="w-64 max-w-[80vw] h-[1px] bg-dark-gray overflow-hidden">
-                        {/* Progress Bar Fill */}
-                        <motion.div
-                            initial={{ x: "-100%" }}
-                            animate={{ x: "0%" }}
-                            transition={{ duration: 1.5, ease: "easeInOut", delay: 0.2 }}
-                            className="w-full h-full bg-platinum"
-                        />
-                    </div>
+                    </motion.div>
                 </motion.div>
             )}
         </AnimatePresence>

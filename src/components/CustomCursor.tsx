@@ -5,11 +5,16 @@ import { motion, useSpring } from "framer-motion";
 
 export default function CustomCursor() {
     const [isDesktop, setIsDesktop] = useState(false);
-    const [isHovering, setIsHovering] = useState(false);
+
+    // Interaction states
+    const [hoverType, setHoverType] = useState<"none" | "link" | "photo">("none");
+    const [isClicking, setIsClicking] = useState(false);
 
     // Position coordinates
-    const cursorX = useSpring(0, { stiffness: 200, damping: 25 });
-    const cursorY = useSpring(0, { stiffness: 200, damping: 25 });
+    const cursorX = useSpring(0, { stiffness: 500, damping: 28, mass: 0.5 });
+    const cursorY = useSpring(0, { stiffness: 500, damping: 28, mass: 0.5 });
+
+    // Halo spring lag (stiffness 80, damping 20 as requested)
     const haloX = useSpring(0, { stiffness: 80, damping: 20 });
     const haloY = useSpring(0, { stiffness: 80, damping: 20 });
 
@@ -28,63 +33,125 @@ export default function CustomCursor() {
         }
 
         const mouseMove = (e: MouseEvent) => {
-            // Offset by half the width/height of the dots
-            cursorX.set(e.clientX - 6);
-            cursorY.set(e.clientY - 6);
-            haloX.set(e.clientX - 20); // 40/2
-            haloY.set(e.clientY - 20);
+            cursorX.set(e.clientX);
+            cursorY.set(e.clientY);
+            haloX.set(e.clientX);
+            haloY.set(e.clientY);
         };
 
         const handleHoverStart = (e: MouseEvent) => {
             const target = e.target as HTMLElement;
+
+            // Photo hover check (using data-cursor="photo" or closest image card)
+            if (target.closest('[data-cursor="photo"]') || target.tagName.toLowerCase() === "img") {
+                setHoverType("photo");
+                return;
+            }
+
+            // Link hover check
             if (
                 target.tagName.toLowerCase() === "a" ||
                 target.tagName.toLowerCase() === "button" ||
                 target.closest("a") ||
                 target.closest("button")
             ) {
-                setIsHovering(true);
+                setHoverType("link");
+                return;
             }
         };
 
         const handleHoverEnd = () => {
-            setIsHovering(false);
+            setHoverType("none");
         };
+
+        const handleMouseDown = () => setIsClicking(true);
+        const handleMouseUp = () => setIsClicking(false);
 
         window.addEventListener("mousemove", mouseMove);
         window.addEventListener("mouseover", handleHoverStart);
         window.addEventListener("mouseout", handleHoverEnd);
+        window.addEventListener("mousedown", handleMouseDown);
+        window.addEventListener("mouseup", handleMouseUp);
 
         return () => {
             window.removeEventListener("mousemove", mouseMove);
             window.removeEventListener("mouseover", handleHoverStart);
             window.removeEventListener("mouseout", handleHoverEnd);
+            window.removeEventListener("mousedown", handleMouseDown);
+            window.removeEventListener("mouseup", handleMouseUp);
         };
     }, [cursorX, cursorY, haloX, haloY]);
 
     if (!isDesktop) return null;
 
+    // Default dimensions
+    let haloSize = 50;
+    let haloScaleX = 1;
+    let haloScaleY = 1;
+    let haloBorder = "rgba(255, 255, 255, 0.3)";
+    let dotOpacity = 1;
+
+    // Apply specific hover styles
+    if (hoverType === "link") {
+        dotOpacity = 0; // The small dot disappears
+        haloScaleX = 1.5; // Flattens into an ellipse
+        haloScaleY = 0.5;
+    } else if (hoverType === "photo") {
+        haloSize = 80;
+        haloBorder = "var(--gold)";
+    }
+
+    // Apply click pulse
+    const clickScale = isClicking ? 1.4 : 1;
+
     return (
         <>
+            {/* Small Inner Dot */}
             <motion.div
-                className="fixed top-0 left-0 w-3 h-3 bg-white rounded-full pointer-events-none z-[9999] mix-blend-difference"
+                className="fixed top-0 left-0 w-[10px] h-[10px] bg-white rounded-full pointer-events-none z-[9999] mix-blend-difference"
                 style={{
                     x: cursorX,
                     y: cursorY,
+                    translateX: "-50%",
+                    translateY: "-50%",
                 }}
+                animate={{ opacity: dotOpacity }}
+                transition={{ duration: 0.2 }}
             />
+
+            {/* Outer Halo */}
             <motion.div
-                className={`fixed top-0 left-0 rounded-full pointer-events-none z-[9998] transition-colors duration-200 border`}
+                className="fixed top-0 left-0 rounded-full pointer-events-none z-[9998] border border-solid flex items-center justify-center overflow-hidden"
                 style={{
                     x: haloX,
                     y: haloY,
-                    width: isHovering ? 60 : 40,
-                    height: isHovering ? 60 : 40,
-                    marginLeft: isHovering ? -10 : 0,
-                    marginTop: isHovering ? -10 : 0,
-                    borderColor: isHovering ? "var(--accent)" : "rgba(255, 255, 255, 0.4)",
+                    translateX: "-50%",
+                    translateY: "-50%",
                 }}
-            />
+                animate={{
+                    width: haloSize,
+                    height: haloSize,
+                    scaleX: haloScaleX * clickScale,
+                    scaleY: haloScaleY * clickScale,
+                    borderColor: haloBorder,
+                }}
+                transition={{
+                    type: "spring",
+                    stiffness: 300,
+                    damping: 20,
+                    mass: 0.5
+                }}
+            >
+                {/* Text inside halo when hovering over a photo */}
+                <motion.span
+                    className="font-sans text-[9px] uppercase tracking-widest text-gold whitespace-nowrap"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: hoverType === "photo" ? 1 : 0 }}
+                    transition={{ duration: 0.2 }}
+                >
+                    VIEW
+                </motion.span>
+            </motion.div>
         </>
     );
 }

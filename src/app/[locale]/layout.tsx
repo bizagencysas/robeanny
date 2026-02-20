@@ -59,6 +59,8 @@ export const viewport: Viewport = {
     themeColor: "#0a0a0a",
 };
 
+import SmoothScroll from "@/components/SmoothScroll";
+
 export default async function LocaleLayout({
     children,
     params: { locale },
@@ -71,14 +73,16 @@ export default async function LocaleLayout({
     return (
         <html lang={locale} className={`${cormorantGaramond.variable} ${montserrat.variable}`}>
             <body>
-                <NextIntlClientProvider messages={messages}>
-                    <LoadingScreen />
-                    <CustomCursor />
-                    <ScrollProgress />
-                    <Particles />
-                    <Navbar />
-                    {children}
-                </NextIntlClientProvider>
+                <SmoothScroll>
+                    <NextIntlClientProvider messages={messages}>
+                        <LoadingScreen />
+                        <CustomCursor />
+                        <ScrollProgress />
+                        <Particles />
+                        <Navbar />
+                        {children}
+                    </NextIntlClientProvider>
+                </SmoothScroll>
             </body>
         </html>
     );

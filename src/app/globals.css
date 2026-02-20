@@ -45,11 +45,90 @@ body {
 }
 
 /* Base interactive reset */
-a, button {
-  cursor: none; /* Hide default cursor to use custom cursor on desktop */
+a,
+button {
+  cursor: none;
+  /* Hide default cursor to use custom cursor on desktop */
 }
+
 @media (max-width: 1024px) {
-  a, button {
+
+  a,
+  button {
     cursor: pointer;
   }
+}
+
+/* V2 CSS Elegance Glitch */
+@keyframes glitch-r {
+  0% {
+    transform: translate(1px, 1px);
+  }
+
+  25% {
+    transform: translate(-1px, -1px);
+  }
+
+  50% {
+    transform: translate(2px, 0px);
+  }
+
+  75% {
+    transform: translate(-1px, 2px);
+  }
+
+  100% {
+    transform: translate(1px, -1px);
+  }
+}
+
+@keyframes glitch-l {
+  0% {
+    transform: translate(-1px, -1px);
+  }
+
+  25% {
+    transform: translate(1px, 1px);
+  }
+
+  50% {
+    transform: translate(-2px, 0px);
+  }
+
+  75% {
+    transform: translate(1px, -2px);
+  }
+
+  100% {
+    transform: translate(-1px, 1px);
+  }
+}
+
+.animate-glitch-r {
+  animation: glitch-r 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) both infinite;
+}
+
+.animate-glitch-l {
+  animation: glitch-l 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) both infinite;
+}
+
+.mask-image-glitch {
+  mask-image: linear-gradient(to bottom, transparent, transparent 40%, black 41%, black 44%, transparent 45%, transparent 60%, black 61%, black 63%, transparent 64%);
+}
+
+/* V2 Support Clip Path Hover Lines */
+.clip-path-tr-hover {
+  clip-path: polygon(100% 0%, 100% 10%, 90% 10%, 90% 0%);
+}
+
+.clip-path-tr-active {
+  clip-path: polygon(100% 0%, 100% 100%, 0% 100%, 0% 0%);
+}
+
+.clip-path-bl-hover {
+  clip-path: polygon(10% 100%, 0% 100%, 0% 90%, 10% 90%);
+}
+
+.clip-path-bl-active {
+  clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
 }

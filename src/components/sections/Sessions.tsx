@@ -1,11 +1,15 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
 import { motion, useAnimationFrame, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { photos } from "@/lib/photos";
 import Image from "next/image";
 import Lightbox from "./Lightbox";
+import dynamic from "next/dynamic";
+
+const Canvas = dynamic(() => import("@react-three/fiber").then(mod => mod.Canvas), { ssr: false });
+const VolumetricParticles = dynamic(() => import("../canvas/VolumetricParticles"), { ssr: false });
 
 export default function Sessions() {
     const t = useTranslations("sessions");
@@ -28,7 +32,6 @@ export default function Sessions() {
 
     // Filter to last 32 photos (Desktop) or 16 photos (Mobile)
     const maxPhotos = isMobile ? 16 : 32;
-    // We only have ~30 photos right now in photos.ts total, so just use what we can safely
     const sessionPhotos = photos.slice(11, 11 + maxPhotos);
 
     // 3D Carousel state
@@ -38,7 +41,10 @@ export default function Sessions() {
     // Scene Parallax (Global tilt based on mouse for Desktop)
     const mouseXPct = useMotionValue(0);
     const mouseYPct = useMotionValue(0);
-    const sceneRotateX = useTransform(mouseYPct, [-0.5, 0.5], [5, -15]); // Tilt up/down
+    // V2: Added slight rotateX oscillation to make the wheel "Breathe"
+    const [breatheRotateX, setBreatheRotateX] = useState(0);
+
+    const baseSceneRotateX = useTransform(mouseYPct, [-0.5, 0.5], [5, -15]); // Tilt up/down
     const sceneRotateY = useTransform(mouseXPct, [-0.5, 0.5], [-10, 10]);
 
     const handleMouseMove = (e: React.MouseEvent) => {
@@ -53,6 +59,11 @@ export default function Sessions() {
         if (!isHovering.current && !isDragging.current) {
             // Auto-rotate at a subtle constant speed
             rotation.set(rotation.get() - delta * 0.015);
+        }
+
+        // V2 breathe oscillation on X axis (±5 deg) if not dragging
+        if (!isDragging.current && !isMobile) {
+            setBreatheRotateX(Math.sin(time / 2000) * 5);
         }
     });
 
@@ -84,16 +95,11 @@ export default function Sessions() {
         }
     };
 
-    const handleLightboxNext = () => {
-        setActivePhoto((prev) => (prev !== null && prev < sessionPhotos.length - 1 ? prev + 1 : 0));
-    };
+    const handleLightboxNext = () => setActivePhoto((prev) => (prev !== null && prev < sessionPhotos.length - 1 ? prev + 1 : 0));
+    const handleLightboxPrev = () => setActivePhoto((prev) => (prev !== null && prev > 0 ? prev - 1 : sessionPhotos.length - 1));
 
-    const handleLightboxPrev = () => {
-        setActivePhoto((prev) => (prev !== null && prev > 0 ? prev - 1 : sessionPhotos.length - 1));
-    };
-
-    // Radius of the circle
-    const radius = isMobile ? 300 : 900;
+    // V2 Radius 
+    const radius = isMobile ? 220 : 900;
 
     return (
         <section
@@ -101,6 +107,18 @@ export default function Sessions() {
             className="py-24 md:py-32 bg-black relative overflow-hidden min-h-screen flex flex-col items-center justify-center cursor-default"
             onMouseMove={handleMouseMove}
         >
+            {/* V2 Three.js Volumetric Particles Background */}
+            <div className="absolute inset-0 z-0 opacity-60">
+                <Suspense fallback={null}>
+                    <Canvas
+                        camera={{ position: [0, 0, 1000], far: 3000 }}
+                        gl={{ antialias: false, alpha: true }}
+                    >
+                        <VolumetricParticles count={isMobile ? 1000 : 3000} radius={isMobile ? 1500 : 2500} />
+                    </Canvas>
+                </Suspense>
+            </div>
+
             {/* Header */}
             <div className="absolute top-24 z-30 text-center w-full px-4 pointer-events-none">
                 <motion.h2
@@ -130,9 +148,8 @@ export default function Sessions() {
                 </motion.div>
             </div>
 
-            {/* AAA 3D Interactive Carousel (Mobile & Desktop) */}
-            <div className="relative w-full h-[60vh] md:h-[80vh] flex items-center justify-center z-10 perspective-[2000px] overflow-hidden md:overflow-visible">
-                {/* Transparent drag surface that overlays the carousel entirely */}
+            {/* V2 AAA 3D Interactive Carousel */}
+            <div className="relative w-full h-[60vh] md:h-[80vh] flex items-center justify-center z-10 perspective-[2000px] overflow-hidden md:overflow-visible mix-blend-screen">
                 <motion.div
                     className="absolute inset-0 z-20 cursor-grab active:cursor-grabbing"
                     drag="x"
@@ -141,17 +158,15 @@ export default function Sessions() {
                     onDragStart={handleDragStart}
                     onDragEnd={handleDragEnd}
                     onDrag={(e, info) => {
-                        // Amplify drag effect
                         rotation.set(rotation.get() + info.delta.x * (isMobile ? 0.8 : 0.4));
                     }}
                 />
 
-                {/* Scene Parallax Wrapper */}
                 <motion.div
                     ref={sceneRef}
                     className="w-full h-full absolute preserve-3d"
                     style={{
-                        rotateX: isMobile ? 0 : sceneRotateX,
+                        rotateX: isMobile ? breatheRotateX : useTransform(baseSceneRotateX, val => val + breatheRotateX),
                         rotateY: isMobile ? 0 : sceneRotateY,
                     }}
                     initial={{ scale: 0.8, opacity: 0 }}
@@ -159,7 +174,6 @@ export default function Sessions() {
                     viewport={{ once: true, margin: "100px" }}
                     transition={{ duration: 1.5, ease: "easeOut" }}
                 >
-                    {/* The Rotary Cylinder */}
                     <motion.div
                         className="w-full h-full absolute preserve-3d"
                         style={{ rotateY: smoothRotation }}
@@ -167,39 +181,42 @@ export default function Sessions() {
                         {sessionPhotos.map((photo, idx) => {
                             const angle = (360 / sessionPhotos.length) * idx;
 
+                            // V2 styling: Polaroid (vertical, black border, drop shadow)
                             return (
-                                <div
+                                <motion.div
                                     key={idx}
-                                    className={`absolute top-1/2 left-1/2 ${isMobile ? "w-[200px] h-[300px] -mt-[150px] -ml-[100px]" : "w-[320px] h-[480px] -mt-[240px] -ml-[160px]"} backface-hidden pointer-events-auto z-30`}
+                                    className={`absolute top-1/2 left-1/2 ${isMobile ? "w-[180px] h-[280px] -mt-[140px] -ml-[90px]" : "w-[300px] h-[450px] -mt-[225px] -ml-[150px]"} backface-hidden pointer-events-auto z-30 flex flex-col p-2 bg-black/80 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.8)]`}
                                     style={{
+                                        // On hover, pop out by 100px in Z axis using CSS in transition
                                         transform: `rotateY(${angle}deg) translateZ(${radius}px)`,
+                                    }}
+                                    whileHover={{
+                                        transform: `rotateY(${angle}deg) translateZ(${radius + 100}px) scale(1.1)`,
+                                        zIndex: 40,
+                                        borderColor: "rgba(255,255,255,0.4)"
                                     }}
                                     onMouseEnter={() => { if (!isMobile) isHovering.current = true; }}
                                     onMouseLeave={() => { if (!isMobile) isHovering.current = false; }}
                                     onClick={() => isMobile ? handlePhotoTap(idx) : setActivePhoto(idx)}
+                                    data-cursor="photo"
                                 >
-                                    <div className="w-full h-full relative overflow-hidden transition-all duration-700 hover:scale-105 group cursor-pointer shadow-2xl">
+                                    <div className="w-full h-full relative overflow-hidden group">
                                         <Image
                                             src={photo}
                                             alt={`Session ${idx}`}
                                             fill
                                             className="object-cover grayscale-[80%] brightness-75 group-hover:grayscale-0 group-hover:brightness-110 transition-all duration-700"
-                                            sizes={isMobile ? "200px" : "320px"}
+                                            sizes={isMobile ? "180px" : "300px"}
                                             loading="lazy"
                                         />
-                                        {/* Edge light reflection */}
-                                        <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent mix-blend-overlay pointer-events-none" />
-                                        {/* Border hover accent */}
-                                        <div className="absolute inset-0 border border-white/5 group-hover:border-accent/40 transition-colors duration-700 pointer-events-none" />
                                     </div>
-                                </div>
+                                </motion.div>
                             );
                         })}
                     </motion.div>
                 </motion.div>
             </div>
 
-            {/* Lightbox for viewing photos full screen */}
             <Lightbox
                 isOpen={activePhoto !== null}
                 photoUrl={activePhoto !== null ? sessionPhotos[activePhoto] : ""}
