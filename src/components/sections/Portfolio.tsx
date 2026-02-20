@@ -10,7 +10,7 @@ gsap.registerPlugin(ScrollTrigger);
 
 export default function Portfolio() {
     const containerRef = useRef<HTMLElement>(null);
-    const [visibleCount, setVisibleCount] = useState(12);
+    const [visibleCount, setVisibleCount] = useState(6);
 
     const loadMorePhotos = () => {
         setVisibleCount(domainPhotos.length);
@@ -103,13 +103,19 @@ export default function Portfolio() {
             ref={containerRef}
             className="bg-white text-black w-full min-h-screen py-24 px-4 md:px-8 relative"
         >
-            <div className="flex flex-col items-center mb-24">
-                <h2 className="editorial-title text-[15vw] leading-[0.8] text-center tracking-tighter">
+            {/* Massive Overlapping Header matching 'About' style */}
+            <div className="relative w-full flex flex-col items-center justify-center mb-32 h-[30vh] overflow-hidden">
+                <h2 className="editorial-title text-[25vw] md:text-[20vw] lg:text-[18vw] text-black/5 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap tracking-tighter select-none z-0">
                     PORTAFOLIO
                 </h2>
-                <p className="editorial-body text-xs md:text-sm tracking-[0.4em] uppercase mt-12 text-black/50">
-                    Trabajos Profesionales / Vol. 1
-                </p>
+                <div className="relative z-10 flex flex-col items-center mt-12">
+                    <h3 className="editorial-title text-4xl md:text-6xl text-black">
+                        EL <span className="italic font-light">ARCHIVO</span>
+                    </h3>
+                    <p className="editorial-body text-[10px] md:text-xs tracking-[0.4em] uppercase mt-4 text-black/60">
+                        Trabajos Profesionales / Vol. 1
+                    </p>
+                </div>
             </div>
 
             {/* Editorial Masonry/Staggered Layout 
@@ -138,9 +144,11 @@ export default function Portfolio() {
                     }
 
                     // Randomize aspect ratios slightly to enhance the masonry effect
+                    // Force the very first image to object-top to prevent head cropping on mobile
                     const isWide = i % 7 === 0;
                     const isTall = i % 3 === 0 && !isWide;
                     const aspectRatioClass = isWide ? "aspect-[4/3]" : isTall ? "aspect-[2/3]" : "aspect-[3/4]";
+                    const objectPositionClass = i === 0 ? "object-[center_top]" : "object-center";
 
                     return (
                         <div
@@ -154,7 +162,7 @@ export default function Portfolio() {
                                     alt={`Editorial Shot ${i + 1}`}
                                     fill
                                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                    className="portfolio-image object-cover scale-[1.15] transition-transform duration-[1.5s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.2]"
+                                    className={`portfolio-image object-cover ${objectPositionClass} scale-[1.15] transition-transform duration-[1.5s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.2]`}
                                     loading={i < 4 ? "eager" : "lazy"}
                                 />
                             </div>
@@ -174,7 +182,7 @@ export default function Portfolio() {
                         onClick={loadMorePhotos}
                         className="editorial-body text-xs uppercase tracking-[0.3em] font-bold border-b border-black pb-1 hover:text-black/50 transition-colors"
                     >
-                        Cargar Archivo Completo
+                        EXPLORAR GALERÍA
                     </button>
                 </div>
             )}

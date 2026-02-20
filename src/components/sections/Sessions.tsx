@@ -57,8 +57,16 @@ export default function Sessions() {
     return (
         <section className="w-full bg-[#f4f4f4] text-black py-24 md:py-32 relative overflow-hidden border-y border-black/5">
 
-            <div className="px-6 md:px-12 flex flex-col mb-16">
-                <h2 className="editorial-title text-4xl md:text-7xl">Sesiones</h2>
+            {/* Massive Overlapping Header */}
+            <div className="relative w-full flex flex-col items-center justify-center mb-24 md:mb-32 h-[20vh] md:h-[30vh] overflow-hidden">
+                <h2 className="editorial-title text-[25vw] md:text-[20vw] lg:text-[18vw] text-black/5 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap tracking-tighter select-none z-0">
+                    SESIONES
+                </h2>
+                <div className="relative z-10 flex flex-col items-center mt-12 md:mt-16">
+                    <h3 className="editorial-title text-4xl md:text-6xl text-black">
+                        MÁS DEL <span className="italic font-light">SET</span>
+                    </h3>
+                </div>
             </div>
 
             {/* GSAP Powered Infinite Horizontal Ticker */}

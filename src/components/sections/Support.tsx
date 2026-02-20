@@ -68,7 +68,7 @@ export default function Support() {
                     data-cursor="explore"
                 >
                     <div className="absolute inset-0 bg-black translate-y-[100%] group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]" />
-                    <h3 className="editorial-title text-3xl md:text-4xl text-black group-hover:text-white relative z-10 transition-colors duration-500">Wishlist & Regalos</h3>
+                    <h3 className="editorial-title text-3xl md:text-4xl text-black group-hover:text-white relative z-10 transition-colors duration-500">Propinas & Regalos ($$$)</h3>
                     <span className="editorial-body text-[10px] uppercase tracking-widest text-black/50 group-hover:text-white/70 relative z-10 transition-colors duration-500">
                         Sorpréndeme \
                     </span>

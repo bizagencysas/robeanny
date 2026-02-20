@@ -5,6 +5,7 @@ import "./globals.css";
 import CustomCursor from "@/components/ui/CustomCursor";
 import LoadingScreen from "@/components/layout/LoadingScreen";
 import SmoothScroll from "@/components/layout/SmoothScroll";
+import Navbar from "@/components/layout/Navbar";
 
 const cormorantGaramond = Cormorant_Garamond({
   weight: ["300", "400", "500", "600", "700"],
@@ -147,6 +148,7 @@ export default function RootLayout({
         <SmoothScroll>
           <CustomCursor />
           <LoadingScreen />
+          <Navbar />
           {children}
         </SmoothScroll>
       </body>

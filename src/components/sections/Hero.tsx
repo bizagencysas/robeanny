@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
-import { heroImage } from "@/lib/data";
 
 export default function Hero() {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -32,18 +30,18 @@ export default function Hero() {
             ref={containerRef}
             className="relative w-full h-screen overflow-hidden bg-white flex items-center justify-center p-4 md:p-8"
         >
-            {/* The Huge Hero Image Wrapper - Asymmetric crop */}
+            {/* The Huge Hero Video Wrapper */}
             <div
                 ref={bgRef}
                 className="relative w-full h-[85vh] md:h-[90vh] overflow-hidden will-change-transform mt-12 md:mt-0"
             >
-                <Image
-                    src={heroImage}
-                    alt="Robeanny Hero"
-                    fill
-                    priority
-                    className="object-cover object-[center_15%] filter brightness-[0.9]"
-                    sizes="100vw"
+                <video
+                    src="/hero.mp4"
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="w-full h-full object-cover filter brightness-[0.8] scale-105"
                 />
             </div>
 

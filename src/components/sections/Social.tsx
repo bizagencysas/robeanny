@@ -40,7 +40,7 @@ export default function Social() {
         >
             <div className="max-w-[1400px] mx-auto flex flex-col items-center">
                 <h2 className="editorial-title text-4xl md:text-6xl text-center mb-16 relative inline-block">
-                    EL ARCHIVO <span className="italic font-light">DIGITAL</span>
+                    CONECTA <span className="italic font-light">AQUÍ</span>
                     {/* Subtle underline accent */}
                     <span className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-12 h-[1px] bg-black"></span>
                 </h2>
