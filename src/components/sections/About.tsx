@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Image from "next/image";
-import { personalData, aboutImage } from "@/lib/data";
+import { biography, measurements, aboutImage } from "@/lib/data";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -70,7 +70,7 @@ export default function About() {
                 </h3>
 
                 <div className="flex flex-col gap-8">
-                    {personalData.bio.map((paragraph, i) => (
+                    {biography.map((paragraph, i) => (
                         <p key={i} className="bio-text editorial-body text-base md:text-lg lg:text-xl text-black/80 max-w-xl">
                             {i === 0 ? <span className="float-left text-6xl font-serif leading-[0.8] pr-3 pt-2 font-bold">{paragraph.charAt(0)}</span> : null}
                             {i === 0 ? paragraph.substring(1) : paragraph}
@@ -82,12 +82,10 @@ export default function About() {
                 <div className="mt-20 border-t border-black/20 pt-8 bio-text">
                     <p className="editorial-title text-sm tracking-[0.3em] font-semibold mb-6">Measurements</p>
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-y-8 gap-x-4">
-                        {Object.entries({
-                            ...personalData.measurements
-                        }).map(([key, value]) => (
-                            <div key={key} className="flex flex-col">
-                                <span className="text-[10px] uppercase font-sans tracking-widest text-black/50 mb-1">{key}</span>
-                                <span className="font-serif text-xl md:text-2xl">{value}</span>
+                        {measurements.map((item, i) => (
+                            <div key={i} className="flex flex-col">
+                                <span className="text-[10px] uppercase font-sans tracking-widest text-black/50 mb-1">{item.label}</span>
+                                <span className="font-serif text-xl md:text-2xl">{item.value}</span>
                             </div>
                         ))}
                     </div>
