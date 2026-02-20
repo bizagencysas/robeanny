@@ -35,60 +35,88 @@ export default function Support() {
         <section
             id="support"
             ref={containerRef}
-            className="w-full bg-white text-black py-24 md:py-32 px-6 lg:px-12 flex flex-col items-center justify-center relative"
+            className="w-full bg-black text-white py-24 md:py-40 px-6 lg:px-12 flex flex-col items-center justify-center relative overflow-hidden"
         >
-            <div className="w-full h-[1px] bg-black/10 absolute top-0 left-0" />
-
-            <h2 className="editorial-title text-4xl md:text-5xl lg:text-6xl text-center mb-16 tracking-tighter">
-                APOYA <span className="italic font-light">el</span> ARTE
+            <h2 className="editorial-title text-5xl md:text-7xl lg:text-[10vw] text-center tracking-tighter leading-none">
+                APOYA <span className="block italic font-light text-white/50">EL ARTE.</span>
             </h2>
 
-            <div className="flex flex-col md:flex-row gap-6 md:gap-8 w-full max-w-[1200px] justify-center">
-                {/* Patreon */}
+            {/* --- Premium Support Interactive List --- */}
+            <div className="w-full max-w-[1400px] flex flex-col border-t border-white/20 mt-12 md:mt-24">
+
+                {/* Patreon Row */}
                 <a
                     href={personalData.socials.patreon}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="support-card flex-1 min-h-[250px] relative bg-platinum/10 border border-black p-8 md:p-12 flex flex-col justify-between group overflow-hidden"
-                    data-cursor="explore"
+                    className="group relative w-full border-b border-white/20 py-8 md:py-16 flex flex-col md:flex-row md:items-center justify-between hover:bg-white/5 transition-colors overflow-hidden px-4 md:px-0"
                 >
-                    <div className="absolute inset-0 bg-black translate-y-[100%] group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]" />
-                    <h3 className="editorial-title text-3xl md:text-4xl text-black group-hover:text-white relative z-10 transition-colors duration-500">Patrocina mi arte</h3>
-                    <span className="editorial-body text-[10px] uppercase tracking-widest text-black/50 group-hover:text-white/70 relative z-10 transition-colors duration-500">
-                        Únete al círculo \
-                    </span>
+                    <div className="flex flex-col z-10">
+                        <span className="font-sans text-[10px] md:text-xs tracking-[0.3em] uppercase text-white/50 mb-2">Únete al círculo</span>
+                        <h3 className="editorial-title text-4xl md:text-6xl lg:text-7xl group-hover:pl-4 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]">
+                            Patrocina mi arte
+                        </h3>
+                    </div>
+                    <div className="hidden md:flex items-center gap-4 z-10 opacity-0 group-hover:opacity-100 -translate-x-4 group-hover:translate-x-0 transition-all duration-500 delay-100 pr-8">
+                        <span className="font-sans text-xs tracking-widest uppercase">Explorar</span>
+                        <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="square">
+                            <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                    </div>
                 </a>
 
-                {/* Wishlist / Regalos -> Coffee */}
+                {/* Coffee/Gifts Row */}
                 <a
                     href={personalData.socials.gifts}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="support-card flex-1 min-h-[250px] relative bg-platinum/10 border border-black p-8 md:p-12 flex flex-col justify-between group overflow-hidden"
-                    data-cursor="explore"
+                    className="group relative w-full border-b border-white/20 py-8 md:py-16 flex flex-col md:flex-row md:items-center justify-between hover:bg-white/5 transition-colors overflow-hidden px-4 md:px-0"
                 >
-                    <div className="absolute inset-0 bg-black translate-y-[100%] group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]" />
-                    <h3 className="editorial-title text-3xl md:text-4xl text-black group-hover:text-white relative z-10 transition-colors duration-500">Bríndame un café</h3>
-                    <span className="editorial-body text-[10px] uppercase tracking-widest text-black/50 group-hover:text-white/70 relative z-10 transition-colors duration-500">
-                        Sorpréndeme \
-                    </span>
+                    <div className="flex flex-col z-10">
+                        <span className="font-sans text-[10px] md:text-xs tracking-[0.3em] uppercase text-white/50 mb-2">Sorpréndeme</span>
+                        <h3 className="editorial-title text-4xl md:text-6xl lg:text-7xl group-hover:pl-4 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]">
+                            Bríndame un café
+                        </h3>
+                    </div>
+                    <div className="hidden md:flex items-center gap-4 z-10 opacity-0 group-hover:opacity-100 -translate-x-4 group-hover:translate-x-0 transition-all duration-500 delay-100 pr-8">
+                        <span className="font-sans text-xs tracking-widest uppercase">Apoyar</span>
+                        <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="square">
+                            <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                    </div>
                 </a>
 
-                {/* LinkedIn */}
+                {/* LinkedIn Row */}
                 <a
                     href={personalData.socials.linkedin}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="support-card flex-1 min-h-[250px] relative bg-platinum/10 border border-black p-8 md:p-12 flex flex-col justify-between group overflow-hidden"
-                    data-cursor="explore"
+                    className="group relative w-full border-b border-white/20 py-8 md:py-16 flex flex-col md:flex-row md:items-center justify-between hover:bg-white/5 transition-colors overflow-hidden px-4 md:px-0"
                 >
-                    <div className="absolute inset-0 bg-black translate-y-[100%] group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]" />
-                    <h3 className="editorial-title text-3xl md:text-4xl text-black group-hover:text-white relative z-10 transition-colors duration-500">Booking Profesional</h3>
-                    <span className="editorial-body text-[10px] uppercase tracking-widest text-black/50 group-hover:text-white/70 relative z-10 transition-colors duration-500">
-                        Conecta en LinkedIn \
-                    </span>
+                    <div className="flex flex-col z-10">
+                        <span className="font-sans text-[10px] md:text-xs tracking-[0.3em] uppercase text-white/50 mb-2">Conecta en la Red</span>
+                        <h3 className="editorial-title text-4xl md:text-6xl lg:text-7xl group-hover:pl-4 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]">
+                            Booking Profesional
+                        </h3>
+                    </div>
+                    <div className="hidden md:flex items-center gap-4 z-10 opacity-0 group-hover:opacity-100 -translate-x-4 group-hover:translate-x-0 transition-all duration-500 delay-100 pr-8">
+                        <span className="font-sans text-xs tracking-widest uppercase">Conectar</span>
+                        <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="square">
+                            <path d="M21 13v6M16 21v-2a4 4 0 00-4-4H5m0-4h7m-7 4h7m-7 4h7" />
+                        </svg>
+                    </div>
                 </a>
             </div>
+
+            {/* --- True Elegance Footer --- */}
+            <footer className="w-full flex flex-col md:flex-row items-center justify-between max-w-[1400px] mt-24 pt-8 md:pt-12 px-4 md:px-0 pb-8 text-white/30 text-[10px] font-sans tracking-[0.3em] uppercase">
+                <p>© 2026 ROBEANNY BASTARDO</p>
+                <div className="flex items-center gap-4 mt-6 md:mt-0">
+                    <a href={personalData.socials.instagram} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Instagram</a>
+                    <span className="mx-2">•</span>
+                    <a href={personalData.socials.tiktok} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">TikTok</a>
+                </div>
+            </footer>
         </section>
     );
 }

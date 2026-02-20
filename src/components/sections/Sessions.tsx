@@ -103,7 +103,7 @@ export default function Sessions() {
                         return (
                             <motion.div
                                 key={url} // Unique key based on URL ensures AnimatePresence tracks it properly
-                                className="absolute inset-0 w-full h-full origin-bottom rounded-sm shadow-[0_30px_60px_rgba(0,0,0,0.5)] border border-white/10 overflow-hidden cursor-grab active:cursor-grabbing bg-zinc-900"
+                                className={`absolute inset-0 w-full h-full origin-bottom rounded-sm shadow-[0_30px_60px_rgba(0,0,0,0.5)] border border-white/10 overflow-hidden cursor-grab active:cursor-grabbing bg-zinc-900 ${isTopCard ? "touch-none" : ""}`}
                                 style={{ zIndex }}
 
                                 // --- INITIAL MOUNT STATE (When a card comes back during undo) ---
@@ -146,6 +146,7 @@ export default function Sessions() {
 
                                 // --- DRAG GESTURES (Only top card is draggable) ---
                                 drag={isTopCard ? "x" : false}
+                                dragDirectionLock={true}
                                 dragConstraints={{ left: 0, right: 0 }}
                                 dragElastic={1} // Allow full elastic pull in any direction
                                 onDragEnd={isTopCard ? handleDragEnd : undefined}

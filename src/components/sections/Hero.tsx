@@ -53,10 +53,10 @@ export default function Hero() {
                 {/* 1. Mobile Experience: Muted Video Background (Hidden on Desktop) */}
                 <video
                     src="/hero.mp4"
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
+                    autoPlay={true}
+                    loop={true}
+                    muted={true}
+                    playsInline={true}
                     className="block md:hidden w-full h-full object-cover filter brightness-[0.75] scale-105"
                 />
 
