@@ -93,12 +93,12 @@ function PortfolioTeaser() {
           </Link>
         </div>
         <div className="columns-2 md:columns-3 gap-3 md:gap-4">
-          {portfolioTeaser.map((url, i) => {
+          {portfolioTeaser.map((photo, i) => {
             const heights = ["h-[320px]", "h-[420px]", "h-[360px]", "h-[440px]", "h-[300px]", "h-[380px]", "h-[350px]", "h-[400px]"];
             return (
-              <div key={i} className="break-inside-avoid mb-3 md:mb-4 overflow-hidden group cursor-pointer">
+              <div key={photo.id} className="break-inside-avoid mb-3 md:mb-4 overflow-hidden group cursor-pointer">
                 <div className={`relative w-full ${heights[i]} overflow-hidden`}>
-                  <Image src={url} alt={`Robeanny Portfolio ${i + 1}`} fill className="object-cover transition-transform duration-[2s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105" sizes="(max-width: 768px) 50vw, 33vw" />
+                  <Image src={photo.src} alt={photo.alt} fill className="object-cover transition-transform duration-[2s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105" sizes="(max-width: 768px) 50vw, 33vw" />
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-500" />
                 </div>
               </div>
