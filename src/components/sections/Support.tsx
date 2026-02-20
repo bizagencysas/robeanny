@@ -107,16 +107,6 @@ export default function Support() {
                     </div>
                 </a>
             </div>
-
-            {/* --- True Elegance Footer --- */}
-            <footer className="w-full flex flex-col md:flex-row items-center justify-between max-w-[1400px] mt-24 pt-8 md:pt-12 px-4 md:px-0 pb-8 text-white/30 text-[10px] font-sans tracking-[0.3em] uppercase">
-                <p>© 2026 ROBEANNY BASTARDO</p>
-                <div className="flex items-center gap-4 mt-6 md:mt-0">
-                    <a href={personalData.socials.instagram} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Instagram</a>
-                    <span className="mx-2">•</span>
-                    <a href={personalData.socials.tiktok} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">TikTok</a>
-                </div>
-            </footer>
         </section>
     );
 }

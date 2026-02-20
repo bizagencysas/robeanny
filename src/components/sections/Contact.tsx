@@ -3,6 +3,7 @@
 import { useRef, useState, useLayoutEffect, useEffect } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { personalData } from "@/lib/data";
 
 const useIsomorphicLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 gsap.registerPlugin(ScrollTrigger);
@@ -159,6 +160,16 @@ export default function Contact() {
                     )}
                 </div>
             </div>
+
+            {/* --- True Elegance Footer Relocated Here --- */}
+            <footer className="w-full flex flex-col md:flex-row items-center justify-between max-w-[1400px] mt-32 pt-16 px-6 md:px-12 pb-8 text-black/40 text-[10px] font-sans tracking-[0.3em] uppercase border-t border-black/10">
+                <p>© 2026 ROBEANNY BASTARDO</p>
+                <div className="flex items-center gap-4 mt-6 md:mt-0">
+                    <a href={personalData.socials.instagram} target="_blank" rel="noopener noreferrer" className="hover:text-black transition-colors">Instagram</a>
+                    <span className="mx-2">•</span>
+                    <a href={personalData.socials.tiktok} target="_blank" rel="noopener noreferrer" className="hover:text-black transition-colors">TikTok</a>
+                </div>
+            </footer>
         </section>
     );
 }

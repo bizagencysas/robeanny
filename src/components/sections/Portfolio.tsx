@@ -11,9 +11,21 @@ gsap.registerPlugin(ScrollTrigger);
 export default function Portfolio() {
     const containerRef = useRef<HTMLElement>(null);
     const [visibleCount, setVisibleCount] = useState(6);
+    const [shuffledPhotos, setShuffledPhotos] = useState<string[]>([]);
+
+    useEffect(() => {
+        // Client-side execution ONLY (prevent hydration errors)
+        // Fisher-Yates array shuffle algorithm for the chaotic editorial requested look.
+        const mixArray = [...domainPhotos];
+        for (let i = mixArray.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [mixArray[i], mixArray[j]] = [mixArray[j], mixArray[i]];
+        }
+        setShuffledPhotos(mixArray);
+    }, []);
 
     const loadMorePhotos = () => {
-        setVisibleCount(domainPhotos.length);
+        setVisibleCount(shuffledPhotos.length);
         // Give DOM time to paint the new items before re-calculating ScrollTriggers
         setTimeout(() => {
             ScrollTrigger.refresh();
@@ -122,8 +134,8 @@ export default function Portfolio() {
           Using columns in CSS to create an authentic masonry look
           that flows vertically without horizontal scrolling.
       */}
-            <div className="w-full max-w-[1600px] mx-auto columns-1 md:columns-2 lg:columns-3 gap-6 md:gap-8 space-y-6 md:space-y-8">
-                {domainPhotos.slice(0, visibleCount).map((photo, i) => {
+            <div className="w-full max-w-[1600px] mx-auto columns-1 md:columns-2 lg:columns-3 gap-6 md:gap-8 space-y-6 md:space-y-8 min-h-[50vh]">
+                {shuffledPhotos.length > 0 && shuffledPhotos.slice(0, visibleCount).map((photo, i) => {
                     // Add some editorial empty space occasionally by injecting a block quote
                     if (i === 12) {
                         return (
@@ -176,7 +188,7 @@ export default function Portfolio() {
                 })}
             </div>
 
-            {visibleCount < domainPhotos.length && (
+            {visibleCount < shuffledPhotos.length && (
                 <div className="w-full flex justify-center mt-24">
                     <button
                         onClick={loadMorePhotos}

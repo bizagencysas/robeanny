@@ -13,8 +13,19 @@ export default function Hero() {
     const containerRef = useRef<HTMLDivElement>(null);
     const bgRef = useRef<HTMLDivElement>(null);
     const textRef = useRef<HTMLHeadingElement>(null);
+    const videoRef = useRef<HTMLVideoElement>(null);
     const [y, setY] = useState(0);
     const [currentImage, setCurrentImage] = useState(0);
+
+    // Aggressive Mobile Video Autoplay Override
+    useEffect(() => {
+        const video = videoRef.current;
+        if (video) {
+            video.muted = true;
+            video.playsInline = true;
+            video.play().catch(error => console.log("Video auto-play blocked by browser:", error));
+        }
+    }, []);
 
     // Subtle Native Parallax
     useEffect(() => {
@@ -52,6 +63,7 @@ export default function Hero() {
             >
                 {/* 1. Mobile Experience: Muted Video Background (Hidden on Desktop) */}
                 <video
+                    ref={videoRef}
                     src="/hero.mp4"
                     autoPlay={true}
                     loop={true}
