@@ -6,13 +6,13 @@ import Particles from "@/components/ui/Particles";
 import { heroImage } from "@/lib/data";
 import Image from "next/image";
 import gsap from "gsap";
-import { useWindowScroll } from "react-use";
+import { useState } from "react";
 
 export default function Hero() {
     const containerRef = useRef<HTMLDivElement>(null);
     const textRef = useRef<HTMLHeadingElement>(null);
     const bgRef = useRef<HTMLDivElement>(null);
-    const { y } = useWindowScroll();
+    const [y, setY] = useState(0);
 
     const name = "ROBEANNY".split("");
 
@@ -47,6 +47,14 @@ export default function Hero() {
         }, containerRef);
 
         return () => ctx.revert();
+    }, []);
+
+    // Window scroll listener for parallax
+    useEffect(() => {
+        const handleScroll = () => setY(window.scrollY);
+        window.addEventListener("scroll", handleScroll, { passive: true });
+        handleScroll();
+        return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
     // Parallax Effect

@@ -3,7 +3,9 @@
 import { useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useIsomorphicLayoutEffect } from "react-use";
+import { useLayoutEffect, useEffect } from "react";
+
+const useIsomorphicLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 gsap.registerPlugin(ScrollTrigger);
 
