@@ -20,8 +20,7 @@ export default function Navbar() {
 
     return (
         <header
-            className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 will-change-transform mix-blend-difference ${scrolled ? "py-4 md:py-6" : "py-8 md:py-12"
-                }`}
+            className="absolute top-0 left-0 w-full z-50 pt-8 pl-8 mix-blend-difference"
         >
             <div className="w-full px-6 flex justify-between items-center pointer-events-none">
                 {/* Logo */}

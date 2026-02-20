@@ -30,10 +30,10 @@ export default function Hero() {
             ref={containerRef}
             className="relative w-full h-screen overflow-hidden bg-white flex items-center justify-center p-4 md:p-8"
         >
-            {/* The Huge Hero Video Wrapper */}
+            {/* The Huge Hero Video Wrapper - Constrained on desktop to prevent heavy vertical cropping */}
             <div
                 ref={bgRef}
-                className="relative w-full h-[85vh] md:h-[90vh] overflow-hidden will-change-transform mt-12 md:mt-0"
+                className="relative w-full md:w-[60vw] xl:w-[45vw] h-[85vh] md:h-[90vh] overflow-hidden will-change-transform mt-12 md:mt-0"
             >
                 <video
                     src="/hero.mp4"

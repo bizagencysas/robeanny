@@ -55,10 +55,10 @@ export default function About() {
         <section
             id="about"
             ref={containerRef}
-            className="w-full bg-white text-black py-24 md:py-40 px-6 md:px-12 lg:px-[10vw] flex flex-col lg:flex-row items-center lg:items-start justify-between gap-16 lg:gap-24 relative overflow-hidden"
+            className="w-full bg-white text-black py-24 md:py-40 mt-16 md:mt-0 px-6 md:px-12 lg:px-[10vw] flex flex-col lg:flex-row items-center lg:items-start justify-between gap-16 lg:gap-24 relative overflow-hidden"
         >
             {/* Background massive watermark - Magazine Style */}
-            <h2 className="absolute -top-10 -left-10 text-[20vw] font-serif text-black/5 leading-none select-none pointer-events-none uppercase tracking-tighter">
+            <h2 className="absolute -top-10 -left-10 text-[25vw] md:text-[20vw] font-serif text-black/5 leading-none select-none pointer-events-none uppercase tracking-tighter">
                 About
             </h2>
 

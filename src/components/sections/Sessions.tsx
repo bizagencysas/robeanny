@@ -5,10 +5,14 @@ import Image from "next/image";
 import { cloudinaryPhotos } from "@/lib/data";
 import Lightbox from "@/components/ui/Lightbox";
 import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
 
 export default function Sessions() {
     const [activePhoto, setActivePhoto] = useState<number | null>(null);
-    const marqueeRef = useRef<HTMLDivElement>(null);
+    const sectionRef = useRef<HTMLElement>(null);
+    const carouselRef = useRef<HTMLDivElement>(null);
 
     const handleNext = () => setActivePhoto((prev) => (prev !== null && prev < cloudinaryPhotos.length - 1 ? prev + 1 : 0));
     const handlePrev = () => setActivePhoto((prev) => (prev !== null && prev > 0 ? prev - 1 : cloudinaryPhotos.length - 1));
@@ -17,70 +21,59 @@ export default function Sessions() {
         setActivePhoto(index % cloudinaryPhotos.length);
     };
 
-    // Duplicate array multiple times to ensure the container is wide enough for a continuous loop
-    // GSAP needs the content to be wider than the viewport to loop properly.
-    const marqueePhotos = [...cloudinaryPhotos, ...cloudinaryPhotos, ...cloudinaryPhotos];
+    // Use only the distinct photos, the user didn't want the fake infinite loop.
+    // They want a specific number of high-quality items they can scroll through.
+    const carouselPhotos = cloudinaryPhotos;
 
     useEffect(() => {
         const ctx = gsap.context(() => {
-            if (!marqueeRef.current) return;
+            if (!sectionRef.current || !carouselRef.current) return;
 
-            // Get the total width of one full set of photos (1/3 of the total scroll width)
-            // We use clientWidth/scrollWidth calculations to make it perfectly responsive
-            const totalWidth = marqueeRef.current.scrollWidth;
-            const thirdWidth = totalWidth / 3;
+            // Calculate the total horizontal distance the carousel needs to move to reveal all items
+            const totalWidth = carouselRef.current.scrollWidth;
+            const viewportWidth = window.innerWidth;
+            const scrollDistance = totalWidth - viewportWidth;
 
-            // Create a seamless infinite tween using GSAP
-            // It pans left by exactly one set's width, then instantly resets to 0 (seamless loop)
-            const tween = gsap.to(marqueeRef.current, {
-                x: -thirdWidth,
+            // Create the high-end pinned horizontal scroll
+            gsap.to(carouselRef.current, {
+                x: -scrollDistance,
                 ease: "none",
-                duration: 60, // Adjust this for speed (lower = faster)
-                repeat: -1,
-                modifiers: {
-                    x: gsap.utils.unitize((x) => parseFloat(x) % thirdWidth) // The magic modulo that makes it seamless
+                scrollTrigger: {
+                    trigger: sectionRef.current,
+                    start: "top top", // When section hits top of viewport
+                    end: `+=${scrollDistance}`, // Pin for the duration of the scroll length
+                    pin: true,
+                    scrub: 1, // Add 1 second of lag for buttery smooth interpolation
+                    invalidateOnRefresh: true, // Recalculate on resize
                 }
             });
-
-            // Premium UX: Pause on hover softly
-            const container = marqueeRef.current.parentElement;
-            if (container) {
-                container.addEventListener("mouseenter", () => gsap.to(tween, { timeScale: 0.1, duration: 1, ease: "power2.out" }));
-                container.addEventListener("mouseleave", () => gsap.to(tween, { timeScale: 1, duration: 1, ease: "power2.in" }));
-            }
-
-        }, marqueeRef);
+        }, sectionRef);
 
         return () => ctx.revert();
     }, []);
 
     return (
-        <section className="w-full bg-[#f4f4f4] text-black py-24 md:py-32 relative overflow-hidden border-y border-black/5">
+        <section ref={sectionRef} className="w-full bg-[#f4f4f4] text-black h-screen relative overflow-hidden border-y border-black/5 flex flex-col justify-center">
 
             {/* Massive Overlapping Header */}
-            <div className="relative w-full flex flex-col items-center justify-center mb-24 md:mb-32 h-[20vh] md:h-[30vh] overflow-hidden">
-                <h2 className="editorial-title text-[25vw] md:text-[20vw] lg:text-[18vw] text-black/5 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap tracking-tighter select-none z-0">
+            <div className="absolute top-12 left-0 w-full flex flex-col items-center justify-center p-4 z-0 pointer-events-none">
+                <h2 className="editorial-title text-[25vw] md:text-[20vw] lg:text-[18vw] text-black/5 whitespace-nowrap tracking-tighter select-none">
                     SESIONES
                 </h2>
-                <div className="relative z-10 flex flex-col items-center mt-12 md:mt-16">
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full flex flex-col items-center mt-6">
                     <h3 className="editorial-title text-4xl md:text-6xl text-black">
-                        MÁS DEL <span className="italic font-light">SET</span>
+                        MIRA EL <span className="italic font-light">SET</span>
                     </h3>
                 </div>
             </div>
 
-            {/* GSAP Powered Infinite Horizontal Ticker */}
-            <div className="w-full overflow-hidden relative cursor-grab active:cursor-grabbing group">
-
-                {/* Soft edge gradients to blend the marquee entering/exiting gracefully */}
-                <div className="absolute top-0 bottom-0 left-0 w-16 md:w-40 bg-gradient-to-r from-[#f4f4f4] to-transparent z-10 pointer-events-none" />
-                <div className="absolute top-0 bottom-0 right-0 w-16 md:w-40 bg-gradient-to-l from-[#f4f4f4] to-transparent z-10 pointer-events-none" />
-
+            {/* GSAP Powered Pinned Horizontal Carousel */}
+            <div className="w-full mt-24 md:mt-32 px-4 md:px-12 relative z-10 w-max overflow-visible">
                 <div
-                    ref={marqueeRef}
+                    ref={carouselRef}
                     className="flex gap-4 md:gap-8 px-4 w-max"
                 >
-                    {marqueePhotos.map((url, i) => (
+                    {carouselPhotos.map((url, i) => (
                         <div
                             key={i}
                             className="relative flex-shrink-0 w-[60vw] md:w-[35vw] lg:w-[22vw] aspect-[3/4] cursor-pointer"

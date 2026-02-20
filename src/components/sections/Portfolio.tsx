@@ -110,10 +110,10 @@ export default function Portfolio() {
                 </h2>
                 <div className="relative z-10 flex flex-col items-center mt-12">
                     <h3 className="editorial-title text-4xl md:text-6xl text-black">
-                        EL <span className="italic font-light">ARCHIVO</span>
+                        LA <span className="italic font-light">GALERÍA</span>
                     </h3>
                     <p className="editorial-body text-[10px] md:text-xs tracking-[0.4em] uppercase mt-4 text-black/60">
-                        Trabajos Profesionales / Vol. 1
+                        Selección de Trabajos / Vol. 1
                     </p>
                 </div>
             </div>
