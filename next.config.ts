@@ -15,11 +15,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // We completely disable ESLint and TS errors during build to rely on dynamic behavior
-  // as the custom local workspace suffered from EPERM dependency cache locks.
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   typescript: {
     ignoreBuildErrors: true,
   }
