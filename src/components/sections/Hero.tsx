@@ -44,11 +44,11 @@ export default function Hero() {
     return (
         <section
             ref={containerRef}
-            className="relative w-full h-screen overflow-hidden bg-white flex items-center justify-center bg-black"
+            className="relative w-full h-[100svh] overflow-hidden bg-black flex items-center justify-center"
         >
             <div
                 ref={bgRef}
-                className="relative w-full h-full md:w-[60vw] xl:w-[45vw] md:h-[90vh] overflow-hidden will-change-transform bg-black"
+                className="relative w-full h-full overflow-hidden will-change-transform bg-black"
             >
                 {/* 1. Mobile Experience: Muted Video Background injected raw to bypass Apple/React blocking */}
                 <div
@@ -88,12 +88,12 @@ export default function Hero() {
                 </div>
             </div>
 
-            {/* Massive Overlapping Editorial Typography */}
+            {/* Brutalist Overlapping Editorial Typography */}
             <div
                 ref={textRef}
                 className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex flex-col items-center justify-center z-20 pointer-events-none mix-blend-difference"
             >
-                <h1 className="editorial-title text-[18vw] md:text-[15vw] text-white tracking-tighter text-center whitespace-nowrap overflow-hidden drop-shadow-2xl">
+                <h1 className="editorial-title text-[35vw] md:text-[28vw] text-white tracking-tighter text-center whitespace-nowrap overflow-visible drop-shadow-2xl font-bold">
                     ROBEANNY
                 </h1>
             </div>

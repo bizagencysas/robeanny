@@ -121,18 +121,18 @@ export default function Portfolio() {
         <section
             id="portfolio"
             ref={containerRef}
-            className="bg-white text-black w-full min-h-screen py-24 px-4 md:px-8 relative"
+            className="bg-black text-white w-full min-h-screen py-24 px-4 md:px-8 relative"
         >
             {/* Massive Overlapping Header matching 'About' style */}
             <div className="relative w-full flex flex-col items-center justify-center mb-32 h-[30vh] overflow-hidden">
-                <h2 className="editorial-title text-[25vw] md:text-[20vw] lg:text-[18vw] text-black/5 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap tracking-tighter select-none z-0">
+                <h2 className="editorial-title text-[25vw] md:text-[20vw] lg:text-[18vw] text-white/5 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap tracking-tighter select-none z-0">
                     PORTAFOLIO
                 </h2>
                 <div className="relative z-10 flex flex-col items-center mt-12">
-                    <h3 className="editorial-title text-4xl md:text-6xl text-black">
+                    <h3 className="editorial-title text-4xl md:text-6xl text-white">
                         LA <span className="italic font-light">GALERÍA</span>
                     </h3>
-                    <p className="editorial-body text-[10px] md:text-xs tracking-[0.4em] uppercase mt-4 text-black/60">
+                    <p className="editorial-body text-[10px] md:text-xs tracking-[0.4em] uppercase mt-4 text-white/60">
                         Selección de Trabajos / Vol. 1
                     </p>
                 </div>
@@ -147,8 +147,8 @@ export default function Portfolio() {
                     // Add some editorial empty space occasionally by injecting a block quote
                     if (i === 12) {
                         return (
-                            <div key="quote-1" className="break-inside-avoid my-16 py-12 px-8 bg-platinum/30 border-l border-black">
-                                <p className="editorial-title text-3xl md:text-4xl text-black leading-tight italic">
+                            <div key="quote-1" className="break-inside-avoid my-16 py-12 px-8 border-l border-white/40">
+                                <p className="editorial-title text-3xl md:text-4xl text-white leading-tight italic">
                                     "La moda no es algo que exista solo en los vestidos."
                                 </p>
                             </div>
@@ -157,8 +157,8 @@ export default function Portfolio() {
                     if (i === 28) {
                         return (
                             <div key="quote-2" className="break-inside-avoid my-16 py-12 px-8 flex flex-col justify-center items-center h-[400px]">
-                                <h3 className="editorial-title text-7xl md:text-9xl text-black/10">ARTE</h3>
-                                <h3 className="editorial-title text-7xl md:text-9xl text-black/10 -mt-8">PURO</h3>
+                                <h3 className="editorial-title text-7xl md:text-9xl text-white/10">ARTE</h3>
+                                <h3 className="editorial-title text-7xl md:text-9xl text-white/10 -mt-8">PURO</h3>
                             </div>
                         );
                     }
@@ -173,7 +173,7 @@ export default function Portfolio() {
                     return (
                         <div
                             key={i}
-                            className="portfolio-image-wrapper relative break-inside-avoid w-full group cursor-pointer overflow-hidden bg-platinum/20"
+                            className="portfolio-image-wrapper relative break-inside-avoid w-full group cursor-pointer overflow-hidden"
                             data-cursor="view"
                         >
                             <div className={`relative w-full ${aspectRatioClass} overflow-hidden`}>
@@ -200,7 +200,7 @@ export default function Portfolio() {
                 <div className="w-full flex justify-center mt-24">
                     <button
                         onClick={loadMorePhotos}
-                        className="editorial-body text-xs uppercase tracking-[0.3em] font-bold border-b border-black pb-1 hover:text-black/50 transition-colors"
+                        className="editorial-body text-xs uppercase tracking-[0.3em] font-bold border-b border-white pb-1 hover:text-white/50 transition-colors"
                     >
                         EXPLORAR GALERÍA
                     </button>

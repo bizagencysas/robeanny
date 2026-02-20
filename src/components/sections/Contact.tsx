@@ -58,7 +58,7 @@ export default function Contact() {
         <section
             id="contact"
             ref={containerRef}
-            className="w-full bg-[#fcfcfc] text-black min-h-screen py-24 md:py-32 flex flex-col items-center justify-center relative border-t border-black/5"
+            className="w-full bg-black text-white min-h-screen py-24 md:py-32 flex flex-col items-center justify-center relative border-t border-white/10"
         >
             <div className="w-full max-w-[1200px] mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
 
@@ -66,26 +66,26 @@ export default function Contact() {
                 <div className="flex flex-col">
                     <h2
                         ref={textRef}
-                        className="editorial-title text-6xl md:text-8xl lg:text-[7rem] text-black mb-8 leading-[0.9]"
+                        className="editorial-title text-6xl md:text-8xl lg:text-[7rem] text-white mb-8 leading-[0.9]"
                     >
                         CREEMOS <br />
-                        <span className="italic font-light">ARTE</span> <br />
+                        <span className="italic font-light text-white/60">ARTE</span> <br />
                         JUNTOS.
                     </h2>
-                    <p className="editorial-body text-sm tracking-[0.2em] uppercase text-black/60 max-w-sm">
+                    <p className="editorial-body text-sm tracking-[0.2em] uppercase text-white/50 max-w-sm">
                         Disponible para booking editorial, comercial y pasarelas a nivel mundial.
                     </p>
-                    <div className="h-[1px] w-full max-w-[200px] bg-black mt-12 mb-8"></div>
-                    <p className="font-serif text-2xl">me@robeanny.com</p>
-                    <p className="font-serif text-2xl">+57 300 4846270</p>
+                    <div className="h-[1px] w-full max-w-[200px] bg-white/20 mt-12 mb-8"></div>
+                    <p className="font-serif text-2xl text-white">me@robeanny.com</p>
+                    <p className="font-serif text-2xl text-white">+57 300 4846270</p>
                 </div>
 
                 {/* Right - Stark Editorial Form */}
-                <div className="w-full bg-white border border-black p-8 md:p-16 shadow-[20px_20px_0px_rgba(0,0,0,0.05)]">
+                <div className="w-full bg-transparent border border-white/20 p-8 md:p-16 backdrop-blur-sm">
                     {formState === "success" ? (
                         <div className="text-center space-y-4 animate-in fade-in duration-700 py-12">
-                            <h3 className="editorial-title text-4xl text-black">Enviado.</h3>
-                            <p className="editorial-body text-black/60">Revisaré tu propuesta y me pondré en contacto pronto.</p>
+                            <h3 className="editorial-title text-4xl text-white">Enviado.</h3>
+                            <p className="editorial-body text-white/60">Revisaré tu propuesta y me pondré en contacto pronto.</p>
                         </div>
                     ) : (
                         <form onSubmit={handleSubmit} className="flex flex-col gap-10">
@@ -95,12 +95,12 @@ export default function Contact() {
                                     name="name"
                                     id="name"
                                     required
-                                    className="w-full bg-transparent border-b border-black/20 text-black font-serif text-xl md:text-2xl py-3 px-0 focus:outline-none focus:border-black transition-colors peer placeholder-transparent"
+                                    className="w-full bg-transparent border-b border-white/20 text-white font-serif text-xl md:text-2xl py-3 px-0 focus:outline-none focus:border-white transition-colors peer placeholder-transparent"
                                     placeholder="Nombre"
                                 />
                                 <label
                                     htmlFor="name"
-                                    className="absolute left-0 top-3 text-black/40 font-sans text-xs tracking-widest uppercase transition-all duration-300 peer-focus:-top-6 peer-focus:text-[10px] peer-focus:text-black peer-not-placeholder-shown:-top-6 peer-not-placeholder-shown:text-[10px] peer-not-placeholder-shown:text-black"
+                                    className="absolute left-0 top-3 text-white/40 font-sans text-xs tracking-widest uppercase transition-all duration-300 peer-focus:-top-6 peer-focus:text-[10px] peer-focus:text-white peer-not-placeholder-shown:-top-6 peer-not-placeholder-shown:text-[10px] peer-not-placeholder-shown:text-white"
                                 >
                                     Nombre Completo
                                 </label>
@@ -112,12 +112,12 @@ export default function Contact() {
                                     name="email"
                                     id="email"
                                     required
-                                    className="w-full bg-transparent border-b border-black/20 text-black font-serif text-xl md:text-2xl py-3 px-0 focus:outline-none focus:border-black transition-colors peer placeholder-transparent"
+                                    className="w-full bg-transparent border-b border-white/20 text-white font-serif text-xl md:text-2xl py-3 px-0 focus:outline-none focus:border-white transition-colors peer placeholder-transparent"
                                     placeholder="Correo Electrónico"
                                 />
                                 <label
                                     htmlFor="email"
-                                    className="absolute left-0 top-3 text-black/40 font-sans text-xs tracking-widest uppercase transition-all duration-300 peer-focus:-top-6 peer-focus:text-[10px] peer-focus:text-black peer-not-placeholder-shown:-top-6 peer-not-placeholder-shown:text-[10px] peer-not-placeholder-shown:text-black"
+                                    className="absolute left-0 top-3 text-white/40 font-sans text-xs tracking-widest uppercase transition-all duration-300 peer-focus:-top-6 peer-focus:text-[10px] peer-focus:text-white peer-not-placeholder-shown:-top-6 peer-not-placeholder-shown:text-[10px] peer-not-placeholder-shown:text-white"
                                 >
                                     Dirección de Correo
                                 </label>
@@ -129,12 +129,12 @@ export default function Contact() {
                                     id="message"
                                     required
                                     rows={4}
-                                    className="w-full bg-transparent border-b border-black/20 text-black font-serif text-xl md:text-2xl py-3 px-0 resize-none focus:outline-none focus:border-black transition-colors peer placeholder-transparent"
+                                    className="w-full bg-transparent border-b border-white/20 text-white font-serif text-xl md:text-2xl py-3 px-0 resize-none focus:outline-none focus:border-white transition-colors peer placeholder-transparent"
                                     placeholder="Mensaje"
                                 />
                                 <label
                                     htmlFor="message"
-                                    className="absolute left-0 top-3 text-black/40 font-sans text-xs tracking-widest uppercase transition-all duration-300 peer-focus:-top-6 peer-focus:text-[10px] peer-focus:text-black peer-not-placeholder-shown:-top-6 peer-not-placeholder-shown:text-[10px] peer-not-placeholder-shown:text-black"
+                                    className="absolute left-0 top-3 text-white/40 font-sans text-xs tracking-widest uppercase transition-all duration-300 peer-focus:-top-6 peer-focus:text-[10px] peer-focus:text-white peer-not-placeholder-shown:-top-6 peer-not-placeholder-shown:text-[10px] peer-not-placeholder-shown:text-white"
                                 >
                                     Detalles del Proyecto
                                 </label>
@@ -149,7 +149,7 @@ export default function Contact() {
                             <button
                                 type="submit"
                                 disabled={formState === "submitting"}
-                                className="group relative w-full border border-black bg-black py-6 mt-6 overflow-hidden hover:bg-white transition-colors duration-500 disabled:opacity-50"
+                                className="group relative w-full border border-white bg-transparent py-6 mt-6 overflow-hidden hover:bg-white transition-colors duration-500 disabled:opacity-50"
                             >
                                 <div className="absolute inset-0 bg-white translate-y-[101%] group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]" />
                                 <span className="relative z-10 font-sans text-[10px] tracking-[0.3em] uppercase transition-colors duration-500 text-white group-hover:text-black font-bold">
@@ -162,12 +162,12 @@ export default function Contact() {
             </div>
 
             {/* --- True Elegance Footer Relocated Here --- */}
-            <footer className="w-full flex flex-col md:flex-row items-center justify-between max-w-[1400px] mt-32 pt-16 px-6 md:px-12 pb-8 text-black/40 text-[10px] font-sans tracking-[0.3em] uppercase border-t border-black/10">
+            <footer className="w-full flex flex-col md:flex-row items-center justify-between max-w-[1400px] mt-32 pt-16 px-6 md:px-12 pb-8 text-white/30 text-[10px] font-sans tracking-[0.3em] uppercase border-t border-white/10">
                 <p>© 2026 ROBEANNY BASTARDO</p>
                 <div className="flex items-center gap-4 mt-6 md:mt-0">
-                    <a href={personalData.socials.instagram} target="_blank" rel="noopener noreferrer" className="hover:text-black transition-colors">Instagram</a>
+                    <a href={personalData.socials.instagram} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Instagram</a>
                     <span className="mx-2">•</span>
-                    <a href={personalData.socials.tiktok} target="_blank" rel="noopener noreferrer" className="hover:text-black transition-colors">TikTok</a>
+                    <a href={personalData.socials.tiktok} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">TikTok</a>
                 </div>
             </footer>
         </section>
