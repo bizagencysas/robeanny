@@ -272,14 +272,14 @@ function SocialSection() {
     <section className="w-full py-24 md:py-40 px-6 md:px-12 border-t border-white/5">
       <div className="max-w-[1400px] mx-auto">
         <p className="font-sans text-[10px] tracking-[0.4em] uppercase text-white/40 mb-6">Connect</p>
-        <h2 className="font-serif text-4xl md:text-6xl font-light mb-16">
+        <h2 className="font-serif text-4xl md:text-6xl font-light mb-12 md:mb-16">
           Follow the <span className="italic">Journey</span>
         </h2>
 
         {/* TikTok + Instagram Embeds Side-by-Side */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-8 md:mb-12">
           {/* TikTok Embed */}
-          <div className="w-full aspect-[9/14] md:aspect-[9/16] overflow-hidden border border-white/10 rounded-sm bg-black relative">
+          <div className="w-full h-[480px] md:h-[520px] overflow-hidden border border-white/10 rounded-sm relative">
             <iframe
               src="https://www.tiktok.com/embed/@robeannybbl"
               className="w-full h-full border-0"
@@ -287,45 +287,35 @@ function SocialSection() {
               title="TikTok de Robeanny"
               allow="encrypted-media"
             />
-            {/* TikTok label */}
-            <div className="absolute top-4 left-4 font-sans text-[9px] tracking-[0.3em] uppercase text-white/50 bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-sm">
-              TikTok
-            </div>
           </div>
 
           {/* Instagram Embed */}
-          <div className="w-full aspect-[9/14] md:aspect-[9/16] overflow-hidden border border-white/10 rounded-sm bg-black relative">
+          <div className="w-full h-[480px] md:h-[520px] overflow-hidden border border-white/10 rounded-sm relative">
             <iframe
               src="https://www.instagram.com/robeannybl/embed"
               className="w-full h-full border-0"
               loading="lazy"
               title="Instagram de Robeanny"
             />
-            {/* Instagram label */}
-            <div className="absolute top-4 left-4 font-sans text-[9px] tracking-[0.3em] uppercase text-white/50 bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-sm">
-              Instagram
-            </div>
           </div>
         </div>
 
-        {/* Social Links — 3 Column Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* Social Links — Compact 3 Column */}
+        <div className="grid grid-cols-3 gap-3 md:gap-4">
           {[
-            { label: "LinkedIn", handle: "@robeanny", href: personalData.socials.linkedin, desc: "Professional network" },
-            { label: "Patreon", handle: "robeanny", href: personalData.socials.patreon, desc: "Exclusive content" },
-            { label: "Email", handle: personalData.email, href: `mailto:${personalData.email}`, desc: "Direct contact" },
+            { label: "LinkedIn", handle: "@robeanny", href: personalData.socials.linkedin },
+            { label: "Patreon", handle: "robeanny", href: personalData.socials.patreon },
+            { label: "Email", handle: "me@robeanny.com", href: `mailto:${personalData.email}` },
           ].map((social) => (
             <a
               key={social.label}
               href={social.href}
               target={social.href.startsWith("mailto") ? undefined : "_blank"}
               rel="noopener noreferrer"
-              className="group border border-white/10 p-6 md:p-8 hover:border-white/30 hover:bg-white/[0.02] transition-all duration-500 flex flex-col"
+              className="group border border-white/10 px-4 py-5 md:px-6 md:py-6 hover:border-white/30 hover:bg-white/[0.02] transition-all duration-500 text-center"
             >
-              <span className="font-sans text-[9px] tracking-[0.3em] uppercase text-white/30 mb-3">{social.desc}</span>
-              <span className="font-serif text-2xl md:text-3xl text-white group-hover:text-white/80 transition-colors mb-2">{social.label}</span>
-              <span className="font-sans text-xs text-white/30">{social.handle}</span>
-              <span className="mt-auto pt-4 text-white/20 group-hover:text-white group-hover:translate-x-2 transition-all text-lg self-end">→</span>
+              <span className="font-serif text-base md:text-xl text-white group-hover:text-white/80 transition-colors block mb-1">{social.label}</span>
+              <span className="font-sans text-[8px] md:text-[10px] tracking-widest text-white/25 block truncate">{social.handle}</span>
             </a>
           ))}
         </div>
