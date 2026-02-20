@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+@theme {
+  --color-platinum: #E8E8E8;
+  --color-light-platinum: #F5F5F5;
+  --color-dark: #0a0a0a;
+  --color-darker: #000000;
+  --color-border-subtle: rgba(232, 232, 232, 0.15);
+  --color-border-hover: rgba(232, 232, 232, 0.5);
+
+  --font-serif: var(--font-cormorant), ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-sans: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+  --bg-primary: #000000;
+  --bg-secondary: #0a0a0a;
+  --bg-elevated: #111111;
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-muted: rgba(255, 255, 255, 0.4);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  /* The font family is applied via next/font in layout.tsx but this is a fallback */
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Base Headings Setup */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-serif);
+  font-weight: 300;
+}
+
+/* Custom Scrollbar for non-Lenis graceful fallback */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--text-muted);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-platinum);
+}
+
+/* Selection Color */
+::selection {
+  background-color: var(--color-platinum);
+  color: var(--bg-primary);
+}
+
+/* GSAP Helper Classes */
+.clip-path-reveal {
+  clip-path: polygon(0 100%, 100% 100%, 100% 100%, 0 100%);
+}
+
+.gsap-reveal {
+  opacity: 0;
+  visibility: hidden;
+}
