@@ -104,11 +104,11 @@ export default function Portfolio() {
             className="bg-white text-black w-full min-h-screen py-24 px-4 md:px-8 relative"
         >
             <div className="flex flex-col items-center mb-24">
-                <h2 className="editorial-title text-5xl md:text-8xl lg:text-[10rem] text-center tracking-tighter">
-                    PORTFOLIO
+                <h2 className="editorial-title text-[15vw] leading-[0.8] text-center tracking-tighter">
+                    PORTAFOLIO
                 </h2>
-                <p className="editorial-body text-xs md:text-sm tracking-[0.4em] uppercase mt-4 text-black/50">
-                    Professional Works / Vol. 1
+                <p className="editorial-body text-xs md:text-sm tracking-[0.4em] uppercase mt-12 text-black/50">
+                    Trabajos Profesionales / Vol. 1
                 </p>
             </div>
 
@@ -123,7 +123,7 @@ export default function Portfolio() {
                         return (
                             <div key="quote-1" className="break-inside-avoid my-16 py-12 px-8 bg-platinum/30 border-l border-black">
                                 <p className="editorial-title text-3xl md:text-4xl text-black leading-tight italic">
-                                    "Fashion is not something that exists in dresses only."
+                                    "La moda no es algo que exista solo en los vestidos."
                                 </p>
                             </div>
                         );
@@ -131,8 +131,8 @@ export default function Portfolio() {
                     if (i === 28) {
                         return (
                             <div key="quote-2" className="break-inside-avoid my-16 py-12 px-8 flex flex-col justify-center items-center h-[400px]">
-                                <h3 className="editorial-title text-7xl md:text-9xl text-black/10">ART</h3>
-                                <h3 className="editorial-title text-7xl md:text-9xl text-black/10 -mt-8">FORM</h3>
+                                <h3 className="editorial-title text-7xl md:text-9xl text-black/10">ARTE</h3>
+                                <h3 className="editorial-title text-7xl md:text-9xl text-black/10 -mt-8">PURO</h3>
                             </div>
                         );
                     }
@@ -160,7 +160,7 @@ export default function Portfolio() {
                             </div>
                             <div className="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                                 <p className="editorial-body text-white text-[10px] uppercase tracking-widest">
-                                    Shot {String(i + 1).padStart(3, '0')}
+                                    Toma {String(i + 1).padStart(3, '0')}
                                 </p>
                             </div>
                         </div>
@@ -174,7 +174,7 @@ export default function Portfolio() {
                         onClick={loadMorePhotos}
                         className="editorial-body text-xs uppercase tracking-[0.3em] font-bold border-b border-black pb-1 hover:text-black/50 transition-colors"
                     >
-                        Load Full Archive
+                        Cargar Archivo Completo
                     </button>
                 </div>
             )}

@@ -67,12 +67,12 @@ export default function Contact() {
                         ref={textRef}
                         className="editorial-title text-6xl md:text-8xl lg:text-[7rem] text-black mb-8 leading-[0.9]"
                     >
-                        LET'S <br />
-                        <span className="italic font-light">CREATE</span> <br />
-                        ART.
+                        CREEMOS <br />
+                        <span className="italic font-light">ARTE</span> <br />
+                        JUNTOS.
                     </h2>
                     <p className="editorial-body text-sm tracking-[0.2em] uppercase text-black/60 max-w-sm">
-                        Available for editorial, commercial, and runway booking worldwide.
+                        Disponible para booking editorial, comercial y pasarelas a nivel mundial.
                     </p>
                     <div className="h-[1px] w-full max-w-[200px] bg-black mt-12 mb-8"></div>
                     <p className="font-serif text-2xl">me@robeanny.com</p>
@@ -83,8 +83,8 @@ export default function Contact() {
                 <div className="w-full bg-white border border-black p-8 md:p-16 shadow-[20px_20px_0px_rgba(0,0,0,0.05)]">
                     {formState === "success" ? (
                         <div className="text-center space-y-4 animate-in fade-in duration-700 py-12">
-                            <h3 className="editorial-title text-4xl text-black">Delivered.</h3>
-                            <p className="editorial-body text-black/60">I will review your brief and get back to you shortly.</p>
+                            <h3 className="editorial-title text-4xl text-black">Enviado.</h3>
+                            <p className="editorial-body text-black/60">Revisaré tu propuesta y me pondré en contacto pronto.</p>
                         </div>
                     ) : (
                         <form onSubmit={handleSubmit} className="flex flex-col gap-10">
@@ -95,13 +95,13 @@ export default function Contact() {
                                     id="name"
                                     required
                                     className="w-full bg-transparent border-b border-black/20 text-black font-serif text-xl md:text-2xl py-3 px-0 focus:outline-none focus:border-black transition-colors peer placeholder-transparent"
-                                    placeholder="Name"
+                                    placeholder="Nombre"
                                 />
                                 <label
                                     htmlFor="name"
                                     className="absolute left-0 top-3 text-black/40 font-sans text-xs tracking-widest uppercase transition-all duration-300 peer-focus:-top-6 peer-focus:text-[10px] peer-focus:text-black peer-not-placeholder-shown:-top-6 peer-not-placeholder-shown:text-[10px] peer-not-placeholder-shown:text-black"
                                 >
-                                    Full Name
+                                    Nombre Completo
                                 </label>
                             </div>
 
@@ -112,13 +112,13 @@ export default function Contact() {
                                     id="email"
                                     required
                                     className="w-full bg-transparent border-b border-black/20 text-black font-serif text-xl md:text-2xl py-3 px-0 focus:outline-none focus:border-black transition-colors peer placeholder-transparent"
-                                    placeholder="Email"
+                                    placeholder="Correo Electrónico"
                                 />
                                 <label
                                     htmlFor="email"
                                     className="absolute left-0 top-3 text-black/40 font-sans text-xs tracking-widest uppercase transition-all duration-300 peer-focus:-top-6 peer-focus:text-[10px] peer-focus:text-black peer-not-placeholder-shown:-top-6 peer-not-placeholder-shown:text-[10px] peer-not-placeholder-shown:text-black"
                                 >
-                                    Email Address
+                                    Dirección de Correo
                                 </label>
                             </div>
 
@@ -129,19 +129,19 @@ export default function Contact() {
                                     required
                                     rows={4}
                                     className="w-full bg-transparent border-b border-black/20 text-black font-serif text-xl md:text-2xl py-3 px-0 resize-none focus:outline-none focus:border-black transition-colors peer placeholder-transparent"
-                                    placeholder="Message"
+                                    placeholder="Mensaje"
                                 />
                                 <label
                                     htmlFor="message"
                                     className="absolute left-0 top-3 text-black/40 font-sans text-xs tracking-widest uppercase transition-all duration-300 peer-focus:-top-6 peer-focus:text-[10px] peer-focus:text-black peer-not-placeholder-shown:-top-6 peer-not-placeholder-shown:text-[10px] peer-not-placeholder-shown:text-black"
                                 >
-                                    Project Details
+                                    Detalles del Proyecto
                                 </label>
                             </div>
 
                             {formState === "error" && (
                                 <p className="text-red-500 text-xs font-sans tracking-widest uppercase">
-                                    Submission failed. Direct email preferred.
+                                    Ocurrió un error. Envío de correo directo preferido.
                                 </p>
                             )}
 
@@ -152,7 +152,7 @@ export default function Contact() {
                             >
                                 <div className="absolute inset-0 bg-white translate-y-[101%] group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]" />
                                 <span className="relative z-10 font-sans text-[10px] tracking-[0.3em] uppercase transition-colors duration-500 text-white group-hover:text-black font-bold">
-                                    {formState === "submitting" ? "Sending Details..." : "Submit Inquiry"}
+                                    {formState === "submitting" ? "Enviando Detalles..." : "Enviar Consulta"}
                                 </span>
                             </button>
                         </form>

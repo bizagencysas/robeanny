@@ -36,7 +36,7 @@ export const biography = [
     "Con una visión moderna del estilo y una personalidad magnética, Robeanny continúa expandiendo su portafolio y dejando huella en cada proyecto."
 ];
 
-export const heroImage = "https://res.cloudinary.com/dwpbbjp1d/image/upload/v1761421297/F60474B0-B2D3-4D05-99FC-C1CA8C1C8372_kdyq7e.png";
+export const heroImage = "https://res.cloudinary.com/dwpbbjp1d/image/upload/v1761417086/014A7185-2_uklh9h.jpg";
 export const aboutImage = "https://res.cloudinary.com/dwpbbjp1d/image/upload/v1761417060/C331D4C7-A330-46C8-AB87-E451F1B4C119_il9n9f.jpg";
 export const faviconImage = "https://res.cloudinary.com/dwpbbjp1d/image/upload/v1761424406/android-chrome-512x512_kboc44.png";
 

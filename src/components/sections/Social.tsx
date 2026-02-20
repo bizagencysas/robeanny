@@ -40,7 +40,7 @@ export default function Social() {
         >
             <div className="max-w-[1400px] mx-auto flex flex-col items-center">
                 <h2 className="editorial-title text-4xl md:text-6xl text-center mb-16 relative inline-block">
-                    THE <span className="italic font-light">DIGITAL</span> ARCHIVE
+                    EL ARCHIVO <span className="italic font-light">DIGITAL</span>
                     {/* Subtle underline accent */}
                     <span className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-12 h-[1px] bg-black"></span>
                 </h2>
@@ -50,7 +50,7 @@ export default function Social() {
                     <div className="social-card flex flex-col bg-white border border-black/5 p-4 md:p-8 shadow-[0_20px_40px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.08)] transition-shadow duration-500">
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="editorial-body uppercase tracking-[0.2em] text-xs font-bold">Instagram</h3>
-                            <a href={personalData.socials.instagram} target="_blank" rel="noopener noreferrer" className="editorial-body text-[10px] uppercase tracking-widest border-b border-black/20 hover:border-black transition-colors">Follow \ @robeannybl</a>
+                            <a href={personalData.socials.instagram} target="_blank" rel="noopener noreferrer" className="editorial-body text-[10px] uppercase tracking-widest border-b border-black/20 hover:border-black transition-colors">Seguir \ @robeannybl</a>
                         </div>
                         <div className="w-full flex justify-center bg-platinum/5 overflow-hidden rounded-md">
                             <iframe
@@ -69,7 +69,7 @@ export default function Social() {
                     <div className="social-card flex flex-col bg-white border border-black/5 p-4 md:p-8 shadow-[0_20px_40px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.08)] transition-shadow duration-500">
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="editorial-body uppercase tracking-[0.2em] text-xs font-bold">TikTok</h3>
-                            <a href={personalData.socials.tiktok} target="_blank" rel="noopener noreferrer" className="editorial-body text-[10px] uppercase tracking-widest border-b border-black/20 hover:border-black transition-colors">Follow \ @robeannybbl</a>
+                            <a href={personalData.socials.tiktok} target="_blank" rel="noopener noreferrer" className="editorial-body text-[10px] uppercase tracking-widest border-b border-black/20 hover:border-black transition-colors">Seguir \ @robeannybbl</a>
                         </div>
                         <div className="w-full flex justify-center bg-platinum/5 overflow-hidden rounded-md">
                             <blockquote className="tiktok-embed" cite="https://www.tiktok.com/@robeannybbl" data-unique-id="robeannybbl" data-embed-type="creator" style={{ maxWidth: '500px', minWidth: '288px' }}>
