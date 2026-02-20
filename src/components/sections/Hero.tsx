@@ -48,7 +48,7 @@ export default function Hero() {
         >
             <div
                 ref={bgRef}
-                className="relative w-full h-full md:w-[60vw] xl:w-[45vw] md:h-[90vh] overflow-hidden will-change-transform bg-black"
+                className="relative w-full h-[100svh] md:w-[85vw] xl:w-[75vw] md:h-[85vh] overflow-hidden will-change-transform bg-black"
             >
                 {/* 1. Mobile Experience: Muted Video Background injected raw to bypass Apple/React blocking */}
                 <div
@@ -80,7 +80,7 @@ export default function Hero() {
                                 alt={`Robeanny Hero Editorial ${index + 1}`}
                                 fill
                                 priority={index === 0}
-                                className="object-cover object-center filter brightness-[0.8] scale-105"
+                                className="object-contain object-center filter brightness-[0.85]"
                                 sizes="100vw"
                             />
                         </div>
@@ -93,7 +93,7 @@ export default function Hero() {
                 ref={textRef}
                 className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex flex-col items-center justify-center z-20 pointer-events-none mix-blend-difference"
             >
-                <h1 className="editorial-title text-[18vw] md:text-[12vw] text-white tracking-widest text-center whitespace-nowrap overflow-hidden drop-shadow-2xl font-light">
+                <h1 className="editorial-title text-6xl md:text-8xl lg:text-[10rem] text-white tracking-[0.1em] text-center whitespace-nowrap overflow-visible drop-shadow-2xl font-light">
                     ROBEANNY
                 </h1>
             </div>
