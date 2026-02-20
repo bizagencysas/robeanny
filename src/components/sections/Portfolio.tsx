@@ -84,10 +84,12 @@ function PhotoItem({ photo, index, isMobile, onClick }: { photo: string; index: 
     const heights = ["70vh", "40vh", "80vh", "25vh", "50vh", "65vh"];
     const margins = ["mr-32", "mr-12", "mr-48", "mr-20", "mr-12", "mr-[30vw]"]; // Silence gaps
     const align = ["items-start", "items-center", "items-end"]; // Vertical jitter
+    const aspectRatios = ["3/4", "4/5", "1/1", "2/3", "4/5", "3/4"];
 
     const h = isMobile ? "auto" : heights[index % heights.length];
     const m = isMobile ? "mb-0" : margins[index % margins.length];
     const a = isMobile ? "" : align[index % align.length];
+    const ar = aspectRatios[index % aspectRatios.length];
 
     return (
         <div
@@ -97,7 +99,7 @@ function PhotoItem({ photo, index, isMobile, onClick }: { photo: string; index: 
         >
             <div
                 className="relative overflow-hidden cursor-pointer group"
-                style={{ height: isMobile ? "auto" : h, width: isMobile ? "100%" : "auto", aspectRatio: isMobile ? "3/4" : "auto" }}
+                style={{ height: isMobile ? "auto" : h, width: isMobile ? "100%" : "auto", aspectRatio: isMobile ? "3/4" : ar }}
                 onClick={onClick}
             >
                 {/* Due to Next/Vercel optimization problems with 11 isolated WebGL canvases at once on Safari Mobile, 

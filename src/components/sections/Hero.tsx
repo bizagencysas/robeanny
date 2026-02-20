@@ -48,7 +48,7 @@ export default function Hero() {
             <div className="relative z-10 flex flex-col items-center text-center px-4 w-full mix-blend-difference pointer-events-none">
                 {/* V2: Gigantic Staggered Name entrance with Mix Blend Mode */}
                 <motion.h1
-                    className="text-[20vw] font-serif leading-none tracking-[0.1em] text-white flex select-none"
+                    className="text-[14vw] md:text-[11vw] font-serif leading-none tracking-[0.1em] text-white flex flex-wrap justify-center w-full select-none"
                     initial="hidden"
                     animate="visible"
                     variants={{

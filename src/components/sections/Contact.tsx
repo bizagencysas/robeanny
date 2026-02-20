@@ -14,8 +14,8 @@ export default function Contact() {
         offset: ["start end", "center center"]
     });
 
-    const trackingBase = useTransform(scrollYProgress, [0, 1], ["0.5em", "1em"]);
-    const trackingSmooth = useSpring(trackingBase, { stiffness: 100, damping: 20 });
+    const springScroll = useSpring(scrollYProgress, { stiffness: 100, damping: 20 });
+    const trackingSmooth = useTransform(springScroll, [0, 1], ["0.5em", "1em"]);
 
     return (
         <section id="contact" ref={containerRef} className="py-24 md:py-40 w-full min-h-[90vh] flex flex-col items-center justify-center relative bg-black">
