@@ -15,13 +15,23 @@ export default function Hero() {
     const textRef = useRef<HTMLHeadingElement>(null);
     const [y, setY] = useState(0);
     const [currentImage, setCurrentImage] = useState(0);
+    const [isMobile, setIsMobile] = useState(true); // Default to mobile to prioritize video load
 
-    // Subtle Native Parallax
+    // Subtle Native Parallax & Device Detection
     useEffect(() => {
         const handleScroll = () => setY(window.scrollY);
-        window.addEventListener("scroll", handleScroll, { passive: true });
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
+
+        // Initial Checks
         handleScroll();
-        return () => window.removeEventListener("scroll", handleScroll);
+        handleResize();
+
+        window.addEventListener("scroll", handleScroll, { passive: true });
+        window.addEventListener("resize", handleResize, { passive: true });
+        return () => {
+            window.removeEventListener("scroll", handleScroll);
+            window.removeEventListener("resize", handleResize);
+        }
     }, []);
 
     useEffect(() => {
@@ -50,40 +60,38 @@ export default function Hero() {
                 ref={bgRef}
                 className="absolute inset-0 w-full h-full overflow-hidden will-change-transform bg-black"
             >
-                {/* 1. Mobile Experience: Muted Video Background (Hidden on Desktop) */}
-                <video
-                    autoPlay={true}
-                    loop={true}
-                    muted={true}
-                    playsInline={true}
-                    controls={false}
-                    preload="auto"
-                    className="block md:hidden w-full h-full object-cover filter brightness-[0.75]"
-                    disablePictureInPicture
-                    suppressHydrationWarning
-                >
-                    <source src="/hero.mp4" type="video/mp4" />
-                </video>
-
-                {/* 2. Desktop Experience: Cinematic Fullscreen Image Slideshow (16:9) (Hidden on Mobile) */}
-                <div className="hidden md:block relative w-full h-full bg-black">
-                    {desktopImages.map((src, index) => (
-                        <div
-                            key={src}
-                            className={`absolute inset-0 w-full h-full transition-opacity duration-[1500ms] ease-in-out ${index === currentImage ? "opacity-100 z-10" : "opacity-0 z-0"
-                                }`}
-                        >
-                            <Image
-                                src={src}
-                                alt={`Robeanny Hero Editorial ${index + 1}`}
-                                fill
-                                priority={index === 0}
-                                className="object-cover object-top md:object-center filter brightness-[0.8] scale-105"
-                                sizes="100vw"
-                            />
-                        </div>
-                    ))}
-                </div>
+                {/* 1. Mobile Experience: Muted Video Background (V7 Logic) */}
+                {isMobile ? (
+                    <video
+                        src="/hero.mp4"
+                        autoPlay={true}
+                        loop={true}
+                        muted={true}
+                        playsInline={true}
+                        controls={false}
+                        className="absolute inset-0 w-full h-full object-cover filter brightness-[0.75] scale-105"
+                    />
+                ) : (
+                    /* 2. Desktop Experience: Cinematic Fullscreen Image Slideshow */
+                    <div className="absolute inset-0 w-full h-full bg-black">
+                        {desktopImages.map((src, index) => (
+                            <div
+                                key={src}
+                                className={`absolute inset-0 w-full h-full transition-opacity duration-[1500ms] ease-in-out ${index === currentImage ? "opacity-100 z-10" : "opacity-0 z-0"
+                                    }`}
+                            >
+                                <Image
+                                    src={src}
+                                    alt={`Robeanny Hero Editorial ${index + 1}`}
+                                    fill
+                                    priority={index === 0}
+                                    className="object-cover object-top md:object-center filter brightness-[0.8] scale-105"
+                                    sizes="100vw"
+                                />
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
 
             {/* Elegant Centered Editorial Typography */}
