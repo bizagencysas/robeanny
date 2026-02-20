@@ -6,6 +6,8 @@ import CustomCursor from "@/components/ui/CustomCursor";
 import LoadingScreen from "@/components/layout/LoadingScreen";
 import SmoothScroll from "@/components/layout/SmoothScroll";
 import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
+import WhatsAppButton from "@/components/ui/WhatsAppButton";
 
 const cormorantGaramond = Cormorant_Garamond({
   weight: ["300", "400", "500", "600", "700"],
@@ -22,9 +24,12 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
-  title: "Robeanny Bastardo | Modelo Profesional en Colombia | Portfolio & Booking",
+  title: {
+    default: "Robeanny Bastardo | Modelo Profesional en Colombia | Portfolio & Booking",
+    template: "%s | Robeanny Bastardo",
+  },
   description: "Robeanny Bastardo Liconte - Modelo profesional colombiana especializada en sesiones comerciales, editoriales y campañas de moda. Portfolio completo y contacto para bookings.",
-  keywords: "modelo profesional, Robeanny Bastardo, modelo comercial, modelo editorial, fashion model, content creator, influencer moda, sesiones fotográficas, pasarela, modelo Colombia, modelo Venezuela, modelo España, modelo Latinoamérica, booking modelo, portfolio modelo, modelo Medellín, modelo Sabaneta, modelo Antioquia, modelo latina, modelo emergente, fashion photography Colombia, booking model Colombia, professional model portfolio",
+  keywords: "modelo profesional, Robeanny Bastardo, modelo comercial, modelo editorial, fashion model, content creator, sesiones fotográficas, pasarela, modelo Colombia, modelo Medellín, booking modelo, portfolio modelo, modelo latina",
   authors: [{ name: "Robeanny Bastardo Liconte" }],
   robots: "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
   alternates: {
@@ -61,7 +66,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0a0a0a",
+  themeColor: "#000000",
   colorScheme: "dark",
 };
 
@@ -70,7 +75,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // JSON-LD Schema
   const schemas = [
     {
       "@context": "https://schema.org",
@@ -86,15 +90,9 @@ export default function RootLayout({
         "https://www.patreon.com/robeanny"
       ],
       "jobTitle": "Modelo Profesional",
-      "worksFor": {
-        "@type": "Organization",
-        "name": "Independent"
-      },
+      "worksFor": { "@type": "Organization", "name": "Independent" },
       "birthDate": "2000-10-09",
-      "birthPlace": {
-        "@type": "Place",
-        "name": "Puerto Ordaz, Venezuela"
-      },
+      "birthPlace": { "@type": "Place", "name": "Puerto Ordaz, Venezuela" },
       "homeLocation": {
         "@type": "Place",
         "address": {
@@ -104,33 +102,18 @@ export default function RootLayout({
           "addressCountry": "CO"
         }
       },
-      "workLocation": {
-        "@type": "Place",
-        "address": {
-          "@type": "PostalAddress",
-          "addressLocality": "Medellín",
-          "addressRegion": "Antioquia",
-          "addressCountry": "CO"
-        }
-      },
-      "description": "Modelo profesional comercial y editorial en Medellín, Colombia. Especializada en moda, fotografía y contenido creativo.",
-      "knowsAbout": ["Modelaje Comercial", "Modelaje Editorial", "Fotografía de Moda", "Content Creation", "Fashion", "Alta Costura"],
-      "nationality": {
-        "@type": "Country",
-        "name": "Venezuela"
-      }
+      "description": "Modelo profesional comercial y editorial en Medellín, Colombia.",
+      "knowsAbout": ["Modelaje Comercial", "Modelaje Editorial", "Fotografía de Moda", "Content Creation", "Fashion"],
+      "nationality": { "@type": "Country", "name": "Venezuela" }
     },
     {
       "@context": "https://schema.org",
       "@type": "WebSite",
       "name": "Robeanny - Portfolio Profesional",
       "url": "https://robeanny.me",
-      "description": "Portfolio profesional y sitio de booking de Robeanny Bastardo Liconte, modelo profesional en Colombia.",
+      "description": "Portfolio profesional y sitio de booking de Robeanny Bastardo Liconte.",
       "inLanguage": ["es", "en"],
-      "author": {
-        "@type": "Person",
-        "name": "Robeanny Bastardo Liconte"
-      }
+      "author": { "@type": "Person", "name": "Robeanny Bastardo Liconte" }
     }
   ];
 
@@ -144,12 +127,16 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://res.cloudinary.com" />
         <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="anonymous" />
       </head>
-      <body>
+      <body className="bg-black text-white">
         <SmoothScroll>
           <CustomCursor />
           <LoadingScreen />
           <Navbar />
-          {children}
+          <main className="min-h-screen">
+            {children}
+          </main>
+          <Footer />
+          <WhatsAppButton />
         </SmoothScroll>
       </body>
     </html>

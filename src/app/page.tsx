@@ -1,24 +1,295 @@
-import Hero from "@/components/sections/Hero";
-import About from "@/components/sections/About";
-import Portfolio from "@/components/sections/Portfolio";
-import Sessions from "@/components/sections/Sessions";
-import Social from "@/components/sections/Social";
-import Support from "@/components/sections/Support";
-import Contact from "@/components/sections/Contact";
-import FloatingActions from "@/components/ui/FloatingActions";
+"use client";
 
-export default function Home() {
+import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { heroImage, aboutImage, biographyShort, portfolioTeaser, sessionsTeaser, personalData } from "@/lib/data";
+
+export default function HomePage() {
   return (
-    <main className="w-full min-h-screen bg-black text-white overflow-hidden selection:bg-white selection:text-black">
-      <Hero />
-      <About />
-      <Portfolio />
-      <Sessions />
-      <Social />
-      <Support />
-      <Contact />
+    <div className="w-full bg-black text-white">
+      <HeroSection />
+      <PortfolioTeaser />
+      <IntroSection />
+      <SessionsPreview />
+      <SocialSection />
+      <CTASection />
+    </div>
+  );
+}
 
-      <FloatingActions />
-    </main>
+// ========================================
+// 1. HERO — Full Viewport Cinematic
+// ========================================
+function HeroSection() {
+  const [y, setY] = useState(0);
+  const bgRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleScroll = () => setY(window.scrollY);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    if (bgRef.current) {
+      bgRef.current.style.transform = `translateY(${y * 0.15}px) scale(1.05)`;
+    }
+  }, [y]);
+
+  return (
+    <section className="relative w-full h-[100svh] overflow-hidden flex items-center justify-center">
+      {/* Background Image */}
+      <div ref={bgRef} className="absolute inset-0 w-full h-full will-change-transform">
+        <Image
+          src={heroImage}
+          alt="Robeanny Bastardo - Modelo Profesional"
+          fill
+          priority
+          className="object-cover object-center filter brightness-[0.6]"
+          sizes="100vw"
+        />
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 flex flex-col items-center text-center px-6">
+        <h1 className="font-serif text-[15vw] md:text-[10vw] lg:text-[8vw] text-white tracking-[0.1em] leading-[0.85] font-light mb-6">
+          ROBEANNY
+        </h1>
+        <p className="font-sans text-[10px] md:text-xs tracking-[0.4em] uppercase text-white/60 mb-12">
+          {personalData.subtitle}
+        </p>
+        <Link
+          href="/portfolio"
+          className="group font-sans text-[10px] md:text-xs tracking-[0.3em] uppercase border border-white/30 px-8 py-4 hover:bg-white hover:text-black transition-all duration-500"
+        >
+          Explore Portfolio
+          <span className="inline-block ml-2 transition-transform group-hover:translate-x-1">→</span>
+        </Link>
+      </div>
+
+      {/* Scroll Indicator */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-pulse">
+        <div className="w-px h-12 bg-gradient-to-b from-transparent to-white/40" />
+        <span className="font-sans text-[8px] tracking-[0.3em] uppercase text-white/30">Scroll</span>
+      </div>
+    </section>
+  );
+}
+
+// ========================================
+// 2. PORTFOLIO TEASER — Curated Best Shots
+// ========================================
+function PortfolioTeaser() {
+  return (
+    <section className="w-full py-24 md:py-40 px-6 md:px-12">
+      <div className="max-w-[1400px] mx-auto">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 md:mb-24">
+          <h2 className="font-serif text-4xl md:text-6xl font-light tracking-tight">
+            Selected <span className="italic">Work</span>
+          </h2>
+          <Link
+            href="/portfolio"
+            className="font-sans text-[10px] tracking-[0.3em] uppercase text-white/50 hover:text-white transition-colors mt-4 md:mt-0 group"
+          >
+            View Full Portfolio
+            <span className="inline-block ml-2 transition-transform group-hover:translate-x-1">→</span>
+          </Link>
+        </div>
+
+        {/* Asymmetric Editorial Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+          {portfolioTeaser.map((photo, i) => {
+            // Alternate tall/wide for editorial feel
+            const isTall = i === 0 || i === 3 || i === 6;
+            return (
+              <div
+                key={photo.id}
+                className={`relative overflow-hidden group cursor-pointer ${isTall ? "row-span-2" : ""
+                  }`}
+              >
+                <div className={`relative w-full ${isTall ? "h-[500px] md:h-[700px]" : "h-[240px] md:h-[340px]"} overflow-hidden`}>
+                  <Image
+                    src={photo.src}
+                    alt={photo.alt}
+                    fill
+                    className="object-cover transition-transform duration-[2s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
+                    sizes="(max-width: 768px) 50vw, 33vw"
+                  />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-500" />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ========================================
+// 3. INTRO — Who She Is (Short)
+// ========================================
+function IntroSection() {
+  return (
+    <section className="w-full py-24 md:py-40 px-6 md:px-12 border-t border-white/5">
+      <div className="max-w-[1200px] mx-auto flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
+        {/* Photo */}
+        <div className="w-full lg:w-5/12 h-[60vh] md:h-[70vh] max-h-[800px] relative overflow-hidden group">
+          <Image
+            src={aboutImage}
+            alt="Robeanny Bastardo Liconte"
+            fill
+            className="object-cover object-top transition-transform duration-[2s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
+            sizes="(max-width: 1024px) 100vw, 50vw"
+          />
+        </div>
+
+        {/* Text */}
+        <div className="w-full lg:w-7/12 flex flex-col">
+          <p className="font-sans text-[10px] tracking-[0.4em] uppercase text-white/40 mb-6">About</p>
+          <h2 className="font-serif text-4xl md:text-6xl font-light mb-8 leading-[0.9]">
+            The Model. <br /><span className="italic text-white/50">The Muse.</span>
+          </h2>
+          <p className="editorial-body text-lg md:text-xl text-white/70 max-w-lg mb-10 leading-relaxed">
+            {biographyShort}
+          </p>
+          <Link
+            href="/contact"
+            className="font-sans text-[10px] tracking-[0.3em] uppercase text-white/50 hover:text-white transition-colors group w-fit"
+          >
+            Get in Touch
+            <span className="inline-block ml-2 transition-transform group-hover:translate-x-1">→</span>
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ========================================
+// 4. SESSIONS PREVIEW — Mini Grid
+// ========================================
+function SessionsPreview() {
+  return (
+    <section className="w-full py-24 md:py-40 px-6 md:px-12 border-t border-white/5">
+      <div className="max-w-[1400px] mx-auto">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16">
+          <h2 className="font-serif text-4xl md:text-6xl font-light tracking-tight">
+            Latest <span className="italic">Sessions</span>
+          </h2>
+          <Link
+            href="/sessions"
+            className="font-sans text-[10px] tracking-[0.3em] uppercase text-white/50 hover:text-white transition-colors mt-4 md:mt-0 group"
+          >
+            View All Sessions
+            <span className="inline-block ml-2 transition-transform group-hover:translate-x-1">→</span>
+          </Link>
+        </div>
+
+        {/* Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+          {sessionsTeaser.map((url, i) => (
+            <div key={i} className="relative h-[280px] md:h-[400px] overflow-hidden group cursor-pointer">
+              <Image
+                src={url}
+                alt={`Robeanny Session ${i + 1}`}
+                fill
+                className="object-cover transition-transform duration-[2s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
+                sizes="(max-width: 768px) 50vw, 33vw"
+              />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-500" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ========================================
+// 5. SOCIAL — TikTok + Instagram
+// ========================================
+function SocialSection() {
+  return (
+    <section className="w-full py-24 md:py-40 px-6 md:px-12 border-t border-white/5">
+      <div className="max-w-[1200px] mx-auto">
+        <p className="font-sans text-[10px] tracking-[0.4em] uppercase text-white/40 mb-6">Connect</p>
+        <h2 className="font-serif text-4xl md:text-6xl font-light mb-16">
+          Follow the <span className="italic">Journey</span>
+        </h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+          {/* Instagram */}
+          <div className="w-full aspect-square md:aspect-[4/5] overflow-hidden border border-white/10 rounded-sm">
+            <iframe
+              src="https://www.instagram.com/robeannybl/embed"
+              className="w-full h-full border-0"
+              loading="lazy"
+              title="Instagram de Robeanny"
+            />
+          </div>
+
+          {/* Social Links */}
+          <div className="flex flex-col justify-center gap-8">
+            {[
+              { label: "Instagram", handle: "@robeannybl", href: personalData.socials.instagram },
+              { label: "TikTok", handle: "@robeannybbl", href: personalData.socials.tiktok },
+              { label: "LinkedIn", handle: "Robeanny", href: personalData.socials.linkedin },
+              { label: "Patreon", handle: "robeanny", href: personalData.socials.patreon },
+            ].map((social) => (
+              <a
+                key={social.label}
+                href={social.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-center justify-between py-6 border-b border-white/10 hover:border-white/30 transition-colors"
+              >
+                <div>
+                  <p className="font-serif text-2xl md:text-3xl text-white group-hover:text-white/80 transition-colors">{social.label}</p>
+                  <p className="font-sans text-xs text-white/30 mt-1">{social.handle}</p>
+                </div>
+                <span className="text-white/30 group-hover:text-white group-hover:translate-x-2 transition-all text-2xl">→</span>
+              </a>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ========================================
+// 6. CTA FINAL — Dramatic Close
+// ========================================
+function CTASection() {
+  return (
+    <section className="w-full py-32 md:py-48 px-6 md:px-12 border-t border-white/5">
+      <div className="max-w-[900px] mx-auto text-center flex flex-col items-center">
+        <h2 className="font-serif text-5xl md:text-7xl lg:text-8xl font-light leading-[0.85] mb-8">
+          Ready to create<br />
+          something <span className="italic">beautiful</span>?
+        </h2>
+        <p className="editorial-body text-sm md:text-base text-white/50 max-w-md mb-12">
+          Disponible para booking editorial, comercial y pasarelas a nivel mundial.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-4">
+          <Link
+            href="/book"
+            className="font-sans text-[10px] tracking-[0.3em] uppercase border border-white bg-white text-black px-10 py-5 hover:bg-transparent hover:text-white transition-all duration-500"
+          >
+            Book a Session →
+          </Link>
+          <Link
+            href="/contact"
+            className="font-sans text-[10px] tracking-[0.3em] uppercase border border-white/30 px-10 py-5 hover:bg-white hover:text-black transition-all duration-500"
+          >
+            Get in Touch →
+          </Link>
+        </div>
+      </div>
+    </section>
   );
 }

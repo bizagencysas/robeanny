@@ -5,32 +5,27 @@
   --color-dark: #0a0a0a;
   --color-darker: #000000;
   --color-light-platinum: #F5F5F5;
+  --color-accent: rgba(232, 232, 232, 0.15);
 
   --font-serif: "Cormorant Garamond", serif;
   --font-sans: "Montserrat", sans-serif;
 }
 
-/* Base Editorial Reset */
+/* Dark-First Brand Palette */
 :root {
-  --background: #ffffff;
-  --foreground: #000000;
+  --bg: #000000;
+  --bg-elevated: #0a0a0a;
+  --text: #ffffff;
+  --text-muted: rgba(255, 255, 255, 0.5);
   --platinum: #E8E8E8;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #fcfcfc;
-    --foreground: #0a0a0a;
-    --platinum: #eeeeee;
-  }
+  --border: rgba(232, 232, 232, 0.15);
 }
 
 html {
   font-family: var(--font-sans);
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--bg);
+  color: var(--text);
   scroll-behavior: auto;
-  /* Handled by Lenis for smooth vertical */
 }
 
 body {
@@ -38,11 +33,11 @@ body {
   padding: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: var(--background);
-  color: var(--foreground);
+  background-color: var(--bg);
+  color: var(--text);
 }
 
-/* V4 Ultra-Premium Typography Utils */
+/* Editorial Typography Utilities */
 .editorial-title {
   font-family: var(--font-serif);
   text-transform: uppercase;
@@ -54,44 +49,68 @@ body {
   font-family: var(--font-sans);
   font-weight: 300;
   letter-spacing: 0.03em;
-  line-height: 1.6;
+  line-height: 1.7;
 }
 
-/* Custom Scrollbar for non-lenis fallbacks */
+/* Selection */
+::selection {
+  background: rgba(255, 255, 255, 0.9);
+  color: #000;
+}
+
+/* Scrollbar — Dark Premium */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--background);
+  background: #000;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cccccc;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #999999;
+  background: rgba(255, 255, 255, 0.3);
 }
 
-/* Infinite Marquee Animation for Sessions component */
-@keyframes marquee {
-  0% {
-    transform: translateX(0);
+/* Page Transition Keyframes */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
   }
 
-  100% {
-    transform: translateX(calc(-50% - 1rem));
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
   }
 
-  /* Half of duplicated width minus safe gap */
+  to {
+    opacity: 1;
+  }
 }
 
-.animate-marquee {
-  width: max-content;
-  animation: marquee 60s linear infinite;
+.page-enter {
+  animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.animate-marquee:hover {
-  animation-play-state: paused;
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
