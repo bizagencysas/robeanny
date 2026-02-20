@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Image from "next/image";
@@ -10,12 +10,58 @@ gsap.registerPlugin(ScrollTrigger);
 
 export default function Portfolio() {
     const containerRef = useRef<HTMLElement>(null);
+    const [visibleCount, setVisibleCount] = useState(12);
+
+    const loadMorePhotos = () => {
+        setVisibleCount(domainPhotos.length);
+        // Give DOM time to paint the new items before re-calculating ScrollTriggers
+        setTimeout(() => {
+            ScrollTrigger.refresh();
+
+            // Animate the newly added items
+            const newItems = gsap.utils.toArray(".portfolio-image-wrapper:not(.gsap-revealed)");
+            newItems.forEach((item: any) => {
+                item.classList.add("gsap-revealed");
+                gsap.fromTo(
+                    item,
+                    { opacity: 0, y: 50 },
+                    {
+                        opacity: 1,
+                        y: 0,
+                        duration: 1.2,
+                        ease: "power2.out",
+                        scrollTrigger: {
+                            trigger: item,
+                            start: "top 85%",
+                        }
+                    }
+                );
+            });
+
+            // Bind parallax to new images
+            const newImages = gsap.utils.toArray(".portfolio-image:not(.gsap-parallaxed)");
+            newImages.forEach((img: any) => {
+                img.classList.add("gsap-parallaxed");
+                gsap.to(img, {
+                    yPercent: 15,
+                    ease: "none",
+                    scrollTrigger: {
+                        trigger: img.parentElement,
+                        start: "top bottom",
+                        end: "bottom top",
+                        scrub: true,
+                    }
+                });
+            });
+        }, 100);
+    };
 
     useEffect(() => {
         const ctx = gsap.context(() => {
             // Elegant staggered fade-up for each masonry item
-            const items = gsap.utils.toArray(".portfolio-image-wrapper");
+            const items = gsap.utils.toArray(".portfolio-image-wrapper:not(.gsap-revealed)");
             items.forEach((item: any) => {
+                item.classList.add("gsap-revealed");
                 gsap.fromTo(
                     item,
                     { opacity: 0, y: 50 },
@@ -33,8 +79,9 @@ export default function Portfolio() {
             });
 
             // Subtle parallax on the images themselves inside their wrappers
-            const images = gsap.utils.toArray(".portfolio-image");
+            const images = gsap.utils.toArray(".portfolio-image:not(.gsap-parallaxed)");
             images.forEach((img: any) => {
+                img.classList.add("gsap-parallaxed");
                 gsap.to(img, {
                     yPercent: 15,
                     ease: "none",
@@ -70,7 +117,7 @@ export default function Portfolio() {
           that flows vertically without horizontal scrolling.
       */}
             <div className="w-full max-w-[1600px] mx-auto columns-1 md:columns-2 lg:columns-3 gap-6 md:gap-8 space-y-6 md:space-y-8">
-                {domainPhotos.map((photo, i) => {
+                {domainPhotos.slice(0, visibleCount).map((photo, i) => {
                     // Add some editorial empty space occasionally by injecting a block quote
                     if (i === 12) {
                         return (
@@ -120,6 +167,17 @@ export default function Portfolio() {
                     );
                 })}
             </div>
+
+            {visibleCount < domainPhotos.length && (
+                <div className="w-full flex justify-center mt-24">
+                    <button
+                        onClick={loadMorePhotos}
+                        className="editorial-body text-xs uppercase tracking-[0.3em] font-bold border-b border-black pb-1 hover:text-black/50 transition-colors"
+                    >
+                        Load Full Archive
+                    </button>
+                </div>
+            )}
         </section>
     );
 }

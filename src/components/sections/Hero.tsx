@@ -42,7 +42,7 @@ export default function Hero() {
                     alt="Robeanny Hero"
                     fill
                     priority
-                    className="object-cover object-center filter brightness-[0.9]"
+                    className="object-cover object-[center_15%] filter brightness-[0.9]"
                     sizes="100vw"
                 />
             </div>
@@ -55,12 +55,6 @@ export default function Hero() {
                 <h1 className="editorial-title text-[18vw] md:text-[15vw] text-white tracking-tighter text-center whitespace-nowrap overflow-hidden">
                     ROBEANNY
                 </h1>
-            </div>
-
-            <div className="absolute inset-x-0 bottom-[10vh] flex flex-col items-center justify-center z-10 pointer-events-none">
-                <h2 className="editorial-body uppercase text-[10px] md:text-xs text-black tracking-[0.4em] bg-white/80 backdrop-blur-sm px-6 py-2">
-                    Professional Model
-                </h2>
             </div>
 
         </section>

@@ -75,7 +75,7 @@ export default function Contact() {
                         Available for editorial, commercial, and runway booking worldwide.
                     </p>
                     <div className="h-[1px] w-full max-w-[200px] bg-black mt-12 mb-8"></div>
-                    <p className="font-serif text-2xl">robeanny@robeanny.me</p>
+                    <p className="font-serif text-2xl">me@robeanny.com</p>
                     <p className="font-serif text-2xl">+57 300 4846270</p>
                 </div>
 

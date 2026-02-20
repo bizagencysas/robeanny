@@ -8,7 +8,7 @@ export const personalData = {
     residence: "Sabaneta, Antioquia, Colombia 🇨🇴",
     workCity: "Medellín, Antioquia, Colombia",
     status: "Independiente (Independent)",
-    email: "robeanny@robeanny.me",
+    email: "me@robeanny.com",
     whatsappLink: "https://wa.me/573004846270",
     whatsappDisplay: "+57 300 4846270",
     socials: {

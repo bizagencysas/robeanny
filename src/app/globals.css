@@ -73,3 +73,25 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #999999;
 }
+
+/* Infinite Marquee Animation for Sessions component */
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(calc(-50% - 1rem));
+  }
+
+  /* Half of duplicated width minus safe gap */
+}
+
+.animate-marquee {
+  width: max-content;
+  animation: marquee 60s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}

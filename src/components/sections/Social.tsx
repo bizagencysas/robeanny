@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { personalData } from "@/lib/data";
+import Script from "next/script";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -74,6 +75,7 @@ export default function Social() {
                             <blockquote className="tiktok-embed" cite="https://www.tiktok.com/@robeannybbl" data-unique-id="robeannybbl" data-embed-type="creator" style={{ maxWidth: '500px', minWidth: '288px' }}>
                                 <section><a target="_blank" rel="noopener noreferrer" href="https://www.tiktok.com/@robeannybbl?refer=creator_embed">@robeannybbl</a></section>
                             </blockquote>
+                            <Script src="https://www.tiktok.com/embed.js" strategy="lazyOnload" />
                         </div>
                     </div>
                 </div>
