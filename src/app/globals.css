@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --black: #000000;
+  --near-black: #0a0a0a;
+  --dark-gray: #111111;
+  --platinum: #E8E8E8;
+  --white: #FFFFFF;
+  --accent: #C9A96E;
+  --accent-subtle: rgba(201, 169, 110, 0.15);
+}
+
+body {
+  background-color: var(--black);
+  color: var(--white);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background-color: var(--accent);
+  color: var(--black);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--black);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--dark-gray);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+
+/* Base interactive reset */
+a, button {
+  cursor: none; /* Hide default cursor to use custom cursor on desktop */
+}
+@media (max-width: 1024px) {
+  a, button {
+    cursor: pointer;
+  }
+}

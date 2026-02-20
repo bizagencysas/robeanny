@@ -1,0 +1,67 @@
+{
+    "nav": {
+        "about": "About",
+        "portfolio": "Portfolio",
+        "sessions": "Sessions",
+        "social": "Social",
+        "support": "Support",
+        "contact": "Contact"
+    },
+    "hero": {
+        "subtitle": "Professional Model"
+    },
+    "about": {
+        "title": "About Me",
+        "bio": "Born in Puerto Ordaz, Venezuela on October 9th, 2000, Robeanny Bastardo Liconte has built a remarkable career in the modeling world from a very young age. Passionate about fashion and haute couture trends, she has collaborated with diverse brands, establishing herself as an emerging figure in the industry. Her versatility in front of the camera and unique presence have led her to excel in editorial sessions, advertising campaigns, and runways. With a modern vision of style and a magnetic personality, Robeanny continues to expand her portfolio and leave her mark on every project."
+    },
+    "measurements": {
+        "bust": "Bust",
+        "waist": "Waist",
+        "hips": "Hips",
+        "inseam": "Inseam",
+        "thigh": "Thigh",
+        "height": "Height",
+        "dob": "Birthday"
+    },
+    "portfolio": {
+        "title": "Portfolio",
+        "subtitle": "Professional Shots"
+    },
+    "sessions": {
+        "title": "Sessions",
+        "subtitle": "Disk'O Gallery Experience"
+    },
+    "social": {
+        "title": "Follow Me"
+    },
+    "support": {
+        "title": "Support My Work",
+        "subtitle": "If you enjoy my content, you can support me",
+        "card1Title": "Buy Me a Coffee",
+        "card1Desc": "Support my work with a gift or tip",
+        "card1Btn": "Send Gift",
+        "card2Title": "Patreon",
+        "card2Desc": "Get access to exclusive behind-the-scenes content",
+        "card2Btn": "Join Patreon",
+        "card3Title": "LinkedIn",
+        "card3Desc": "Connect with me professionally",
+        "card3Btn": "Connect"
+    },
+    "contact": {
+        "title": "Get In Touch",
+        "subtitle": "For collaborations, projects and bookings",
+        "emailLabel": "EMAIL",
+        "whatsappLabel": "WHATSAPP",
+        "ctaBtn": "Send Message"
+    },
+    "footer": {
+        "rights": "All rights reserved"
+    },
+    "pwa": {
+        "title": "Take me everywhere",
+        "subtitle": "Robeanny",
+        "text": "Add me to your home screen for quick access to my portfolio.",
+        "install": "Add now",
+        "later": "Maybe later"
+    }
+}
