@@ -9,7 +9,7 @@ import FloatingActions from "@/components/ui/FloatingActions";
 
 export default function Home() {
   return (
-    <main className="w-full min-h-screen bg-black overflow-hidden selection:bg-white selection:text-black">
+    <main className="w-full min-h-screen bg-white text-black overflow-hidden selection:bg-black selection:text-white">
       <Hero />
       <About />
       <Portfolio />

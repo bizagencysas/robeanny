@@ -1,66 +1,53 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { personalData, measurements, aboutImage, biography } from "@/lib/data";
-import { Canvas } from "@react-three/fiber";
-import LiquidImage from "@/components/three/LiquidImage";
+import Image from "next/image";
+import { personalData, aboutImage } from "@/lib/data";
 
 gsap.registerPlugin(ScrollTrigger);
 
 export default function About() {
-    const containerRef = useRef<HTMLDivElement>(null);
+    const containerRef = useRef<HTMLElement>(null);
     const textRef = useRef<HTMLDivElement>(null);
-    const [isHoveringImage, setIsHoveringImage] = useState(false);
+    const imageRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const ctx = gsap.context(() => {
-            // Custom Word-by-Word reveal via DOM manipulation 
-            // (Replacing Premium SplitText with custom implementation)
-            const paras = document.querySelectorAll(".biography-text");
-            paras.forEach((p) => {
-                const words = (p.textContent || "").split(" ");
-                p.innerHTML = "";
-                words.forEach((word) => {
-                    const span = document.createElement("span");
-                    span.className = "inline-block mr-1 lg:mr-2 opacity-10 translate-y-4";
-                    span.textContent = word;
-                    p.appendChild(span);
-                });
-
-                gsap.to((p as HTMLElement).children, {
-                    scrollTrigger: {
-                        trigger: p,
-                        start: "top 85%",
-                        end: "bottom 50%",
-                        scrub: 1, // Smoothly tie opacity to scroll progress
-                    },
+            // Elegant fade-in for biographies paragraph by paragraph
+            gsap.fromTo(
+                ".bio-text",
+                { opacity: 0, y: 30 },
+                {
                     opacity: 1,
                     y: 0,
-                    stagger: 0.05,
+                    duration: 1.2,
+                    stagger: 0.3,
                     ease: "power2.out",
-                });
-            });
-
-            // Reveal measurements table
-            gsap.fromTo(
-                ".measurement-item",
-                { opacity: 0, x: -20 },
-                {
                     scrollTrigger: {
-                        trigger: ".measurements-grid",
+                        trigger: textRef.current,
                         start: "top 80%",
                     },
+                }
+            );
+
+            // Subtle parallax slide up for the image wrapper
+            gsap.fromTo(
+                imageRef.current,
+                { opacity: 0, y: 100 },
+                {
                     opacity: 1,
-                    x: 0,
-                    duration: 0.8,
-                    stagger: 0.1,
-                    ease: "back.out(1.7)",
+                    y: 0,
+                    duration: 1.5,
+                    ease: "power3.out",
+                    scrollTrigger: {
+                        trigger: containerRef.current,
+                        start: "top 70%",
+                    },
                 }
             );
         }, containerRef);
-
         return () => ctx.revert();
     }, []);
 
@@ -68,57 +55,61 @@ export default function About() {
         <section
             id="about"
             ref={containerRef}
-            className="w-full min-h-screen bg-black text-white py-24 md:py-40 flex items-center"
+            className="w-full bg-white text-black py-24 md:py-40 px-6 md:px-12 lg:px-[10vw] flex flex-col lg:flex-row items-center lg:items-start justify-between gap-16 lg:gap-24 relative overflow-hidden"
         >
-            <div className="container mx-auto px-6 max-w-7xl">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
+            {/* Background massive watermark - Magazine Style */}
+            <h2 className="absolute -top-10 -left-10 text-[20vw] font-serif text-black/5 leading-none select-none pointer-events-none uppercase tracking-tighter">
+                About
+            </h2>
 
-                    {/* Left Column: Text Content */}
-                    <div ref={textRef} className="flex flex-col space-y-12">
-                        <h2 className="text-5xl md:text-7xl font-serif font-light tracking-[0.1em] text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">
-                            About Me
-                        </h2>
+            {/* The Article Text (Left) */}
+            <div ref={textRef} className="w-full lg:w-1/2 flex flex-col pt-12 lg:pt-32 relative z-10">
+                <h3 className="editorial-title text-5xl md:text-7xl mb-12 relative">
+                    <span className="block italic font-light">The Model/</span>
+                    <span className="block font-bold mt-2">The Muse.</span>
+                </h3>
 
-                        <div className="space-y-6 text-lg md:text-xl lg:text-2xl font-serif text-white/50 leading-relaxed font-light">
-                            {biography.map((para, i) => (
-                                <p key={i} className="biography-text">
-                                    {para}
-                                </p>
-                            ))}
-                        </div>
+                <div className="flex flex-col gap-8">
+                    {personalData.bio.map((paragraph, i) => (
+                        <p key={i} className="bio-text editorial-body text-base md:text-lg lg:text-xl text-black/80 max-w-xl">
+                            {i === 0 ? <span className="float-left text-6xl font-serif leading-[0.8] pr-3 pt-2 font-bold">{paragraph.charAt(0)}</span> : null}
+                            {i === 0 ? paragraph.substring(1) : paragraph}
+                        </p>
+                    ))}
+                </div>
 
-                        {/* Measurements Grid */}
-                        <div className="measurements-grid grid grid-cols-2 gap-y-8 gap-x-12 pt-8">
-                            {measurements.map((item, i) => (
-                                <div key={i} className="measurement-item border-l-2 border-platinum pl-4 flex flex-col">
-                                    <span className="text-xs font-sans text-white/40 uppercase tracking-[0.2em] mb-1">
-                                        {item.label}
-                                    </span>
-                                    <span className="text-xl md:text-2xl font-serif text-platinum">
-                                        {item.value}
-                                    </span>
-                                </div>
-                            ))}
-                        </div>
+                {/* Measurements Editorial Grid */}
+                <div className="mt-20 border-t border-black/20 pt-8 bio-text">
+                    <p className="editorial-title text-sm tracking-[0.3em] font-semibold mb-6">Measurements</p>
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-y-8 gap-x-4">
+                        {Object.entries({
+                            ...personalData.measurements
+                        }).map(([key, value]) => (
+                            <div key={key} className="flex flex-col">
+                                <span className="text-[10px] uppercase font-sans tracking-widest text-black/50 mb-1">{key}</span>
+                                <span className="font-serif text-xl md:text-2xl">{value}</span>
+                            </div>
+                        ))}
                     </div>
+                </div>
+            </div>
 
-                    {/* Right Column: WebGL Image */}
-                    <div
-                        className="relative w-full aspect-[2/3] lg:aspect-[3/4] overflow-hidden border border-white/10 group cursor-pointer"
-                        onMouseEnter={() => setIsHoveringImage(true)}
-                        onMouseLeave={() => setIsHoveringImage(false)}
-                        data-cursor="photo"
-                    >
-                        <div className="w-full h-full absolute inset-0 z-10 transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105">
-                            <Canvas camera={{ position: [0, 0, 2], fov: 45 }}>
-                                <ambientLight intensity={1} />
-                                <LiquidImage imageUrl={aboutImage} isHovering={isHoveringImage} />
-                            </Canvas>
-                        </div>
-                        {/* Fallback solid color while loading */}
-                        <div className="absolute inset-0 bg-white/5" />
-                    </div>
-
+            {/* The Asymmetric Huge Photo (Right) */}
+            <div
+                ref={imageRef}
+                className="w-full lg:w-5/12 h-[75vh] md:h-[110vh] max-h-[900px] relative border-[12px] border-white shadow-[0_30px_60px_rgba(0,0,0,0.1)] -mt-10 lg:mt-0 z-20 group overflow-hidden"
+            >
+                <Image
+                    src={aboutImage}
+                    alt="Robeanny Bastardo Editorial"
+                    fill
+                    className="object-cover object-top transition-transform duration-[2s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
+                    sizes="(max-width: 1024px) 100vw, 50vw"
+                    priority
+                />
+                {/* Caption Overlay */}
+                <div className="absolute bottom-6 -right-6 origin-bottom-right -rotate-90 bg-white px-4 py-2 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
+                    <p className="text-[10px] uppercase tracking-widest font-sans font-bold">Robeanny Bastardo</p>
                 </div>
             </div>
         </section>

@@ -1,58 +1,91 @@
 "use client";
 
-import { useState } from "react";
-import { Canvas } from "@react-three/fiber";
-import { Pause, Play } from "lucide-react";
-import OrbitGallery from "@/components/three/OrbitGallery";
-import Lightbox from "@/components/ui/Lightbox";
+import { useRef, useState, useEffect } from "react";
+import Image from "next/image";
 import { cloudinaryPhotos } from "@/lib/data";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import Lightbox from "@/components/ui/Lightbox";
 
 export default function Sessions() {
-    const [isPaused, setIsPaused] = useState(false);
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
     const [activePhoto, setActivePhoto] = useState<number | null>(null);
+
+    const scrollLeft = () => {
+        if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollBy({ left: -window.innerWidth * 0.5, behavior: "smooth" });
+        }
+    };
+
+    const scrollRight = () => {
+        if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollBy({ left: window.innerWidth * 0.5, behavior: "smooth" });
+        }
+    };
 
     const handleNext = () => setActivePhoto((prev) => (prev !== null && prev < cloudinaryPhotos.length - 1 ? prev + 1 : 0));
     const handlePrev = () => setActivePhoto((prev) => (prev !== null && prev > 0 ? prev - 1 : cloudinaryPhotos.length - 1));
 
-    const openLightbox = (url: string) => {
-        const index = cloudinaryPhotos.indexOf(url);
-        if (index !== -1) setActivePhoto(index);
+    const openLightbox = (index: number) => {
+        setActivePhoto(index);
     };
 
     return (
-        <section id="sessions" className="relative w-full h-[100vh] bg-black overflow-hidden py-12">
-            {/* V3 Section Title Background */}
-            <div className="absolute top-[5%] w-full text-center pointer-events-none z-10 mix-blend-difference">
-                <h2 className="text-[14vw] md:text-[8rem] font-serif tracking-[0.1em] uppercase text-white opacity-20 select-none">
-                    SESIONES
-                </h2>
+        <section className="w-full bg-[#f4f4f4] text-black py-24 md:py-32 relative overflow-hidden border-y border-black/5">
+
+            <div className="px-6 md:px-12 flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
+                <div>
+                    <h2 className="editorial-title text-4xl md:text-7xl">Sesiones</h2>
+                    <p className="editorial-body text-xs uppercase tracking-widest mt-4 text-black/60">
+                        Selected Cloudinary Archives // {cloudinaryPhotos.length} Shots
+                    </p>
+                </div>
+
+                {/* Manual Native Scroll Controls */}
+                <div className="flex gap-4">
+                    <button
+                        onClick={scrollLeft}
+                        className="w-12 h-12 bg-black text-white flex items-center justify-center hover:bg-black/80 transition-colors"
+                        aria-label="Previous photos"
+                    >
+                        <ChevronLeft size={20} className="stroke-[1.5]" />
+                    </button>
+                    <button
+                        onClick={scrollRight}
+                        className="w-12 h-12 bg-black text-white flex items-center justify-center hover:bg-black/80 transition-colors"
+                        aria-label="Next photos"
+                    >
+                        <ChevronRight size={20} className="stroke-[1.5]" />
+                    </button>
+                </div>
             </div>
 
-            {/* R3F WebGL Canvas */}
-            <div className="absolute inset-0 z-0">
-                <Canvas camera={{ position: [0, 0, 10], fov: 45 }}>
-                    <ambientLight intensity={1} />
-                    <fog attach="fog" args={["#000000", 5, 20]} />
-                    <OrbitGallery isPaused={isPaused} onPhotoClick={openLightbox} />
-                </Canvas>
-            </div>
-
-            {/* Fade Overlays to blend edges */}
-            <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black pointer-events-none z-10" />
-            <div className="absolute inset-0 bg-gradient-to-r from-black via-transparent to-black pointer-events-none z-10" />
-
-            {/* UI Controls */}
-            <div className="absolute bottom-12 lg:bottom-20 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center">
-                <p className="text-xs font-sans text-white/50 tracking-[0.2em] uppercase mb-4 text-center">
-                    Arrastra para rotar • Hover atrae la foto
-                </p>
-                <button
-                    onClick={() => setIsPaused(!isPaused)}
-                    className="w-14 h-14 rounded-full border border-white/20 bg-black/50 backdrop-blur-md flex items-center justify-center text-white hover:bg-white hover:text-black transition-all duration-300"
-                    aria-label={isPaused ? "Play Rotation" : "Pause Rotation"}
-                >
-                    {isPaused ? <Play fill="currentColor" size={20} className="ml-1" /> : <Pause fill="currentColor" size={20} />}
-                </button>
+            {/* 
+        Native CSS Scroll Snap Carousel 
+        Extremely performant, zero dependencies, no scroll-hijacking, fully mobile-friendly drag.
+      */}
+            <div
+                ref={scrollContainerRef}
+                className="flex gap-4 md:gap-8 overflow-x-auto px-6 md:px-12 pb-12 snap-x snap-mandatory hide-scrollbars"
+                style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+            >
+                {cloudinaryPhotos.map((url, i) => (
+                    <div
+                        key={i}
+                        className="relative flex-shrink-0 w-[80vw] md:w-[40vw] lg:w-[25vw] aspect-[3/4] snap-center cursor-pointer group"
+                        onClick={() => openLightbox(i)}
+                        data-cursor="view"
+                    >
+                        <Image
+                            src={url}
+                            alt={`Session Post ${i + 1}`}
+                            fill
+                            className="object-cover object-center grayscale-[0.2] transition-all duration-700 group-hover:grayscale-0 group-hover:scale-105"
+                            sizes="(max-width: 768px) 80vw, (max-width: 1200px) 40vw, 25vw"
+                            loading="lazy"
+                        />
+                        <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors duration-500" />
+                    </div>
+                ))}
             </div>
 
             <Lightbox
