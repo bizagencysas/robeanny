@@ -1,0 +1,149 @@
+{
+    "nav": {
+        "home": "Inicio",
+        "portfolio": "Portfolio",
+        "book": "Book",
+        "sessions": "Sesiones",
+        "journal": "Journal",
+        "contact": "Contacto"
+    },
+    "hero": {
+        "subtitle": "Modelo Profesional · Medellín, Colombia",
+        "cta": "Explorar Portfolio",
+        "scroll": "Desliza"
+    },
+    "portfolioTeaser": {
+        "title": "Trabajos",
+        "titleAccent": "Selectos",
+        "cta": "Ver Portfolio Completo"
+    },
+    "intro": {
+        "label": "Acerca de",
+        "title1": "La Modelo.",
+        "title2": "La Musa.",
+        "bio": "Nacida en Venezuela, Robeanny Bastardo Liconte ha construido una sólida carrera en el modelaje. Con una visión moderna del estilo y una personalidad magnética, continúa dejando huella en cada proyecto.",
+        "cta": "Contáctame"
+    },
+    "sessions": {
+        "title": "Últimas",
+        "titleAccent": "Sesiones",
+        "cta": "Ver Todas las Sesiones",
+        "drag": "Arrastra para explorar",
+        "back": "Volver a foto anterior"
+    },
+    "social": {
+        "label": "Conecta",
+        "title": "Sigue el",
+        "titleAccent": "Viaje"
+    },
+    "cta": {
+        "title1": "¿Lista para crear",
+        "title2": "algo hermoso",
+        "subtitle": "Disponible para booking editorial, comercial y pasarelas a nivel mundial.",
+        "book": "Reservar Sesión →",
+        "contact": "Escríbeme →"
+    },
+    "portfolio": {
+        "pageTitle": "Portfolio",
+        "subtitle": "Selección completa de trabajos",
+        "photos": "fotografías",
+        "editorial": "Editorial",
+        "grid": "Grid",
+        "slideshow": "Presentación",
+        "prev": "← Anterior",
+        "next": "Siguiente →",
+        "close": "Cerrar ✕"
+    },
+    "book": {
+        "pageTitle": "Reservar Sesión",
+        "subtitle": "Cuéntame sobre tu proyecto y creemos algo increíble juntos.",
+        "step1Title": "Paso 1 — Tipo de Proyecto",
+        "step2Title": "Paso 2 — Detalles",
+        "step3Title": "Paso 3 — Referencias",
+        "step4Title": "Paso 4 — Confirmación",
+        "types": {
+            "editorial": "Sesión Editorial",
+            "commercial": "Campaña Comercial",
+            "runway": "Pasarela / Runway",
+            "social": "Contenido para Redes",
+            "artistic": "Proyecto Artístico",
+            "other": "Otro"
+        },
+        "fields": {
+            "name": "Nombre completo",
+            "email": "Email",
+            "brand": "Empresa / Marca (opcional)",
+            "date": "Fecha estimada",
+            "location": "Ubicación (ciudad)",
+            "description": "Descripción del proyecto",
+            "budget": "Presupuesto estimado",
+            "references": "Pega URLs de referencia (Pinterest, Instagram) o describe tu visión..."
+        },
+        "back": "← Atrás",
+        "next": "Siguiente →",
+        "submit": "Enviar Solicitud →",
+        "submitting": "Enviando...",
+        "thankYou": "¡Gracias!",
+        "thankYouMsg": "Tu solicitud ha sido enviada. Te contactaré dentro de 24-48 horas para discutir los detalles de tu proyecto.",
+        "backHome": "← Volver al inicio",
+        "error": "Error al enviar. Intenta contactar directamente a"
+    },
+    "journal": {
+        "pageTitle": "Journal",
+        "subtitle": "Detrás de cámaras, tips e historias del mundo de la moda.",
+        "prev": "← Anterior",
+        "next": "Siguiente →",
+        "categories": {
+            "all": "Todos",
+            "bts": "Detrás de Cámaras",
+            "tips": "Tips",
+            "personal": "Personal",
+            "fashion": "Moda"
+        }
+    },
+    "contact": {
+        "pageTitle": "Contacto",
+        "workTogether": "Trabajemos Juntos",
+        "location": "Medellín, Colombia",
+        "bookingNote": "Para solicitudes de booking, visita la",
+        "bookPage": "página de Book →",
+        "support": "Apoyo",
+        "coffee": "♡ Invítame un Café",
+        "fields": {
+            "name": "Nombre",
+            "email": "Email",
+            "subject": "Asunto",
+            "message": "Mensaje",
+            "send": "Enviar Mensaje →"
+        },
+        "subjects": {
+            "placeholder": "Asunto",
+            "collab": "Colaboración",
+            "booking": "Booking",
+            "press": "Prensa",
+            "other": "Otro"
+        },
+        "success": "¡Mensaje enviado!",
+        "successMsg": "Te responderé pronto.",
+        "submitting": "Enviando...",
+        "error": "Error al enviar. Intenta contactar directamente a"
+    },
+    "footer": {
+        "support": "Apoya Mi Trabajo ♡",
+        "rights": "© 2025 Robeanny Bastardo Liconte. Todos los derechos reservados."
+    },
+    "meta": {
+        "homeTitle": "Robeanny Bastardo Liconte | Modelo Profesional Colombia — Portfolio, Booking & Sesiones",
+        "homeDesc": "Robeanny Bastardo Liconte — Modelo profesional en Medellín, Colombia. Portfolio editorial, sesiones fotográficas, booking para campañas comerciales, pasarela y contenido de moda.",
+        "portfolioTitle": "Portfolio",
+        "portfolioDesc": "Portfolio completo de Robeanny Bastardo Liconte. Sesiones editoriales, campañas comerciales y fotografía de moda profesional en Colombia.",
+        "sessionsTitle": "Sesiones Fotográficas",
+        "sessionsDesc": "Galería interactiva de sesiones fotográficas profesionales de Robeanny Bastardo Liconte en Medellín, Colombia.",
+        "bookTitle": "Reservar Sesión",
+        "bookDesc": "Solicita una sesión fotográfica o colaboración con Robeanny Bastardo. Disponible para editoriales, campañas comerciales, pasarela y contenido.",
+        "journalTitle": "Journal",
+        "journalDesc": "Blog de moda, detrás de cámaras y tips de modelaje por Robeanny Bastardo Liconte.",
+        "contactTitle": "Contacto",
+        "contactDesc": "Contacta a Robeanny Bastardo para colaboraciones, bookings y proyectos. Email, WhatsApp y formulario de contacto."
+    }
+}

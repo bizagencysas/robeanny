@@ -7,9 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function SessionsPage() {
-    return (
-        <div className="w-full bg-black text-white">
-            <SessionsStack />
-        </div>
-    );
+    return <SessionsStack />;
 }

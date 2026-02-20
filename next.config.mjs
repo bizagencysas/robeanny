@@ -1,3 +1,7 @@
+import createNextIntlPlugin from "next-intl/plugin";
+
+const withNextIntl = createNextIntlPlugin("./src/i18n.ts");
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
@@ -12,6 +16,11 @@ const nextConfig = {
         hostname: "robeanny.me",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "robeanny.com",
+        pathname: "/**",
+      },
     ],
   },
   typescript: {
@@ -19,19 +28,4 @@ const nextConfig = {
   }
 };
 
-// PWA config wrapper if next-pwa is loaded successfully
-let config = nextConfig;
-
-try {
-  const withPWA = require("next-pwa")({
-    dest: "public",
-    disable: process.env.NODE_ENV === "development",
-    register: true,
-    skipWaiting: true,
-  });
-  config = withPWA(nextConfig);
-} catch (e) {
-  console.log("PWA module not found. Building without PWA support temporarily.");
-}
-
-export default config;
+export default withNextIntl(nextConfig);
