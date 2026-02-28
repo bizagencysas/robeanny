@@ -30,8 +30,8 @@ export default function InstagramWidget() {
                     </div>
                     <div className="flex items-center gap-4 md:gap-8 text-xs md:text-sm">
                         <div className="flex flex-col md:flex-row items-center md:gap-1"><span className="font-semibold">78</span> <span className="text-white/80 text-[10px] md:text-sm">posts</span></div>
-                        <div className="flex flex-col md:flex-row items-center md:gap-1"><span className="font-semibold">324K</span> <span className="text-white/80 text-[10px] md:text-sm">followers</span></div>
-                        <div className="flex flex-col md:flex-row items-center md:gap-1"><span className="font-semibold">145</span> <span className="text-white/80 text-[10px] md:text-sm">following</span></div>
+                        <div className="flex flex-col md:flex-row items-center md:gap-1"><span className="font-semibold">3.5K</span> <span className="text-white/80 text-[10px] md:text-sm">followers</span></div>
+                        <div className="flex flex-col md:flex-row items-center md:gap-1"><span className="font-semibold">404</span> <span className="text-white/80 text-[10px] md:text-sm">following</span></div>
                     </div>
                     <div className="mt-4 text-xs md:text-sm hidden md:block">
                         <p className="font-semibold mb-1">ROBEANNY</p>
