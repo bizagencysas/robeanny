@@ -175,8 +175,8 @@ function SocialSection() {
           <div className="w-full h-[480px] md:h-[520px] overflow-hidden border border-white/10 rounded-sm relative">
             <iframe src="https://www.tiktok.com/embed/@robeannybbl" className="w-full h-full border-0" loading="lazy" title="TikTok de Robeanny" allow="encrypted-media" />
           </div>
-          <div className="w-full h-[480px] md:h-[520px] overflow-hidden border border-white/10 rounded-sm relative">
-            <iframe src="https://www.instagram.com/robeannybl/embed" className="w-full h-full border-0" loading="lazy" title="Instagram de Robeanny" />
+          <div className="w-full h-[480px] md:h-[520px] overflow-hidden border border-white/10 rounded-sm relative bg-black flex items-center justify-center">
+            <iframe src="https://www.instagram.com/reel/DEs1xS4sZc-/embed" className="w-full h-full border-0" loading="lazy" title="Instagram de Robeanny" />
           </div>
         </div>
         <div className="grid grid-cols-3 gap-3 md:gap-4">
