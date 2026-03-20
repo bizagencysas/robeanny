@@ -60,9 +60,10 @@ export default function HomePage() {
 
   return (
     <div className="w-full overflow-hidden">
-      <section className="dark-stage relative overflow-hidden border-b border-[#efe5d5]/14 pt-16 md:hidden">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-52 bg-[radial-gradient(circle_at_20%_0%,rgba(199,154,89,0.42),rgba(199,154,89,0))]" />
-        <div className="relative h-[76svh] min-h-[560px]">
+      <section className="dark-stage relative overflow-hidden border-b border-[#efe5d5]/10 pt-16 md:hidden">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(circle_at_25%_0%,rgba(199,154,89,0.38),rgba(199,154,89,0)_60%)]" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-[radial-gradient(circle_at_80%_100%,rgba(140,100,50,0.16),rgba(140,100,50,0)_50%)]" />
+        <div className="relative h-[78svh] min-h-[580px]">
           {heroImages.map((image, index) => (
             <Image
               key={image}
@@ -70,52 +71,54 @@ export default function HomePage() {
               alt={`Robeanny hero ${index + 1}`}
               fill
               priority={index === 0}
-              className={`object-cover object-top transition-[opacity,transform] duration-[1300ms] ${
-                index === activeSlide ? "scale-100 opacity-100" : "scale-[1.02] opacity-0"
+              className={`object-cover object-top transition-[opacity,transform] duration-[1400ms] ${
+                index === activeSlide ? "scale-100 opacity-100" : "scale-[1.03] opacity-0"
               }`}
               sizes="100vw"
             />
           ))}
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(8,7,6,0.15)_0%,rgba(8,7,6,0.34)_46%,rgba(8,7,6,0.96)_100%)]" />
-          <div className="page-shell relative z-10 flex h-full flex-col justify-between pb-6 pt-6">
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(8,7,6,0.08)_0%,rgba(8,7,6,0.22)_35%,rgba(8,7,6,0.92)_88%,rgba(8,7,6,0.98)_100%)]" />
+          <div className="page-shell relative z-10 flex h-full flex-col justify-between pb-7 pt-5">
             <div className="flex items-start justify-between gap-3">
-              <div className="inline-flex items-center gap-2 rounded-full border border-[#efe5d5]/16 bg-[rgba(16,13,11,0.46)] px-3 py-1.5 text-[0.55rem] uppercase tracking-[0.28em] text-[#efe5d5]/74 backdrop-blur">
+              <div className="inline-flex items-center gap-2 rounded-full border border-[#efe5d5]/14 bg-[rgba(14,12,10,0.52)] px-3.5 py-1.5 text-[0.52rem] uppercase tracking-[0.3em] text-[#efe5d5]/70 backdrop-blur-lg">
+                <span className="inline-block h-1 w-1 rounded-full bg-[#c79a59]/80" />
                 <span>{tHero("subtitle")}</span>
               </div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-[#efe5d5]/16 bg-[rgba(16,13,11,0.46)] px-3 py-1.5 text-[0.55rem] uppercase tracking-[0.28em] text-[#efe5d5]/74 backdrop-blur">
+              <div className="inline-flex items-center gap-1.5 rounded-full border border-[#efe5d5]/14 bg-[rgba(14,12,10,0.52)] px-3 py-1.5 text-[0.52rem] uppercase tracking-[0.24em] text-[#efe5d5]/70 backdrop-blur-lg">
                 <span>{String(activeSlide + 1).padStart(2, "0")}</span>
-                <span className="text-[#efe5d5]/40">/</span>
+                <span className="text-[#efe5d5]/30">/</span>
                 <span>{String(heroImages.length).padStart(2, "0")}</span>
               </div>
             </div>
 
-            <div className="max-w-[18rem]">
-              <div className="mb-4 flex flex-wrap gap-2">
+            <div className="max-w-[19rem]">
+              <div className="mb-4 flex flex-wrap gap-1.5">
                 {(locale === "en"
                   ? ["Editorial", "Campaign", "Runway"]
                   : ["Editorial", "Campaña", "Runway"]
                 ).map((tag) => (
                   <span
                     key={tag}
-                    className="rounded-full border border-[#efe5d5]/16 bg-[rgba(16,13,11,0.42)] px-3 py-1 text-[0.54rem] uppercase tracking-[0.26em] text-[#efe5d5]/72 backdrop-blur"
+                    className="rounded-full border border-[#efe5d5]/12 bg-[rgba(14,12,10,0.48)] px-3 py-1 text-[0.5rem] uppercase tracking-[0.28em] text-[#efe5d5]/68 backdrop-blur-md"
                   >
                     {tag}
                   </span>
                 ))}
               </div>
-              <h1 className="brand-display text-[clamp(3.3rem,18vw,5.8rem)] leading-[0.82] tracking-[0.08em] text-[#f4ebdd]">
+              <div className="mb-3 h-px w-10 bg-[#c79a59]/50" />
+              <h1 className="brand-display text-[clamp(3.4rem,19vw,6rem)] leading-[0.82] tracking-[0.06em] text-[#f4ebdd]">
                 ROBEANNY
               </h1>
-              <p className="mt-4 text-[0.95rem] leading-relaxed text-[#efe5d5]/76">
+              <p className="mt-4 text-[0.92rem] leading-[1.6] text-[#efe5d5]/72">
                 {tIntro("bio")}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="page-shell relative z-10 -mt-14 pb-10">
-          <div className="luxury-panel border-[#efe5d5]/15 bg-[rgba(19,15,12,0.78)] p-4 text-[#efe5d5]">
-            <div className="grid grid-cols-2 gap-2">
+        <div className="page-shell relative z-10 -mt-16 pb-10">
+          <div className="luxury-panel border-[#efe5d5]/12 bg-[rgba(17,14,11,0.82)] p-4 text-[#efe5d5] backdrop-blur-md">
+            <div className="grid grid-cols-2 gap-1.5">
               {[
                 {
                   label: locale === "en" ? "Portfolio" : "Portfolio",
@@ -128,42 +131,44 @@ export default function HomePage() {
                 { label: locale === "en" ? "Based In" : "Base", value: personalData.workCity },
                 { label: locale === "en" ? "Status" : "Estado", value: personalData.status },
               ].map((item) => (
-                <div key={item.label} className="border border-[#efe5d5]/12 bg-[rgba(10,8,7,0.28)] px-3 py-3">
-                  <p className="text-[0.52rem] uppercase tracking-[0.28em] text-[#efe5d5]/44">{item.label}</p>
-                  <p className="mt-2 text-sm leading-relaxed text-[#efe5d5]/86">{item.value}</p>
+                <div key={item.label} className="rounded-lg border border-[#efe5d5]/10 bg-[rgba(8,7,6,0.32)] px-3 py-3">
+                  <p className="text-[0.48rem] uppercase tracking-[0.3em] text-[#efe5d5]/40">{item.label}</p>
+                  <p className="mt-1.5 text-[0.82rem] leading-snug text-[#efe5d5]/84">{item.value}</p>
                 </div>
               ))}
             </div>
 
-            <div className="mt-4 flex flex-col gap-3">
+            <div className="mt-4 flex flex-col gap-2.5">
               <Link href={toLocalePath("/portfolio")} className="luxury-button w-full justify-center">
                 {tHero("cta")}
                 <span>→</span>
               </Link>
-              <Link href={toLocalePath("/book")} className="luxury-button-secondary w-full justify-center border-[#efe5d5]/24 bg-[rgba(255,255,255,0.04)] text-[#efe5d5] hover:border-[#efe5d5] hover:bg-[#efe5d5] hover:text-[#171513]">
+              <Link href={toLocalePath("/book")} className="luxury-button-secondary w-full justify-center border-[#efe5d5]/20 bg-[rgba(255,255,255,0.03)] text-[#efe5d5] hover:border-[#efe5d5] hover:bg-[#efe5d5] hover:text-[#171513]">
                 {tCta("book")}
               </Link>
             </div>
           </div>
 
-          <div className="mt-3 grid grid-cols-[1.08fr_0.92fr] gap-3">
-            <div className="edge-fade relative aspect-[4/5] overflow-hidden">
+          <div className="mt-3 grid grid-cols-[1.1fr_0.9fr] gap-2.5">
+            <div className="edge-fade relative aspect-[3/4] overflow-hidden rounded-xl">
               <Image
                 src={aboutImage}
                 alt="Robeanny portrait"
                 fill
                 className="object-cover object-center"
-                sizes="50vw"
+                sizes="55vw"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/28 via-transparent to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
             </div>
-            <div className="luxury-panel border-[#efe5d5]/15 bg-[rgba(19,15,12,0.78)] p-4 text-[#efe5d5]">
-              <p className="mb-3 text-[0.55rem] uppercase tracking-[0.32em] text-[#efe5d5]/44">Measurements</p>
-              <div className="grid gap-2">
+            <div className="luxury-panel border-[#efe5d5]/12 bg-[rgba(17,14,11,0.82)] p-3.5 text-[#efe5d5] backdrop-blur-md">
+              <p className="mb-2.5 text-[0.5rem] uppercase tracking-[0.32em] text-[#efe5d5]/40">
+                {locale === "en" ? "Measurements" : "Medidas"}
+              </p>
+              <div className="grid gap-1.5">
                 {measurements.slice(0, 4).map((item) => (
-                  <div key={item.label} className="border border-[#efe5d5]/12 px-3 py-2.5">
-                    <p className="text-[0.5rem] uppercase tracking-[0.24em] text-[#efe5d5]/42">{item.label}</p>
-                    <p className="mt-1 text-sm text-[#efe5d5]/86">{item.value}</p>
+                  <div key={item.label} className="rounded-lg border border-[#efe5d5]/10 px-3 py-2">
+                    <p className="text-[0.46rem] uppercase tracking-[0.26em] text-[#efe5d5]/38">{item.label}</p>
+                    <p className="mt-0.5 text-[0.82rem] text-[#efe5d5]/84">{item.value}</p>
                   </div>
                 ))}
               </div>
@@ -380,8 +385,8 @@ export default function HomePage() {
             </Link>
           </div>
 
-          <div className="grid gap-5 lg:grid-cols-2">
-            <div className="luxury-panel h-[410px] overflow-hidden p-0 sm:h-[470px] md:h-[520px]">
+          <div className="grid gap-4 md:gap-5 lg:grid-cols-2">
+            <div className="luxury-panel h-[380px] overflow-hidden p-0 sm:h-[470px] md:h-[520px]">
               <iframe
                 src="https://www.tiktok.com/embed/@robeannybbl"
                 className="h-full w-full border-0"
@@ -390,7 +395,7 @@ export default function HomePage() {
                 allow="encrypted-media"
               />
             </div>
-            <div className="luxury-panel h-[410px] overflow-hidden p-0 sm:h-[470px] md:h-[520px]">
+            <div className="luxury-panel h-[480px] overflow-hidden p-0 sm:h-[500px] md:h-[520px]">
               <InstagramWidget />
             </div>
           </div>

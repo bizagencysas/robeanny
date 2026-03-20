@@ -117,15 +117,15 @@ export default function Navbar() {
           <button
             onClick={() => setIsOpen((prev) => !prev)}
             aria-label={isOpen ? "Close menu" : "Open menu"}
-            className="relative flex h-11 w-11 flex-col items-center justify-center gap-1.5 rounded-full border border-black/14 bg-[rgba(255,249,241,0.76)] backdrop-blur xl:hidden"
+            className="relative flex h-11 w-11 flex-col items-center justify-center gap-1.5 rounded-full border border-black/10 bg-[rgba(255,249,241,0.82)] backdrop-blur-xl xl:hidden"
           >
             <span
-              className={`h-px w-6 bg-[#171513] transition-all duration-300 ${
+              className={`h-px w-5 bg-[#171513] transition-all duration-300 ${
                 isOpen ? "translate-y-[3.5px] rotate-45" : ""
               }`}
             />
             <span
-              className={`h-px w-6 bg-[#171513] transition-all duration-300 ${
+              className={`h-px w-5 bg-[#171513] transition-all duration-300 ${
                 isOpen ? "-translate-y-[3.5px] -rotate-45" : ""
               }`}
             />
@@ -143,39 +143,43 @@ export default function Navbar() {
             className="fixed inset-0 z-40 dark-stage"
           >
             <div className="page-shell flex h-full flex-col justify-between pb-8 pt-24 md:pb-10 md:pt-28">
-              <div className="grid gap-6">
-                <div className="luxury-panel border-[#efe9de]/14 bg-[rgba(19,15,12,0.52)] p-5 text-[#efe9de]">
-                  <p className="mb-3 text-[0.56rem] uppercase tracking-[0.3em] text-[#efe9de]/48">
-                    {locale === "en" ? "Editorial Navigation" : "Navegacion Editorial"}
-                  </p>
-                  <p className="max-w-sm text-sm leading-relaxed text-[#efe9de]/66">
+              <div className="grid gap-5">
+                <div className="luxury-panel border-[#efe9de]/10 bg-[rgba(17,14,11,0.56)] p-5 text-[#efe9de]">
+                  <div className="mb-3 flex items-center gap-2">
+                    <span className="inline-block h-1 w-1 rounded-full bg-[#c79a59]/80" />
+                    <p className="text-[0.52rem] uppercase tracking-[0.32em] text-[#efe9de]/44">
+                      {locale === "en" ? "Editorial Navigation" : "Navegación Editorial"}
+                    </p>
+                  </div>
+                  <p className="max-w-sm text-[0.85rem] leading-relaxed text-[#efe9de]/58">
                     {locale === "en"
                       ? "Explore the portfolio, book a session, or move directly into Robeanny's visual world."
-                      : "Explora el portfolio, reserva una sesion o entra directo al universo visual de Robeanny."}
+                      : "Explora el portfolio, reserva una sesión o entra directo al universo visual de Robeanny."}
                   </p>
                 </div>
 
-                <nav className="flex flex-col gap-2">
+                <nav className="flex flex-col gap-1">
                 {navKeys.map((link, index) => (
                   <motion.div
                     key={link.href}
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 18 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -14 }}
-                    transition={{ delay: index * 0.05, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+                    exit={{ opacity: 0, y: -12 }}
+                    transition={{ delay: index * 0.04, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                   >
                     <Link
                       href={toLocalePath(link.href, locale)}
-                      className={`group flex items-center justify-between border-b border-[#efe9de]/12 py-3 transition-colors ${
+                      onClick={() => setIsOpen(false)}
+                      className={`group flex items-center justify-between border-b border-[#efe9de]/8 py-3 transition-colors ${
                         isActive(link.href)
                           ? "text-[#efe9de]"
-                          : "text-[#efe9de]/58 hover:text-[#efe9de]"
+                          : "text-[#efe9de]/52 hover:text-[#efe9de]"
                       }`}
                     >
-                      <span className="brand-display block text-[clamp(1.8rem,9vw,4.3rem)] leading-[0.95] tracking-[0.05em]">
+                      <span className="brand-display block text-[clamp(1.7rem,8.5vw,4rem)] leading-[0.95] tracking-[0.04em]">
                         {t(link.key)}
                       </span>
-                      <span className="text-[0.58rem] uppercase tracking-[0.28em] text-[#efe9de]/34 transition-colors group-hover:text-[#efe9de]/70">
+                      <span className="text-[0.52rem] uppercase tracking-[0.3em] text-[#efe9de]/28 transition-colors group-hover:text-[#efe9de]/60">
                         {String(index + 1).padStart(2, "0")}
                       </span>
                     </Link>
@@ -185,30 +189,30 @@ export default function Navbar() {
               </div>
 
               <div className="grid gap-4">
-                <div className="flex flex-wrap items-center gap-3">
+                <div className="flex flex-wrap items-center gap-2">
                   <button
                     onClick={() => switchLocale("es")}
-                    className={`rounded-full border px-4 py-2 text-[0.62rem] uppercase tracking-[0.24em] transition-colors ${
+                    className={`rounded-full border px-4 py-2 text-[0.58rem] uppercase tracking-[0.26em] transition-colors ${
                       locale === "es"
-                        ? "border-[#efe9de] text-[#efe9de]"
-                        : "border-[#efe9de]/30 text-[#efe9de]/50"
+                        ? "border-[#efe9de]/60 text-[#efe9de]"
+                        : "border-[#efe9de]/20 text-[#efe9de]/42"
                     }`}
                   >
-                    Espanol
+                    Español
                   </button>
                   <button
                     onClick={() => switchLocale("en")}
-                    className={`rounded-full border px-4 py-2 text-[0.62rem] uppercase tracking-[0.24em] transition-colors ${
+                    className={`rounded-full border px-4 py-2 text-[0.58rem] uppercase tracking-[0.26em] transition-colors ${
                       locale === "en"
-                        ? "border-[#efe9de] text-[#efe9de]"
-                        : "border-[#efe9de]/30 text-[#efe9de]/50"
+                        ? "border-[#efe9de]/60 text-[#efe9de]"
+                        : "border-[#efe9de]/20 text-[#efe9de]/42"
                     }`}
                   >
                     English
                   </button>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-4 text-[0.6rem] uppercase tracking-[0.28em] text-[#efe9de]/45">
+                <div className="flex flex-wrap items-center gap-4 text-[0.56rem] uppercase tracking-[0.28em] text-[#efe9de]/38">
                   <a
                     href="https://www.instagram.com/robeannybl"
                     target="_blank"
@@ -217,7 +221,7 @@ export default function Navbar() {
                   >
                     Instagram
                   </a>
-                  <span className="text-[#efe9de]/30">•</span>
+                  <span className="text-[#efe9de]/20">·</span>
                   <a
                     href="https://www.tiktok.com/@robeannybbl"
                     target="_blank"
@@ -226,7 +230,7 @@ export default function Navbar() {
                   >
                     TikTok
                   </a>
-                  <span className="text-[#efe9de]/30">•</span>
+                  <span className="text-[#efe9de]/20">·</span>
                   <a
                     href="mailto:me@robeanny.com"
                     className="hover:text-[#efe9de]"

@@ -39,7 +39,7 @@ export default function JournalPage() {
   return (
     <div className="min-h-screen pb-24 pt-24 md:pt-32">
       <div className="page-shell">
-        <div className="luxury-panel border-black/10 p-5 md:border-0 md:bg-transparent md:p-0">
+        <div className="luxury-panel border-black/8 p-5 md:border-0 md:bg-transparent md:p-0">
           <p className="label-kicker mb-5">Editorial Notes</p>
           <h1 className="brand-display text-[clamp(2.5rem,7vw,6rem)] leading-[0.88] tracking-[0.05em] text-[#171513]">
             {t("pageTitle")}
@@ -52,10 +52,10 @@ export default function JournalPage() {
             <button
               key={category}
               onClick={() => setActiveCategory(category)}
-              className={`px-4 py-2 text-[0.62rem] uppercase tracking-[0.28em] transition-all ${
+              className={`rounded-full px-4 py-2 text-[0.58rem] uppercase tracking-[0.28em] transition-all md:rounded-none ${
                 activeCategory === category
                   ? "bg-black text-[#f8f3ea]"
-                  : "border border-black/15 text-[#171513]/58 hover:border-black/35 hover:text-[#171513]"
+                  : "border border-black/12 text-[#171513]/52 hover:border-black/30 hover:text-[#171513]"
               }`}
             >
               {categoryMap[category] || category}
@@ -66,7 +66,7 @@ export default function JournalPage() {
         {leadPost && (
           <Link
             href={toLocalePath(`/journal/${leadPost.slug}`)}
-            className="group mt-8 grid gap-5 border border-black/14 bg-white/55 p-4 transition-colors hover:border-black/35 md:grid-cols-[1.1fr_0.9fr] md:p-5"
+            className="group mt-8 grid gap-5 rounded-2xl border border-black/10 bg-white/50 p-3.5 transition-colors hover:border-black/25 md:grid-cols-[1.1fr_0.9fr] md:rounded-none md:p-5"
           >
             <div className="relative min-h-[300px] overflow-hidden">
               <Image
@@ -103,7 +103,7 @@ export default function JournalPage() {
               <Link
                 key={post.slug}
                 href={toLocalePath(`/journal/${post.slug}`)}
-                className="group border border-black/14 bg-white/55 p-4 transition-colors hover:border-black/35"
+                className="group rounded-xl border border-black/10 bg-white/50 p-3.5 transition-colors hover:border-black/25 md:rounded-none"
               >
                 <div className="relative h-[280px] overflow-hidden">
                   <Image

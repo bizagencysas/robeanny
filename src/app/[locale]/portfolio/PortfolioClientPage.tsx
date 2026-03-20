@@ -30,7 +30,7 @@ export default function PortfolioPage() {
       <div className="page-shell mb-12 md:mb-16">
         <p className="label-kicker mb-5">Editorial Archive</p>
         <div className="grid gap-7 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
-          <div className="luxury-panel border-black/10 p-5 md:border-0 md:bg-transparent md:p-0">
+          <div className="luxury-panel border-black/8 p-5 md:border-0 md:bg-transparent md:p-0">
             <h1 className="brand-display text-[clamp(2.6rem,7vw,6.2rem)] leading-[0.88] tracking-[0.06em] text-[#171513]">
               {t("pageTitle")}
             </h1>
@@ -45,10 +45,10 @@ export default function PortfolioPage() {
                 <button
                   key={mode}
                   onClick={() => setLayout(mode)}
-                  className={`px-4 py-2 text-[0.62rem] uppercase tracking-[0.28em] transition-all ${
+                  className={`rounded-full px-4 py-2 text-[0.58rem] uppercase tracking-[0.28em] transition-all md:rounded-none ${
                     layout === mode
                       ? "bg-[#171513] text-[#f8f3ea]"
-                      : "border border-black/15 text-[#171513]/58 hover:border-black/35 hover:text-[#171513]"
+                      : "border border-black/12 text-[#171513]/52 hover:border-black/30 hover:text-[#171513]"
                   }`}
                 >
                   {t(mode)}
@@ -117,7 +117,7 @@ function EditorialLayout({
         <button
           key={photo.id}
           onClick={() => onPhotoClick(i)}
-          className="mb-4 block w-full break-inside-avoid overflow-hidden border border-black/12 bg-white/55 md:mb-5"
+          className="mb-4 block w-full break-inside-avoid overflow-hidden rounded-xl border border-black/8 bg-white/50 md:mb-5 md:rounded-none"
         >
           <div className={`group relative w-full ${heights[i % heights.length]}`}>
             <Image

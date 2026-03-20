@@ -47,7 +47,7 @@ export default function ContactPage() {
   return (
     <div className="min-h-screen pb-24 pt-24 md:pt-32">
       <div className="page-shell">
-        <div className="luxury-panel border-black/10 p-5 md:border-0 md:bg-transparent md:p-0">
+        <div className="luxury-panel border-black/8 p-5 md:border-0 md:bg-transparent md:p-0">
           <p className="label-kicker mb-5">Direct Contact</p>
           <h1 className="brand-display text-[clamp(2.4rem,7vw,6rem)] leading-[0.88] tracking-[0.05em] text-[#171513]">
             {t("pageTitle")}

@@ -23,6 +23,12 @@ type ApiResponse = {
   reason?: string;
 };
 
+const FALLBACK_MEDIA = [
+  "https://res.cloudinary.com/dwpbbjp1d/image/upload/v1761417111/IMG_8328_ihc0wa.jpg",
+  "https://res.cloudinary.com/dwpbbjp1d/image/upload/v1761417110/IMG_8326_sicido.jpg",
+  "https://res.cloudinary.com/dwpbbjp1d/image/upload/v1761417110/IMG_8198_vdr3e3.jpg",
+];
+
 const DEFAULT_PROFILE: InstagramProfile = {
   username: "robeannybl",
   fullName: "Robeanny",
@@ -32,7 +38,7 @@ const DEFAULT_PROFILE: InstagramProfile = {
   followers: null,
   following: null,
   posts: null,
-  recentMedia: [],
+  recentMedia: FALLBACK_MEDIA,
   externalUrl: "https://www.instagram.com/robeannybl/",
   verified: false,
 };
@@ -64,7 +70,10 @@ export default function InstagramWidget() {
 
   const avatars = avatarCandidates(profile);
   const currentAvatar = avatars[avatarIndex] || toAssetProxy(DEFAULT_PROFILE.profilePicUrl);
-  const recentMedia = profile.recentMedia.slice(0, 3).map((url) => toAssetProxy(url));
+
+  // Ensure we always have media — use fallback photos if API returns none
+  const rawMedia = profile.recentMedia.length > 0 ? profile.recentMedia : FALLBACK_MEDIA;
+  const recentMedia = rawMedia.slice(0, 3).map((url) => toAssetProxy(url));
 
   useEffect(() => {
     setAvatarIndex(0);
@@ -109,7 +118,7 @@ export default function InstagramWidget() {
     <div className="relative h-full w-full overflow-hidden bg-[#0f0d0b] text-[#efe5d5]">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,rgba(199,154,89,0.25),rgba(199,154,89,0)_42%)]" />
       <div className="relative z-10 flex h-full flex-col">
-        <div className="border-b border-[#efe5d5]/14 p-5">
+        <div className="border-b border-[#efe5d5]/14 px-5 py-4 md:p-5">
           <p className="text-[0.56rem] uppercase tracking-[0.3em] text-[#efe5d5]/58">
             Instagram Live Profile
           </p>
@@ -150,40 +159,36 @@ export default function InstagramWidget() {
               <StatCard label="Following" value={loading ? "..." : compact(profile.following)} />
             </div>
 
-            <p className="mt-5 line-clamp-4 text-sm leading-relaxed text-[#efe5d5]/72">
+            <p className="mt-5 line-clamp-3 text-sm leading-relaxed text-[#efe5d5]/72">
               {profile.biography || "Biografia no disponible en este momento."}
             </p>
 
-            <div className="mt-5 grid grid-cols-3 gap-2">
-              {recentMedia.length ? (
-                recentMedia.map((mediaUrl, index) => (
-                  <a
-                    key={mediaUrl}
-                    href={profile.externalUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group relative aspect-square overflow-hidden border border-[#efe5d5]/16 bg-[#11100f]"
-                    aria-label={`Abrir Instagram post ${index + 1}`}
-                  >
-                    <img
-                      src={mediaUrl}
-                      alt={`${profile.username} post ${index + 1}`}
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      loading="lazy"
-                      referrerPolicy="no-referrer"
-                      onError={(event) => {
-                        const img = event.currentTarget;
-                        const fallback = toAssetProxy(DEFAULT_PROFILE.profilePicUrl);
-                        if (img.src !== fallback) img.src = fallback;
-                      }}
-                    />
-                  </a>
-                ))
-              ) : (
-                <div className="col-span-3 border border-dashed border-[#efe5d5]/18 px-3 py-4 text-center text-[0.56rem] uppercase tracking-[0.24em] text-[#efe5d5]/42">
-                  Abre el perfil para ver las ultimas fotos
-                </div>
-              )}
+            {/* Feed gallery — always shows 3 photos */}
+            <div className="mt-5 grid grid-cols-3 gap-1.5">
+              {recentMedia.map((mediaUrl, index) => (
+                <a
+                  key={mediaUrl}
+                  href={profile.externalUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group relative aspect-square overflow-hidden border border-[#efe5d5]/12 bg-[#11100f]"
+                  aria-label={`Abrir Instagram post ${index + 1}`}
+                >
+                  <img
+                    src={mediaUrl}
+                    alt={`${profile.username} post ${index + 1}`}
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    loading="lazy"
+                    referrerPolicy="no-referrer"
+                    onError={(event) => {
+                      const img = event.currentTarget;
+                      const fallback = toAssetProxy(FALLBACK_MEDIA[index] || FALLBACK_MEDIA[0]);
+                      if (img.src !== fallback) img.src = fallback;
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-black/0 transition-colors duration-300 group-hover:bg-black/20" />
+                </a>
+              ))}
             </div>
           </div>
 

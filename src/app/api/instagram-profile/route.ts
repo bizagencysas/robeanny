@@ -50,7 +50,11 @@ const FALLBACK_PROFILE: InstagramProfile = {
   followers: null,
   following: null,
   posts: null,
-  recentMedia: [],
+  recentMedia: [
+    "https://res.cloudinary.com/dwpbbjp1d/image/upload/v1761417111/IMG_8328_ihc0wa.jpg",
+    "https://res.cloudinary.com/dwpbbjp1d/image/upload/v1761417110/IMG_8326_sicido.jpg",
+    "https://res.cloudinary.com/dwpbbjp1d/image/upload/v1761417110/IMG_8198_vdr3e3.jpg",
+  ],
   externalUrl: "https://www.instagram.com/robeannybl/",
   verified: false,
 };
@@ -147,11 +151,15 @@ const parseProfile = (payload: unknown, username: string): InstagramProfile | nu
   const root = payload as Record<string, unknown> | null;
   if (!root) return null;
 
+  const dataObj = root.data as Record<string, unknown> | undefined;
+  const dataUser = dataObj?.user as Record<string, unknown> | undefined;
+
   const candidates = [
     root.result as Record<string, unknown> | undefined,
-    (root.data as Record<string, unknown> | undefined)?.user,
-    root.data as Record<string, unknown> | undefined,
+    dataUser,
+    dataObj,
     root.user as Record<string, unknown> | undefined,
+    (root.graphql as Record<string, unknown> | undefined)?.user,
     root,
   ].filter((candidate): candidate is Record<string, unknown> => Boolean(candidate));
 

@@ -86,7 +86,7 @@ export default function BookPage() {
   return (
     <div className="min-h-screen pb-24 pt-24 md:pt-32">
       <div className="page-shell max-w-[980px]">
-        <div className="luxury-panel border-black/10 p-5 md:border-0 md:bg-transparent md:p-0">
+        <div className="luxury-panel border-black/8 p-5 md:border-0 md:bg-transparent md:p-0">
           <p className="label-kicker mb-5">Booking Direction</p>
           <h1 className="brand-display text-[clamp(2.5rem,7vw,6rem)] leading-[0.88] tracking-[0.05em] text-[#171513]">
             {t("pageTitle")}
@@ -116,10 +116,10 @@ export default function BookPage() {
                       setProjectType(key);
                       setStep(2);
                     }}
-                    className={`group border p-6 text-left transition-all ${
+                    className={`group rounded-xl border p-5 text-left transition-all md:rounded-none md:p-6 ${
                       projectType === key
                         ? "border-black bg-black text-[#f8f3ea]"
-                        : "border-black/15 bg-white/50 hover:border-black/35"
+                        : "border-black/10 bg-white/45 hover:border-black/30"
                     }`}
                   >
                     <span className="mb-3 block text-2xl">{typeEmojis[key]}</span>
@@ -261,7 +261,7 @@ function StepContainer({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -16 }}
       transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-      className="mt-9 border border-black/14 bg-[rgba(255,255,255,0.56)] p-5 md:p-8"
+      className="mt-9 rounded-2xl border border-black/10 bg-[rgba(255,255,255,0.52)] p-5 md:rounded-none md:p-8"
     >
       <p className="mb-6 text-[0.64rem] uppercase tracking-[0.3em] text-[#171513]/52">{title}</p>
       {children}
