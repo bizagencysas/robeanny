@@ -63,7 +63,7 @@ export default function HomePage() {
       <section className="dark-stage relative overflow-hidden border-b border-[#efe5d5]/10 pt-16 md:hidden">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(circle_at_25%_0%,rgba(199,154,89,0.38),rgba(199,154,89,0)_60%)]" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-[radial-gradient(circle_at_80%_100%,rgba(140,100,50,0.16),rgba(140,100,50,0)_50%)]" />
-        <div className="relative h-[78svh] min-h-[580px]">
+        <div className="relative h-[72svh] min-h-[540px]">
           {heroImages.map((image, index) => (
             <Image
               key={image}
@@ -91,7 +91,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="max-w-[19rem]">
+            <div className="max-w-[18.5rem]">
               <div className="mb-4 flex flex-wrap gap-1.5">
                 {(locale === "en"
                   ? ["Editorial", "Campaign", "Runway"]
@@ -109,14 +109,14 @@ export default function HomePage() {
               <h1 className="brand-display text-[clamp(3.4rem,19vw,6rem)] leading-[0.82] tracking-[0.06em] text-[#f4ebdd]">
                 ROBEANNY
               </h1>
-              <p className="mt-4 text-[0.92rem] leading-[1.6] text-[#efe5d5]/72">
+              <p className="mt-4 max-w-[17.5rem] text-[0.9rem] leading-[1.58] text-[#efe5d5]/72">
                 {tIntro("bio")}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="page-shell relative z-10 -mt-16 pb-10">
+        <div className="page-shell relative z-10 pb-10">
           <div className="luxury-panel border-[#efe5d5]/12 bg-[rgba(17,14,11,0.82)] p-4 text-[#efe5d5] backdrop-blur-md">
             <div className="grid grid-cols-2 gap-1.5">
               {[
@@ -128,14 +128,34 @@ export default function HomePage() {
                   label: locale === "en" ? "Sessions" : "Sesiones",
                   value: `${sessionPhotos.length} ${locale === "en" ? "editorials" : "editoriales"}`,
                 },
-                { label: locale === "en" ? "Based In" : "Base", value: personalData.workCity },
-                { label: locale === "en" ? "Status" : "Estado", value: personalData.status },
+                {
+                  label: locale === "en" ? "Based In" : "Base",
+                  value: personalData.workCity,
+                },
+                {
+                  label: locale === "en" ? "Status" : "Estado",
+                  value: personalData.status,
+                },
               ].map((item) => (
-                <div key={item.label} className="rounded-lg border border-[#efe5d5]/10 bg-[rgba(8,7,6,0.32)] px-3 py-3">
+                <div key={item.label} className="rounded-lg border border-[#efe5d5]/10 bg-[rgba(8,7,6,0.24)] px-3 py-3">
                   <p className="text-[0.48rem] uppercase tracking-[0.3em] text-[#efe5d5]/40">{item.label}</p>
                   <p className="mt-1.5 text-[0.82rem] leading-snug text-[#efe5d5]/84">{item.value}</p>
                 </div>
               ))}
+            </div>
+
+            <div className="mt-4 border-t border-[#efe5d5]/10 pt-4">
+              <p className="mb-3 text-[0.5rem] uppercase tracking-[0.32em] text-[#efe5d5]/40">
+                {locale === "en" ? "Measurements" : "Medidas"}
+              </p>
+              <div className="grid grid-cols-2 gap-1.5">
+                {measurements.slice(0, 4).map((item) => (
+                  <div key={item.label} className="rounded-lg border border-[#efe5d5]/10 px-3 py-2.5">
+                    <p className="text-[0.46rem] uppercase tracking-[0.26em] text-[#efe5d5]/38">{item.label}</p>
+                    <p className="mt-0.5 text-[0.82rem] text-[#efe5d5]/84">{item.value}</p>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div className="mt-4 flex flex-col gap-2.5">
@@ -146,32 +166,6 @@ export default function HomePage() {
               <Link href={toLocalePath("/book")} className="luxury-button-secondary w-full justify-center border-[#efe5d5]/20 bg-[rgba(255,255,255,0.03)] text-[#efe5d5] hover:border-[#efe5d5] hover:bg-[#efe5d5] hover:text-[#171513]">
                 {tCta("book")}
               </Link>
-            </div>
-          </div>
-
-          <div className="mt-3 grid grid-cols-[1.1fr_0.9fr] gap-2.5">
-            <div className="edge-fade relative aspect-[3/4] overflow-hidden rounded-xl">
-              <Image
-                src={aboutImage}
-                alt="Robeanny portrait"
-                fill
-                className="object-cover object-center"
-                sizes="55vw"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
-            </div>
-            <div className="luxury-panel border-[#efe5d5]/12 bg-[rgba(17,14,11,0.82)] p-3.5 text-[#efe5d5] backdrop-blur-md">
-              <p className="mb-2.5 text-[0.5rem] uppercase tracking-[0.32em] text-[#efe5d5]/40">
-                {locale === "en" ? "Measurements" : "Medidas"}
-              </p>
-              <div className="grid gap-1.5">
-                {measurements.slice(0, 4).map((item) => (
-                  <div key={item.label} className="rounded-lg border border-[#efe5d5]/10 px-3 py-2">
-                    <p className="text-[0.46rem] uppercase tracking-[0.26em] text-[#efe5d5]/38">{item.label}</p>
-                    <p className="mt-0.5 text-[0.82rem] text-[#efe5d5]/84">{item.value}</p>
-                  </div>
-                ))}
-              </div>
             </div>
           </div>
         </div>
@@ -291,7 +285,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="section-spacing pt-0">
+      <section className="section-spacing pt-4 md:pt-0">
         <div className="page-shell luxury-panel overflow-hidden p-0">
           <div className="grid gap-0 md:grid-cols-[0.9fr_1.1fr]">
             <div className="border-b border-black/10 p-7 md:border-b-0 md:border-r md:p-10">
