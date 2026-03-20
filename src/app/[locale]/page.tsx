@@ -24,10 +24,18 @@ const heroImages = [
   "/he4.jpg",
 ];
 
-const featuredPortfolio = sessionPhotos.slice(0, 6).map((src, index) => ({
-  id: index + 1,
-  src,
-  alt: `Robeanny editorial ${index + 1}`,
+const featuredPortfolioOrder = [6, 8, 14, 0, 21, 29, 17];
+
+const featuredPortfolio = featuredPortfolioOrder.map((photoIndex, index) => ({
+  id: photoIndex + 1,
+  src: sessionPhotos[photoIndex],
+  alt: `Robeanny editorial ${photoIndex + 1}`,
+  layout:
+    index === 0
+      ? "hero"
+      : index === 3
+        ? "featured"
+        : "standard",
 }));
 
 export default function HomePage() {
@@ -297,11 +305,17 @@ export default function HomePage() {
               <p className="mt-5 max-w-md text-sm leading-relaxed text-[#171513]/63">{tPortfolio("cta")}</p>
             </div>
             <div className="grid grid-cols-2 gap-[1px] bg-black/10 md:grid-cols-3">
-              {featuredPortfolio.map((photo, index) => (
+              {featuredPortfolio.map((photo) => (
                 <Link
                   href={toLocalePath("/portfolio")}
                   key={photo.id}
-                  className={`group relative overflow-hidden bg-[#e8e1d5] ${index === 0 || index === 4 ? "col-span-2" : "col-span-1"}`}
+                  className={`group relative overflow-hidden bg-[#e8e1d5] ${
+                    photo.layout === "hero"
+                      ? "col-span-2 md:col-span-2"
+                      : photo.layout === "featured"
+                        ? "col-span-1 md:col-span-2"
+                        : "col-span-1"
+                  }`}
                 >
                   <div className="relative h-[180px] w-full sm:h-[220px] md:h-[240px]">
                     <Image
