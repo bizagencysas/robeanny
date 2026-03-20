@@ -63,13 +63,13 @@ export default function Navbar() {
         className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${
           scrolled || isOpen
             ? "border-b border-black/10 bg-[rgba(250,247,242,0.88)] backdrop-blur-xl"
-            : "bg-transparent"
+            : "bg-[rgba(250,247,242,0.36)] backdrop-blur-[10px] xl:bg-transparent xl:backdrop-blur-0"
         }`}
       >
-        <nav className="page-shell flex h-[74px] items-center justify-between">
+        <nav className="page-shell flex h-[68px] items-center justify-between xl:h-[74px]">
           <Link
             href={toLocalePath("/", locale)}
-            className="brand-display text-[1.3rem] tracking-[0.24em] text-[#171513] transition-opacity hover:opacity-65"
+            className="brand-display text-[1.05rem] tracking-[0.22em] text-[#171513] transition-opacity hover:opacity-65 md:text-[1.3rem] md:tracking-[0.24em]"
           >
             ROBEANNY
           </Link>
@@ -117,7 +117,7 @@ export default function Navbar() {
           <button
             onClick={() => setIsOpen((prev) => !prev)}
             aria-label={isOpen ? "Close menu" : "Open menu"}
-            className="relative flex h-9 w-9 flex-col items-center justify-center gap-1.5 xl:hidden"
+            className="relative flex h-11 w-11 flex-col items-center justify-center gap-1.5 rounded-full border border-black/14 bg-[rgba(255,249,241,0.76)] backdrop-blur xl:hidden"
           >
             <span
               className={`h-px w-6 bg-[#171513] transition-all duration-300 ${
@@ -142,8 +142,20 @@ export default function Navbar() {
             transition={{ duration: 0.36, ease: [0.16, 1, 0.3, 1] }}
             className="fixed inset-0 z-40 dark-stage"
           >
-            <div className="page-shell flex h-full flex-col justify-between pb-10 pt-28">
-              <nav className="flex flex-col gap-6">
+            <div className="page-shell flex h-full flex-col justify-between pb-8 pt-24 md:pb-10 md:pt-28">
+              <div className="grid gap-6">
+                <div className="luxury-panel border-[#efe9de]/14 bg-[rgba(19,15,12,0.52)] p-5 text-[#efe9de]">
+                  <p className="mb-3 text-[0.56rem] uppercase tracking-[0.3em] text-[#efe9de]/48">
+                    {locale === "en" ? "Editorial Navigation" : "Navegacion Editorial"}
+                  </p>
+                  <p className="max-w-sm text-sm leading-relaxed text-[#efe9de]/66">
+                    {locale === "en"
+                      ? "Explore the portfolio, book a session, or move directly into Robeanny's visual world."
+                      : "Explora el portfolio, reserva una sesion o entra directo al universo visual de Robeanny."}
+                  </p>
+                </div>
+
+                <nav className="flex flex-col gap-2">
                 {navKeys.map((link, index) => (
                   <motion.div
                     key={link.href}
@@ -154,23 +166,29 @@ export default function Navbar() {
                   >
                     <Link
                       href={toLocalePath(link.href, locale)}
-                      className={`brand-display block text-[clamp(2rem,9vw,4.3rem)] leading-[0.95] tracking-[0.05em] transition-colors ${
+                      className={`group flex items-center justify-between border-b border-[#efe9de]/12 py-3 transition-colors ${
                         isActive(link.href)
                           ? "text-[#efe9de]"
-                          : "text-[#efe9de]/50 hover:text-[#efe9de]"
+                          : "text-[#efe9de]/58 hover:text-[#efe9de]"
                       }`}
                     >
-                      {t(link.key)}
+                      <span className="brand-display block text-[clamp(1.8rem,9vw,4.3rem)] leading-[0.95] tracking-[0.05em]">
+                        {t(link.key)}
+                      </span>
+                      <span className="text-[0.58rem] uppercase tracking-[0.28em] text-[#efe9de]/34 transition-colors group-hover:text-[#efe9de]/70">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
                     </Link>
                   </motion.div>
                 ))}
-              </nav>
+                </nav>
+              </div>
 
-              <div className="flex items-end justify-between gap-6">
-                <div className="flex items-center gap-3">
+              <div className="grid gap-4">
+                <div className="flex flex-wrap items-center gap-3">
                   <button
                     onClick={() => switchLocale("es")}
-                    className={`border px-4 py-2 text-[0.62rem] uppercase tracking-[0.24em] transition-colors ${
+                    className={`rounded-full border px-4 py-2 text-[0.62rem] uppercase tracking-[0.24em] transition-colors ${
                       locale === "es"
                         ? "border-[#efe9de] text-[#efe9de]"
                         : "border-[#efe9de]/30 text-[#efe9de]/50"
@@ -180,7 +198,7 @@ export default function Navbar() {
                   </button>
                   <button
                     onClick={() => switchLocale("en")}
-                    className={`border px-4 py-2 text-[0.62rem] uppercase tracking-[0.24em] transition-colors ${
+                    className={`rounded-full border px-4 py-2 text-[0.62rem] uppercase tracking-[0.24em] transition-colors ${
                       locale === "en"
                         ? "border-[#efe9de] text-[#efe9de]"
                         : "border-[#efe9de]/30 text-[#efe9de]/50"
@@ -190,7 +208,7 @@ export default function Navbar() {
                   </button>
                 </div>
 
-                <div className="flex items-center gap-4 text-[0.6rem] uppercase tracking-[0.28em] text-[#efe9de]/45">
+                <div className="flex flex-wrap items-center gap-4 text-[0.6rem] uppercase tracking-[0.28em] text-[#efe9de]/45">
                   <a
                     href="https://www.instagram.com/robeannybl"
                     target="_blank"
@@ -207,6 +225,13 @@ export default function Navbar() {
                     className="hover:text-[#efe9de]"
                   >
                     TikTok
+                  </a>
+                  <span className="text-[#efe9de]/30">•</span>
+                  <a
+                    href="mailto:me@robeanny.com"
+                    className="hover:text-[#efe9de]"
+                  >
+                    Email
                   </a>
                 </div>
               </div>

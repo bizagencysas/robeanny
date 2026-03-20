@@ -30,7 +30,7 @@ export default function PortfolioPage() {
       <div className="page-shell mb-12 md:mb-16">
         <p className="label-kicker mb-5">Editorial Archive</p>
         <div className="grid gap-7 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
-          <div>
+          <div className="luxury-panel border-black/10 p-5 md:border-0 md:bg-transparent md:p-0">
             <h1 className="brand-display text-[clamp(2.6rem,7vw,6.2rem)] leading-[0.88] tracking-[0.06em] text-[#171513]">
               {t("pageTitle")}
             </h1>
@@ -112,7 +112,7 @@ function EditorialLayout({
   const heights = ["h-[300px]", "h-[420px]", "h-[360px]", "h-[460px]", "h-[320px]"];
 
   return (
-    <div className="columns-2 gap-4 md:columns-3 md:gap-5">
+    <div className="columns-1 gap-4 sm:columns-2 md:columns-3 md:gap-5">
       {photos.map((photo, i) => (
         <button
           key={photo.id}
@@ -144,7 +144,7 @@ function GridLayout({
   onPhotoClick: (i: number) => void;
 }) {
   return (
-    <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 md:gap-4 lg:grid-cols-4">
       {photos.map((photo, i) => (
         <button
           key={photo.id}

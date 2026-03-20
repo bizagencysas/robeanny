@@ -86,11 +86,13 @@ export default function BookPage() {
   return (
     <div className="min-h-screen pb-24 pt-24 md:pt-32">
       <div className="page-shell max-w-[980px]">
-        <p className="label-kicker mb-5">Booking Direction</p>
-        <h1 className="brand-display text-[clamp(2.5rem,7vw,6rem)] leading-[0.88] tracking-[0.05em] text-[#171513]">
-          {t("pageTitle")}
-        </h1>
-        <p className="mt-5 max-w-2xl text-sm leading-relaxed text-[#171513]/62 md:text-base">{t("subtitle")}</p>
+        <div className="luxury-panel border-black/10 p-5 md:border-0 md:bg-transparent md:p-0">
+          <p className="label-kicker mb-5">Booking Direction</p>
+          <h1 className="brand-display text-[clamp(2.5rem,7vw,6rem)] leading-[0.88] tracking-[0.05em] text-[#171513]">
+            {t("pageTitle")}
+          </h1>
+          <p className="mt-5 max-w-2xl text-sm leading-relaxed text-[#171513]/62 md:text-base">{t("subtitle")}</p>
+        </div>
 
         <div className="mt-10 grid grid-cols-4 gap-3">
           {[1, 2, 3, 4].map((s) => (
@@ -320,7 +322,7 @@ function FieldInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         required={required}
-        className="border border-black/18 bg-white/70 px-4 py-3 text-sm text-[#171513] outline-none transition-colors focus:border-black/45"
+        className="rounded-[1rem] md:rounded-none border border-black/18 bg-white/70 px-4 py-3 text-sm text-[#171513] outline-none transition-colors focus:border-black/45"
       />
     </label>
   );
@@ -343,7 +345,7 @@ function FieldSelect({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="border border-black/18 bg-white/70 px-4 py-3 text-sm text-[#171513] outline-none transition-colors focus:border-black/45"
+        className="rounded-[1rem] md:rounded-none border border-black/18 bg-white/70 px-4 py-3 text-sm text-[#171513] outline-none transition-colors focus:border-black/45"
       >
         <option value="">{label}</option>
         {options.map((option) => (
@@ -374,7 +376,7 @@ function FieldTextarea({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         rows={rows}
-        className="resize-none border border-black/18 bg-white/70 px-4 py-3 text-sm text-[#171513] outline-none transition-colors focus:border-black/45"
+        className="resize-none rounded-[1rem] md:rounded-none border border-black/18 bg-white/70 px-4 py-3 text-sm text-[#171513] outline-none transition-colors focus:border-black/45"
       />
     </label>
   );

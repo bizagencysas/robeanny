@@ -298,6 +298,26 @@ const normalizeMethod = (value: string) => {
   return value.toUpperCase() === "POST" ? "POST" : "GET";
 };
 
+const mergeProfiles = (
+  primary: InstagramProfile,
+  enrichment: InstagramProfile | null
+): InstagramProfile => {
+  if (!enrichment) return primary;
+
+  return {
+    username: primary.username || enrichment.username,
+    fullName: primary.fullName || enrichment.fullName,
+    biography: primary.biography || enrichment.biography,
+    profilePicUrl: enrichment.profilePicUrl || primary.profilePicUrl,
+    followers: primary.followers ?? enrichment.followers,
+    following: primary.following ?? enrichment.following,
+    posts: primary.posts ?? enrichment.posts,
+    recentMedia: primary.recentMedia.length ? primary.recentMedia : enrichment.recentMedia,
+    externalUrl: primary.externalUrl || enrichment.externalUrl,
+    verified: primary.verified || enrichment.verified,
+  };
+};
+
 const collectMediaFromPayload = (payload: unknown) => {
   const root = payload as Record<string, unknown> | null;
   if (!root) return [];
@@ -534,6 +554,61 @@ export async function GET(request: NextRequest) {
     }
   };
 
+  const requestInstagramWebProfile = async () => {
+    const endpoint = new URL("https://i.instagram.com/api/v1/users/web_profile_info/");
+    endpoint.searchParams.set("username", username);
+
+    try {
+      const response = await fetch(endpoint.toString(), {
+        headers: {
+          "x-ig-app-id": "936619743392459",
+          "user-agent":
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        },
+        next: { revalidate: 900 },
+      });
+
+      if (!response.ok) {
+        attempts.push({
+          endpoint: endpoint.toString(),
+          host: "i.instagram.com",
+          path: endpoint.pathname,
+          method: "GET",
+          usernameParam: "username",
+          status: response.status,
+          reason: `instagram_web_http_${response.status}`,
+        });
+        return null;
+      }
+
+      const payload = (await response.json()) as unknown;
+      const profile = parseProfile(payload, username);
+
+      attempts.push({
+        endpoint: endpoint.toString(),
+        host: "i.instagram.com",
+        path: endpoint.pathname,
+        method: "GET",
+        usernameParam: "username",
+        status: profile ? 200 : "parse_error",
+        reason: profile ? undefined : "instagram_web_parse_failed",
+      });
+
+      return profile;
+    } catch (error) {
+      attempts.push({
+        endpoint: endpoint.toString(),
+        host: "i.instagram.com",
+        path: endpoint.pathname,
+        method: "GET",
+        usernameParam: "username",
+        status: "error",
+        reason: error instanceof Error ? error.message : "instagram_web_unknown_error",
+      });
+      return null;
+    }
+  };
+
   const diagnostics = {
     endpoint: `https://${rapidApiHost}${endpointPath}`,
     host: rapidApiHost,
@@ -544,10 +619,11 @@ export async function GET(request: NextRequest) {
   };
 
   if (!rapidApiKey) {
+    const webProfile = await requestInstagramWebProfile();
     const response: ApiResponse = {
-      profile: { ...FALLBACK_PROFILE, username },
+      profile: webProfile ? mergeProfiles({ ...FALLBACK_PROFILE, username }, webProfile) : { ...FALLBACK_PROFILE, username },
       source: "fallback",
-      reason: "missing_rapidapi_key",
+      reason: webProfile ? "instagram_web_profile_fallback" : "missing_rapidapi_key",
       diagnostics: debug ? diagnostics : undefined,
     };
     return NextResponse.json(response);
@@ -592,6 +668,11 @@ export async function GET(request: NextRequest) {
 
     const profile = primaryResult.profile;
     let profileWithMedia = profile;
+    const webProfile = await requestInstagramWebProfile();
+
+    if (webProfile) {
+      profileWithMedia = mergeProfiles(profileWithMedia, webProfile);
+    }
 
     if (!profileWithMedia.recentMedia.length) {
       const mediaStrategies: RequestStrategy[] = [];
@@ -640,8 +721,9 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Instagram profile sync error:", error);
     const reason = error instanceof Error ? error.message : "unknown_error";
+    const webProfile = await requestInstagramWebProfile();
     const response: ApiResponse = {
-      profile: { ...FALLBACK_PROFILE, username },
+      profile: webProfile ? mergeProfiles({ ...FALLBACK_PROFILE, username }, webProfile) : { ...FALLBACK_PROFILE, username },
       source: "fallback",
       reason: reason.slice(0, 280),
       diagnostics: debug ? { ...diagnostics, attempts } : undefined,

@@ -60,7 +60,119 @@ export default function HomePage() {
 
   return (
     <div className="w-full overflow-hidden">
-      <section className="dark-stage relative overflow-hidden border-b border-[#efe5d5]/14 pt-20 md:pt-28">
+      <section className="dark-stage relative overflow-hidden border-b border-[#efe5d5]/14 pt-16 md:hidden">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-52 bg-[radial-gradient(circle_at_20%_0%,rgba(199,154,89,0.42),rgba(199,154,89,0))]" />
+        <div className="relative h-[76svh] min-h-[560px]">
+          {heroImages.map((image, index) => (
+            <Image
+              key={image}
+              src={image}
+              alt={`Robeanny hero ${index + 1}`}
+              fill
+              priority={index === 0}
+              className={`object-cover object-top transition-[opacity,transform] duration-[1300ms] ${
+                index === activeSlide ? "scale-100 opacity-100" : "scale-[1.02] opacity-0"
+              }`}
+              sizes="100vw"
+            />
+          ))}
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(8,7,6,0.15)_0%,rgba(8,7,6,0.34)_46%,rgba(8,7,6,0.96)_100%)]" />
+          <div className="page-shell relative z-10 flex h-full flex-col justify-between pb-6 pt-6">
+            <div className="flex items-start justify-between gap-3">
+              <div className="inline-flex items-center gap-2 rounded-full border border-[#efe5d5]/16 bg-[rgba(16,13,11,0.46)] px-3 py-1.5 text-[0.55rem] uppercase tracking-[0.28em] text-[#efe5d5]/74 backdrop-blur">
+                <span>{tHero("subtitle")}</span>
+              </div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-[#efe5d5]/16 bg-[rgba(16,13,11,0.46)] px-3 py-1.5 text-[0.55rem] uppercase tracking-[0.28em] text-[#efe5d5]/74 backdrop-blur">
+                <span>{String(activeSlide + 1).padStart(2, "0")}</span>
+                <span className="text-[#efe5d5]/40">/</span>
+                <span>{String(heroImages.length).padStart(2, "0")}</span>
+              </div>
+            </div>
+
+            <div className="max-w-[18rem]">
+              <div className="mb-4 flex flex-wrap gap-2">
+                {(locale === "en"
+                  ? ["Editorial", "Campaign", "Runway"]
+                  : ["Editorial", "Campaña", "Runway"]
+                ).map((tag) => (
+                  <span
+                    key={tag}
+                    className="rounded-full border border-[#efe5d5]/16 bg-[rgba(16,13,11,0.42)] px-3 py-1 text-[0.54rem] uppercase tracking-[0.26em] text-[#efe5d5]/72 backdrop-blur"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+              <h1 className="brand-display text-[clamp(3.3rem,18vw,5.8rem)] leading-[0.82] tracking-[0.08em] text-[#f4ebdd]">
+                ROBEANNY
+              </h1>
+              <p className="mt-4 text-[0.95rem] leading-relaxed text-[#efe5d5]/76">
+                {tIntro("bio")}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="page-shell relative z-10 -mt-14 pb-10">
+          <div className="luxury-panel border-[#efe5d5]/15 bg-[rgba(19,15,12,0.78)] p-4 text-[#efe5d5]">
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                {
+                  label: locale === "en" ? "Portfolio" : "Portfolio",
+                  value: `${portfolioPhotos.length} ${locale === "en" ? "photos" : "fotos"}`,
+                },
+                {
+                  label: locale === "en" ? "Sessions" : "Sesiones",
+                  value: `${sessionPhotos.length} ${locale === "en" ? "editorials" : "editoriales"}`,
+                },
+                { label: locale === "en" ? "Based In" : "Base", value: personalData.workCity },
+                { label: locale === "en" ? "Status" : "Estado", value: personalData.status },
+              ].map((item) => (
+                <div key={item.label} className="border border-[#efe5d5]/12 bg-[rgba(10,8,7,0.28)] px-3 py-3">
+                  <p className="text-[0.52rem] uppercase tracking-[0.28em] text-[#efe5d5]/44">{item.label}</p>
+                  <p className="mt-2 text-sm leading-relaxed text-[#efe5d5]/86">{item.value}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-4 flex flex-col gap-3">
+              <Link href={toLocalePath("/portfolio")} className="luxury-button w-full justify-center">
+                {tHero("cta")}
+                <span>→</span>
+              </Link>
+              <Link href={toLocalePath("/book")} className="luxury-button-secondary w-full justify-center border-[#efe5d5]/24 bg-[rgba(255,255,255,0.04)] text-[#efe5d5] hover:border-[#efe5d5] hover:bg-[#efe5d5] hover:text-[#171513]">
+                {tCta("book")}
+              </Link>
+            </div>
+          </div>
+
+          <div className="mt-3 grid grid-cols-[1.08fr_0.92fr] gap-3">
+            <div className="edge-fade relative aspect-[4/5] overflow-hidden">
+              <Image
+                src={aboutImage}
+                alt="Robeanny portrait"
+                fill
+                className="object-cover object-center"
+                sizes="50vw"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/28 via-transparent to-transparent" />
+            </div>
+            <div className="luxury-panel border-[#efe5d5]/15 bg-[rgba(19,15,12,0.78)] p-4 text-[#efe5d5]">
+              <p className="mb-3 text-[0.55rem] uppercase tracking-[0.32em] text-[#efe5d5]/44">Measurements</p>
+              <div className="grid gap-2">
+                {measurements.slice(0, 4).map((item) => (
+                  <div key={item.label} className="border border-[#efe5d5]/12 px-3 py-2.5">
+                    <p className="text-[0.5rem] uppercase tracking-[0.24em] text-[#efe5d5]/42">{item.label}</p>
+                    <p className="mt-1 text-sm text-[#efe5d5]/86">{item.value}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="dark-stage relative hidden overflow-hidden border-b border-[#efe5d5]/14 pt-20 md:block md:pt-28">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-52 bg-[radial-gradient(circle_at_20%_0%,rgba(199,154,89,0.42),rgba(199,154,89,0))]" />
         <div className="page-shell grid gap-6 pb-10 md:gap-8 md:pb-14 xl:grid-cols-[1.08fr_0.92fr] xl:items-center xl:pb-20">
           <div className="order-2 md:pr-8 xl:order-1">

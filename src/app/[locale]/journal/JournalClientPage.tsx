@@ -39,11 +39,13 @@ export default function JournalPage() {
   return (
     <div className="min-h-screen pb-24 pt-24 md:pt-32">
       <div className="page-shell">
-        <p className="label-kicker mb-5">Editorial Notes</p>
-        <h1 className="brand-display text-[clamp(2.5rem,7vw,6rem)] leading-[0.88] tracking-[0.05em] text-[#171513]">
-          {t("pageTitle")}
-        </h1>
-        <p className="mt-5 max-w-2xl text-sm leading-relaxed text-[#171513]/62 md:text-base">{t("subtitle")}</p>
+        <div className="luxury-panel border-black/10 p-5 md:border-0 md:bg-transparent md:p-0">
+          <p className="label-kicker mb-5">Editorial Notes</p>
+          <h1 className="brand-display text-[clamp(2.5rem,7vw,6rem)] leading-[0.88] tracking-[0.05em] text-[#171513]">
+            {t("pageTitle")}
+          </h1>
+          <p className="mt-5 max-w-2xl text-sm leading-relaxed text-[#171513]/62 md:text-base">{t("subtitle")}</p>
+        </div>
 
         <div className="mt-8 flex flex-wrap gap-2.5 border-b border-black/12 pb-5">
           {journalCategories.map((category) => (

@@ -47,10 +47,12 @@ export default function ContactPage() {
   return (
     <div className="min-h-screen pb-24 pt-24 md:pt-32">
       <div className="page-shell">
-        <p className="label-kicker mb-5">Direct Contact</p>
-        <h1 className="brand-display text-[clamp(2.4rem,7vw,6rem)] leading-[0.88] tracking-[0.05em] text-[#171513]">
-          {t("pageTitle")}
-        </h1>
+        <div className="luxury-panel border-black/10 p-5 md:border-0 md:bg-transparent md:p-0">
+          <p className="label-kicker mb-5">Direct Contact</p>
+          <h1 className="brand-display text-[clamp(2.4rem,7vw,6rem)] leading-[0.88] tracking-[0.05em] text-[#171513]">
+            {t("pageTitle")}
+          </h1>
+        </div>
 
         <div className="mt-10 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
           <aside className="luxury-panel h-fit p-6 md:p-8">
@@ -112,7 +114,7 @@ export default function ContactPage() {
                   <select
                     value={formData.subject}
                     onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                    className="border border-black/18 bg-white/70 px-4 py-3 text-sm text-[#171513] outline-none transition-colors focus:border-black/45"
+                    className="rounded-[1rem] md:rounded-none border border-black/18 bg-white/70 px-4 py-3 text-sm text-[#171513] outline-none transition-colors focus:border-black/45"
                   >
                     <option value="">{t("subjects.placeholder")}</option>
                     <option value="Collaboration">{t("subjects.collab")}</option>
@@ -129,7 +131,7 @@ export default function ContactPage() {
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                     rows={7}
                     required
-                    className="resize-none border border-black/18 bg-white/70 px-4 py-3 text-sm text-[#171513] outline-none transition-colors focus:border-black/45"
+                    className="resize-none rounded-[1rem] md:rounded-none border border-black/18 bg-white/70 px-4 py-3 text-sm text-[#171513] outline-none transition-colors focus:border-black/45"
                   />
                 </label>
 
@@ -176,7 +178,7 @@ function FieldInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         required={required}
-        className="border border-black/18 bg-white/70 px-4 py-3 text-sm text-[#171513] outline-none transition-colors focus:border-black/45"
+        className="rounded-[1rem] md:rounded-none border border-black/18 bg-white/70 px-4 py-3 text-sm text-[#171513] outline-none transition-colors focus:border-black/45"
       />
     </label>
   );

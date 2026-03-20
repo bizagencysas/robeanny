@@ -31,10 +31,10 @@ export default function Footer() {
 
   return (
     <footer className="dark-stage border-t border-[#efe9de]/10">
-      <div className="page-shell py-16 md:py-24">
-        <div className="mb-14 grid gap-14 lg:grid-cols-[1.2fr_1fr] lg:items-end">
-          <div>
-            <p className="label-kicker mb-6">Editorial Signature</p>
+      <div className="page-shell py-14 md:py-24">
+        <div className="mb-10 grid gap-6 md:mb-14 md:gap-14 lg:grid-cols-[1.2fr_1fr] lg:items-end">
+          <div className="luxury-panel border-[#efe9de]/12 bg-[rgba(19,15,12,0.62)] p-6 md:border-0 md:bg-transparent md:p-0">
+            <p className="label-kicker mb-4 md:mb-6">Editorial Signature</p>
             <h2 className="brand-display text-[clamp(2.2rem,6.8vw,5.5rem)] leading-[0.88] tracking-[0.09em] text-[#efe9de]">
               ROBEANNY
             </h2>
@@ -43,8 +43,8 @@ export default function Footer() {
             </p>
           </div>
 
-          <div className="grid gap-6 sm:grid-cols-2">
-            <div>
+          <div className="grid gap-4 sm:grid-cols-2 md:gap-6">
+            <div className="luxury-panel border-[#efe9de]/12 bg-[rgba(19,15,12,0.62)] p-5 md:border-0 md:bg-transparent md:p-0">
               <p className="mb-4 text-[0.62rem] uppercase tracking-[0.3em] text-[#efe9de]/45">Navigation</p>
               <nav className="flex flex-col gap-2.5">
                 {footerNavKeys.map((link) => (
@@ -59,7 +59,7 @@ export default function Footer() {
               </nav>
             </div>
 
-            <div>
+            <div className="luxury-panel border-[#efe9de]/12 bg-[rgba(19,15,12,0.62)] p-5 md:border-0 md:bg-transparent md:p-0">
               <p className="mb-4 text-[0.62rem] uppercase tracking-[0.3em] text-[#efe9de]/45">Social</p>
               <div className="flex flex-col gap-2.5">
                 {socialLinks.map((link) => (
@@ -81,14 +81,22 @@ export default function Footer() {
         <div className="h-px w-full bg-[#efe9de]/12" />
 
         <div className="mt-8 flex flex-col gap-4 text-[0.62rem] uppercase tracking-[0.24em] text-[#efe9de]/45 md:flex-row md:items-center md:justify-between">
-          <a
-            href="https://love.robeanny.com/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="transition-colors hover:text-[#efe9de]"
-          >
-            {tFooter("support")}
-          </a>
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-6">
+            <a
+              href="https://love.robeanny.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="transition-colors hover:text-[#efe9de]"
+            >
+              {tFooter("support")}
+            </a>
+            <a
+              href="mailto:me@robeanny.com"
+              className="transition-colors hover:text-[#efe9de]"
+            >
+              me@robeanny.com
+            </a>
+          </div>
           <p>{tFooter("rights")}</p>
         </div>
       </div>
