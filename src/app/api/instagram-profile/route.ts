@@ -25,8 +25,18 @@ type ApiResponse = {
     endpoint: string;
     host: string;
     path: string;
+    method: string;
     usernameParam: string;
     hasKey: boolean;
+    attempts?: Array<{
+      endpoint: string;
+      host: string;
+      path: string;
+      method: string;
+      usernameParam: string;
+      status: number | "error" | "parse_error";
+      reason?: string;
+    }>;
   };
 };
 
@@ -173,6 +183,26 @@ const joinPaths = (...paths: string[]) => {
   return clean || "/";
 };
 
+type RequestStrategy = {
+  path: string;
+  method: "GET" | "POST";
+  usernameParam: string;
+};
+
+type AttemptLog = {
+  endpoint: string;
+  host: string;
+  path: string;
+  method: string;
+  usernameParam: string;
+  status: number | "error" | "parse_error";
+  reason?: string;
+};
+
+const normalizeMethod = (value: string) => {
+  return value.toUpperCase() === "POST" ? "POST" : "GET";
+};
+
 export async function GET(request: NextRequest) {
   const debug = request.nextUrl.searchParams.get("debug") === "1";
   const requestedUsername = request.nextUrl.searchParams
@@ -189,6 +219,10 @@ export async function GET(request: NextRequest) {
   );
   const rapidApiHostRaw = firstEnv("RAPIDAPI_HOST", "RAPID_API_HOST");
   const rapidApiProfilePath = firstEnv("RAPIDAPI_PROFILE_PATH", "RAPID_API_PROFILE_PATH");
+  const rapidApiProfileMethodRaw = firstEnv(
+    "RAPIDAPI_PROFILE_METHOD",
+    "RAPID_API_PROFILE_METHOD"
+  );
   const rapidApiUsernameParam = firstEnv(
     "RAPIDAPI_USERNAME_PARAM",
     "RAPID_API_USERNAME_PARAM"
@@ -198,12 +232,113 @@ export async function GET(request: NextRequest) {
     rapidApiHostRaw || "instagram-scraper-api2.p.rapidapi.com"
   );
   const rapidApiHost = normalizedHost.host || "instagram-scraper-api2.p.rapidapi.com";
-  const endpointPath = joinPaths(normalizedHost.basePath, rapidApiProfilePath || "/v1/info");
-  const usernameParam = rapidApiUsernameParam || "username_or_id_or_url";
+  const isInstagram120 = /(^|\.)instagram120(\.|$)/i.test(rapidApiHost);
+  const defaultPath = isInstagram120 ? "/api/instagram/profile" : "/v1/info";
+  const defaultMethod: "GET" | "POST" = isInstagram120 ? "POST" : "GET";
+  const endpointPath = joinPaths(normalizedHost.basePath, rapidApiProfilePath || defaultPath);
+  const method = normalizeMethod(rapidApiProfileMethodRaw || defaultMethod);
+  const usernameParam = rapidApiUsernameParam || (method === "POST" ? "username" : "username_or_id_or_url");
+  const attempts: AttemptLog[] = [];
+
+  const requestProfile = async (strategy: RequestStrategy) => {
+    const endpoint = new URL(`https://${rapidApiHost}${strategy.path}`);
+    const headers: Record<string, string> = {
+      "x-rapidapi-key": rapidApiKey,
+      "x-rapidapi-host": rapidApiHost,
+    };
+    const init: RequestInit & { next: { revalidate: number } } = {
+      method: strategy.method,
+      headers,
+      next: { revalidate: 900 },
+    };
+
+    if (strategy.method === "GET") {
+      endpoint.searchParams.set(strategy.usernameParam, username);
+    } else {
+      headers["content-type"] = "application/json";
+      init.body = JSON.stringify({ [strategy.usernameParam]: username });
+    }
+
+    try {
+      const response = await fetch(endpoint.toString(), init);
+
+      if (!response.ok) {
+        let bodySnippet = "";
+        try {
+          bodySnippet = (await response.text()).slice(0, 250);
+        } catch {
+          bodySnippet = "";
+        }
+        const reason = debug
+          ? `rapidapi_http_${response.status}${bodySnippet ? `:${bodySnippet}` : ""}`
+          : `rapidapi_http_${response.status}`;
+
+        attempts.push({
+          endpoint: endpoint.toString(),
+          host: rapidApiHost,
+          path: strategy.path,
+          method: strategy.method,
+          usernameParam: strategy.usernameParam,
+          status: response.status,
+          reason,
+        });
+
+        return { profile: null as InstagramProfile | null, reason, status: response.status };
+      }
+
+      const payload = (await response.json()) as unknown;
+      const profile = parseProfile(payload, username);
+
+      if (!profile) {
+        const topKeys =
+          payload && typeof payload === "object"
+            ? Object.keys(payload as Record<string, unknown>).slice(0, 8).join(",")
+            : "non_object";
+        const reason = `parse_failed:${topKeys}`;
+
+        attempts.push({
+          endpoint: endpoint.toString(),
+          host: rapidApiHost,
+          path: strategy.path,
+          method: strategy.method,
+          usernameParam: strategy.usernameParam,
+          status: "parse_error",
+          reason,
+        });
+
+        return { profile: null as InstagramProfile | null, reason, status: "parse_error" as const };
+      }
+
+      attempts.push({
+        endpoint: endpoint.toString(),
+        host: rapidApiHost,
+        path: strategy.path,
+        method: strategy.method,
+        usernameParam: strategy.usernameParam,
+        status: 200,
+      });
+
+      return { profile, reason: "", status: 200 as const };
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : "unknown_error";
+      attempts.push({
+        endpoint: endpoint.toString(),
+        host: rapidApiHost,
+        path: strategy.path,
+        method: strategy.method,
+        usernameParam: strategy.usernameParam,
+        status: "error",
+        reason,
+      });
+      return { profile: null as InstagramProfile | null, reason, status: "error" as const };
+    }
+  };
+
   const diagnostics = {
     endpoint: `https://${rapidApiHost}${endpointPath}`,
     host: rapidApiHost,
     path: endpointPath,
+    method,
     usernameParam,
     hasKey: Boolean(rapidApiKey),
   };
@@ -218,46 +353,48 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(response);
   }
 
-  const endpoint = new URL(`https://${rapidApiHost}${endpointPath}`);
-  endpoint.searchParams.set(usernameParam, username);
-
   try {
-    const response = await fetch(endpoint.toString(), {
-      headers: {
-        "x-rapidapi-key": rapidApiKey,
-        "x-rapidapi-host": rapidApiHost,
-      },
-      next: { revalidate: 900 },
-    });
+    const primaryStrategy: RequestStrategy = {
+      path: endpointPath,
+      method,
+      usernameParam,
+    };
+    let primaryResult = await requestProfile(primaryStrategy);
 
-    if (!response.ok) {
-      let bodySnippet = "";
-      try {
-        bodySnippet = (await response.text()).slice(0, 250);
-      } catch {
-        bodySnippet = "";
+    const hasCustomStrategy = Boolean(
+      rapidApiProfilePath || rapidApiProfileMethodRaw || rapidApiUsernameParam
+    );
+
+    if (!primaryResult.profile && !hasCustomStrategy && primaryResult.status === 404) {
+      const alternateMethod: "GET" | "POST" = primaryStrategy.method === "GET" ? "POST" : "GET";
+      const alternatePath = joinPaths(
+        normalizedHost.basePath,
+        alternateMethod === "POST" ? "/api/instagram/profile" : "/v1/info"
+      );
+      const alternateParam =
+        alternateMethod === "POST" ? "username" : "username_or_id_or_url";
+
+      const alternateResult = await requestProfile({
+        path: alternatePath,
+        method: alternateMethod,
+        usernameParam: alternateParam,
+      });
+
+      if (alternateResult.profile) {
+        primaryResult = alternateResult;
+      } else if (alternateResult.reason) {
+        const joinedReason = `${primaryResult.reason};alt_attempt:${alternateResult.reason}`;
+        primaryResult = { ...primaryResult, reason: joinedReason };
       }
-      const reason = debug
-        ? `rapidapi_http_${response.status}${bodySnippet ? `:${bodySnippet}` : ""}`
-        : `rapidapi_http_${response.status}`;
-      throw new Error(reason);
     }
 
-    const payload = (await response.json()) as unknown;
-    const profile = parseProfile(payload, username);
+    if (!primaryResult.profile) throw new Error(primaryResult.reason || "rapidapi_request_failed");
 
-    if (!profile) {
-      const topKeys =
-        payload && typeof payload === "object"
-          ? Object.keys(payload as Record<string, unknown>).slice(0, 8).join(",")
-          : "non_object";
-      throw new Error(`parse_failed:${topKeys}`);
-    }
-
+    const profile = primaryResult.profile;
     const result: ApiResponse = {
       profile,
       source: "rapidapi",
-      diagnostics: debug ? diagnostics : undefined,
+      diagnostics: debug ? { ...diagnostics, attempts } : undefined,
     };
     return NextResponse.json(result);
   } catch (error) {
@@ -267,7 +404,7 @@ export async function GET(request: NextRequest) {
       profile: { ...FALLBACK_PROFILE, username },
       source: "fallback",
       reason: reason.slice(0, 280),
-      diagnostics: debug ? diagnostics : undefined,
+      diagnostics: debug ? { ...diagnostics, attempts } : undefined,
     };
     return NextResponse.json(response);
   }
