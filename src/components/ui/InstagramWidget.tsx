@@ -19,6 +19,7 @@ type InstagramProfile = {
 type ApiResponse = {
   profile?: InstagramProfile;
   source?: "rapidapi" | "fallback";
+  reason?: string;
 };
 
 const DEFAULT_PROFILE: InstagramProfile = {
@@ -54,12 +55,21 @@ export default function InstagramWidget() {
       try {
         const response = await fetch("/api/instagram-profile?username=robeannybl", {
           signal: controller.signal,
+          cache: "no-store",
         });
         const data = (await response.json()) as ApiResponse;
 
         if (data.profile) {
           setProfile(data.profile);
           setSource(data.source || "fallback");
+
+          if (
+            data.source === "fallback" &&
+            data.reason &&
+            process.env.NODE_ENV !== "production"
+          ) {
+            console.warn("Instagram widget fallback reason:", data.reason);
+          }
         }
       } catch {
         setSource("fallback");

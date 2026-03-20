@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 type InstagramProfile = {
   username: string;
   fullName: string;
@@ -10,6 +13,21 @@ type InstagramProfile = {
   posts: number | null;
   externalUrl: string;
   verified: boolean;
+};
+
+type ApiSource = "rapidapi" | "fallback";
+
+type ApiResponse = {
+  profile: InstagramProfile;
+  source: ApiSource;
+  reason?: string;
+  diagnostics?: {
+    endpoint: string;
+    host: string;
+    path: string;
+    usernameParam: string;
+    hasKey: boolean;
+  };
 };
 
 const FALLBACK_PROFILE: InstagramProfile = {
@@ -39,6 +57,14 @@ const toNumber = (value: unknown): number | null => {
     return Number.isFinite(parsed) ? parsed : null;
   }
   return null;
+};
+
+const firstEnv = (...keys: string[]) => {
+  for (const key of keys) {
+    const value = process.env[key];
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+  return "";
 };
 
 const parseProfile = (payload: unknown, username: string): InstagramProfile | null => {
@@ -106,22 +132,94 @@ const parseProfile = (payload: unknown, username: string): InstagramProfile | nu
   return parsed.username ? parsed : null;
 };
 
+const normalizeHost = (value?: string) => {
+  if (!value) return { host: "", basePath: "" };
+
+  const raw = value.trim();
+  const withProtocol = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+
+  try {
+    const parsed = new URL(withProtocol);
+    const basePath =
+      parsed.pathname && parsed.pathname !== "/"
+        ? `/${parsed.pathname.replace(/^\/+|\/+$/g, "")}`
+        : "";
+
+    return {
+      host: parsed.host,
+      basePath,
+    };
+  } catch {
+    const noProtocol = raw.replace(/^https?:\/\//i, "");
+    const [host, ...pathParts] = noProtocol.split("/");
+    return {
+      host: host || "",
+      basePath: pathParts.length ? `/${pathParts.join("/").replace(/^\/+|\/+$/g, "")}` : "",
+    };
+  }
+};
+
+const normalizePath = (value: string) => {
+  const clean = value.trim();
+  if (!clean) return "";
+  return `/${clean.replace(/^\/+|\/+$/g, "")}`;
+};
+
+const joinPaths = (...paths: string[]) => {
+  const clean = paths
+    .map((path) => normalizePath(path))
+    .filter(Boolean)
+    .join("");
+  return clean || "/";
+};
+
 export async function GET(request: NextRequest) {
+  const debug = request.nextUrl.searchParams.get("debug") === "1";
   const requestedUsername = request.nextUrl.searchParams
     .get("username")
     ?.trim()
     .replace(/^@/, "");
 
   const username = requestedUsername || FALLBACK_PROFILE.username;
-  const rapidApiKey = process.env.RAPIDAPI_KEY;
-  const rapidApiHost = process.env.RAPIDAPI_HOST || "instagram-scraper-api2.p.rapidapi.com";
+  const rapidApiKey = firstEnv(
+    "RAPIDAPI_KEY",
+    "RAPID_API_KEY",
+    "NEXT_PUBLIC_RAPIDAPI_KEY",
+    "NEXT_PUBLIC_RAPID_API_KEY"
+  );
+  const rapidApiHostRaw = firstEnv("RAPIDAPI_HOST", "RAPID_API_HOST");
+  const rapidApiProfilePath = firstEnv("RAPIDAPI_PROFILE_PATH", "RAPID_API_PROFILE_PATH");
+  const rapidApiUsernameParam = firstEnv(
+    "RAPIDAPI_USERNAME_PARAM",
+    "RAPID_API_USERNAME_PARAM"
+  );
+
+  const normalizedHost = normalizeHost(
+    rapidApiHostRaw || "instagram-scraper-api2.p.rapidapi.com"
+  );
+  const rapidApiHost = normalizedHost.host || "instagram-scraper-api2.p.rapidapi.com";
+  const endpointPath = joinPaths(normalizedHost.basePath, rapidApiProfilePath || "/v1/info");
+  const usernameParam = rapidApiUsernameParam || "username_or_id_or_url";
+  const diagnostics = {
+    endpoint: `https://${rapidApiHost}${endpointPath}`,
+    host: rapidApiHost,
+    path: endpointPath,
+    usernameParam,
+    hasKey: Boolean(rapidApiKey),
+  };
 
   if (!rapidApiKey) {
-    return NextResponse.json({ profile: { ...FALLBACK_PROFILE, username }, source: "fallback" });
+    const response: ApiResponse = {
+      profile: { ...FALLBACK_PROFILE, username },
+      source: "fallback",
+      reason: "missing_rapidapi_key",
+      diagnostics: debug ? diagnostics : undefined,
+    };
+    return NextResponse.json(response);
   }
 
-  const endpoint = new URL(`https://${rapidApiHost}/v1/info`);
-  endpoint.searchParams.set("username_or_id_or_url", username);
+  const endpoint = new URL(`https://${rapidApiHost}${endpointPath}`);
+  endpoint.searchParams.set(usernameParam, username);
 
   try {
     const response = await fetch(endpoint.toString(), {
@@ -129,23 +227,48 @@ export async function GET(request: NextRequest) {
         "x-rapidapi-key": rapidApiKey,
         "x-rapidapi-host": rapidApiHost,
       },
-      next: { revalidate: 1800 },
+      next: { revalidate: 900 },
     });
 
     if (!response.ok) {
-      throw new Error(`RapidAPI request failed with status ${response.status}`);
+      let bodySnippet = "";
+      try {
+        bodySnippet = (await response.text()).slice(0, 250);
+      } catch {
+        bodySnippet = "";
+      }
+      const reason = debug
+        ? `rapidapi_http_${response.status}${bodySnippet ? `:${bodySnippet}` : ""}`
+        : `rapidapi_http_${response.status}`;
+      throw new Error(reason);
     }
 
     const payload = (await response.json()) as unknown;
     const profile = parseProfile(payload, username);
 
     if (!profile) {
-      throw new Error("Unable to parse Instagram profile from RapidAPI response");
+      const topKeys =
+        payload && typeof payload === "object"
+          ? Object.keys(payload as Record<string, unknown>).slice(0, 8).join(",")
+          : "non_object";
+      throw new Error(`parse_failed:${topKeys}`);
     }
 
-    return NextResponse.json({ profile, source: "rapidapi" });
+    const result: ApiResponse = {
+      profile,
+      source: "rapidapi",
+      diagnostics: debug ? diagnostics : undefined,
+    };
+    return NextResponse.json(result);
   } catch (error) {
     console.error("Instagram profile sync error:", error);
-    return NextResponse.json({ profile: { ...FALLBACK_PROFILE, username }, source: "fallback" });
+    const reason = error instanceof Error ? error.message : "unknown_error";
+    const response: ApiResponse = {
+      profile: { ...FALLBACK_PROFILE, username },
+      source: "fallback",
+      reason: reason.slice(0, 280),
+      diagnostics: debug ? diagnostics : undefined,
+    };
+    return NextResponse.json(response);
   }
 }
