@@ -12,6 +12,7 @@ type InstagramProfile = {
   followers: number | null;
   following: number | null;
   posts: number | null;
+  recentMedia: string[];
   externalUrl: string;
   verified: boolean;
 };
@@ -31,6 +32,7 @@ const DEFAULT_PROFILE: InstagramProfile = {
   followers: null,
   following: null,
   posts: null,
+  recentMedia: [],
   externalUrl: "https://www.instagram.com/robeannybl/",
   verified: false,
 };
@@ -43,13 +45,15 @@ const compact = (value: number | null) => {
   }).format(value);
 };
 
+const toAssetProxy = (url: string) =>
+  `/api/instagram-asset?url=${encodeURIComponent(url)}`;
+
 const avatarCandidates = (profile: InstagramProfile) => {
-  const dynamicAvatar = `https://unavatar.io/instagram/${encodeURIComponent(profile.username)}`;
   const unique = new Set<string>();
-  [profile.profilePicUrl, dynamicAvatar, DEFAULT_PROFILE.profilePicUrl].forEach((url) => {
+  [profile.profilePicUrl, DEFAULT_PROFILE.profilePicUrl].forEach((url) => {
     if (typeof url === "string" && url.trim()) unique.add(url.trim());
   });
-  return Array.from(unique);
+  return Array.from(unique).map((url) => toAssetProxy(url));
 };
 
 export default function InstagramWidget() {
@@ -59,7 +63,8 @@ export default function InstagramWidget() {
   const [avatarIndex, setAvatarIndex] = useState(0);
 
   const avatars = avatarCandidates(profile);
-  const currentAvatar = avatars[avatarIndex] || DEFAULT_PROFILE.profilePicUrl;
+  const currentAvatar = avatars[avatarIndex] || toAssetProxy(DEFAULT_PROFILE.profilePicUrl);
+  const recentMedia = profile.recentMedia.slice(0, 3).map((url) => toAssetProxy(url));
 
   useEffect(() => {
     setAvatarIndex(0);
@@ -148,6 +153,38 @@ export default function InstagramWidget() {
             <p className="mt-5 line-clamp-4 text-sm leading-relaxed text-[#efe5d5]/72">
               {profile.biography || "Biografia no disponible en este momento."}
             </p>
+
+            <div className="mt-5 grid grid-cols-3 gap-2">
+              {recentMedia.length ? (
+                recentMedia.map((mediaUrl, index) => (
+                  <a
+                    key={mediaUrl}
+                    href={profile.externalUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group relative aspect-square overflow-hidden border border-[#efe5d5]/16 bg-[#11100f]"
+                    aria-label={`Abrir Instagram post ${index + 1}`}
+                  >
+                    <img
+                      src={mediaUrl}
+                      alt={`${profile.username} post ${index + 1}`}
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      loading="lazy"
+                      referrerPolicy="no-referrer"
+                      onError={(event) => {
+                        const img = event.currentTarget;
+                        const fallback = toAssetProxy(DEFAULT_PROFILE.profilePicUrl);
+                        if (img.src !== fallback) img.src = fallback;
+                      }}
+                    />
+                  </a>
+                ))
+              ) : (
+                <div className="col-span-3 border border-dashed border-[#efe5d5]/18 px-3 py-4 text-center text-[0.56rem] uppercase tracking-[0.24em] text-[#efe5d5]/42">
+                  Abre el perfil para ver las ultimas fotos
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="mt-6">

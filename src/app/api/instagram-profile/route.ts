@@ -11,6 +11,7 @@ type InstagramProfile = {
   followers: number | null;
   following: number | null;
   posts: number | null;
+  recentMedia: string[];
   externalUrl: string;
   verified: boolean;
 };
@@ -49,6 +50,7 @@ const FALLBACK_PROFILE: InstagramProfile = {
   followers: null,
   following: null,
   posts: null,
+  recentMedia: [],
   externalUrl: "https://www.instagram.com/robeannybl/",
   verified: false,
 };
@@ -70,6 +72,24 @@ const firstUrlInList = (value: unknown) => {
   return "";
 };
 
+const firstMediaUrl = (value: unknown) => {
+  if (!value || typeof value !== "object") return "";
+  const node = value as Record<string, unknown>;
+  const imageVersions = node.image_versions2 as Record<string, unknown> | undefined;
+  const candidates = imageVersions?.candidates as unknown;
+
+  return firstString(
+    node.display_url,
+    node.thumbnail_src,
+    node.image_url,
+    node.media_url,
+    node.url,
+    firstUrlInList(candidates),
+    firstUrlInList(node.image_versions),
+    firstUrlInList(node.carousel_media)
+  );
+};
+
 const toNumber = (value: unknown): number | null => {
   if (typeof value === "number" && Number.isFinite(value)) return value;
   if (typeof value === "string") {
@@ -85,6 +105,42 @@ const firstEnv = (...keys: string[]) => {
     if (typeof value === "string" && value.trim()) return value.trim();
   }
   return "";
+};
+
+const collectMediaUrls = (candidate: Record<string, unknown>) => {
+  const urls: string[] = [];
+  const pushUrl = (value: unknown) => {
+    const url = firstMediaUrl(value);
+    if (url && /^https?:\/\//i.test(url) && !urls.includes(url)) {
+      urls.push(url);
+    }
+  };
+
+  const edges =
+    (candidate.edge_owner_to_timeline_media as Record<string, unknown> | undefined)
+      ?.edges as unknown[] | undefined;
+  edges?.forEach((edge) => {
+    if (!edge || typeof edge !== "object") return;
+    const node = (edge as Record<string, unknown>).node ?? edge;
+    pushUrl(node);
+    const carousel = (node as Record<string, unknown>).carousel_media as unknown[] | undefined;
+    carousel?.forEach((media) => pushUrl(media));
+  });
+
+  const items = candidate.items as unknown[] | undefined;
+  items?.forEach((item) => {
+    pushUrl(item);
+    const carousel = (item as Record<string, unknown>).carousel_media as unknown[] | undefined;
+    carousel?.forEach((media) => pushUrl(media));
+  });
+
+  const media = candidate.media as unknown[] | undefined;
+  media?.forEach((item) => pushUrl(item));
+
+  const posts = candidate.posts as unknown[] | undefined;
+  posts?.forEach((item) => pushUrl(item));
+
+  return urls.slice(0, 9);
 };
 
 const parseProfile = (payload: unknown, username: string): InstagramProfile | null => {
@@ -146,6 +202,7 @@ const parseProfile = (payload: unknown, username: string): InstagramProfile | nu
       toNumber(candidate.posts_count) ??
       toNumber(candidate.posts) ??
       toNumber(edgeMedia);
+    const detectedRecentMedia = collectMediaUrls(candidate);
 
     const hasRealSignal = Boolean(
       detectedUsername ||
@@ -155,6 +212,7 @@ const parseProfile = (payload: unknown, username: string): InstagramProfile | nu
         detectedFollowers !== null ||
         detectedFollowing !== null ||
         detectedPosts !== null ||
+        detectedRecentMedia.length > 0 ||
         firstString(candidate.id, candidate.pk)
     );
 
@@ -168,6 +226,7 @@ const parseProfile = (payload: unknown, username: string): InstagramProfile | nu
       followers: detectedFollowers,
       following: detectedFollowing,
       posts: detectedPosts,
+      recentMedia: detectedRecentMedia,
       externalUrl:
         firstString(candidate.external_url, candidate.externalUrl) ||
         `https://www.instagram.com/${username}/`,
@@ -239,6 +298,45 @@ const normalizeMethod = (value: string) => {
   return value.toUpperCase() === "POST" ? "POST" : "GET";
 };
 
+const collectMediaFromPayload = (payload: unknown) => {
+  const root = payload as Record<string, unknown> | null;
+  if (!root) return [];
+
+  const urls: string[] = [];
+  const addUrls = (list: string[]) => {
+    list.forEach((url) => {
+      if (url && !urls.includes(url)) urls.push(url);
+    });
+  };
+
+  const candidateObjects = [
+    root.result as Record<string, unknown> | undefined,
+    root.data as Record<string, unknown> | undefined,
+    root.user as Record<string, unknown> | undefined,
+    root,
+  ].filter((candidate): candidate is Record<string, unknown> => Boolean(candidate));
+
+  candidateObjects.forEach((candidate) => addUrls(collectMediaUrls(candidate)));
+
+  const candidateArrays = [
+    root.items as unknown[] | undefined,
+    root.posts as unknown[] | undefined,
+    root.media as unknown[] | undefined,
+    root.feed as unknown[] | undefined,
+  ].filter((items): items is unknown[] => Array.isArray(items));
+
+  candidateArrays.forEach((items) => {
+    items.forEach((item) => {
+      const mediaUrl = firstMediaUrl(item);
+      if (mediaUrl && /^https?:\/\//i.test(mediaUrl) && !urls.includes(mediaUrl)) {
+        urls.push(mediaUrl);
+      }
+    });
+  });
+
+  return urls.slice(0, 9);
+};
+
 export async function GET(request: NextRequest) {
   const debug = request.nextUrl.searchParams.get("debug") === "1";
   const requestedUsername = request.nextUrl.searchParams
@@ -263,6 +361,9 @@ export async function GET(request: NextRequest) {
     "RAPIDAPI_USERNAME_PARAM",
     "RAPID_API_USERNAME_PARAM"
   );
+  const rapidApiMediaPathRaw = firstEnv("RAPIDAPI_MEDIA_PATH", "RAPID_API_MEDIA_PATH");
+  const rapidApiMediaMethodRaw = firstEnv("RAPIDAPI_MEDIA_METHOD", "RAPID_API_MEDIA_METHOD");
+  const rapidApiMediaParamRaw = firstEnv("RAPIDAPI_MEDIA_PARAM", "RAPID_API_MEDIA_PARAM");
 
   const normalizedHost = normalizeHost(
     rapidApiHostRaw || "instagram-scraper-api2.p.rapidapi.com"
@@ -370,6 +471,69 @@ export async function GET(request: NextRequest) {
     }
   };
 
+  const requestMedia = async (strategy: RequestStrategy) => {
+    const endpoint = new URL(`https://${rapidApiHost}${strategy.path}`);
+    const headers: Record<string, string> = {
+      "x-rapidapi-key": rapidApiKey,
+      "x-rapidapi-host": rapidApiHost,
+    };
+    const init: RequestInit & { next: { revalidate: number } } = {
+      method: strategy.method,
+      headers,
+      next: { revalidate: 900 },
+    };
+
+    if (strategy.method === "GET") {
+      endpoint.searchParams.set(strategy.usernameParam, username);
+    } else {
+      headers["content-type"] = "application/json";
+      init.body = JSON.stringify({ [strategy.usernameParam]: username });
+    }
+
+    try {
+      const response = await fetch(endpoint.toString(), init);
+
+      if (!response.ok) {
+        attempts.push({
+          endpoint: endpoint.toString(),
+          host: rapidApiHost,
+          path: strategy.path,
+          method: strategy.method,
+          usernameParam: strategy.usernameParam,
+          status: response.status,
+          reason: `media_http_${response.status}`,
+        });
+        return [];
+      }
+
+      const payload = (await response.json()) as unknown;
+      const mediaUrls = collectMediaFromPayload(payload);
+
+      attempts.push({
+        endpoint: endpoint.toString(),
+        host: rapidApiHost,
+        path: strategy.path,
+        method: strategy.method,
+        usernameParam: strategy.usernameParam,
+        status: mediaUrls.length ? 200 : "parse_error",
+        reason: mediaUrls.length ? undefined : "media_parse_failed",
+      });
+
+      return mediaUrls;
+    } catch (error) {
+      attempts.push({
+        endpoint: endpoint.toString(),
+        host: rapidApiHost,
+        path: strategy.path,
+        method: strategy.method,
+        usernameParam: strategy.usernameParam,
+        status: "error",
+        reason: error instanceof Error ? error.message : "media_unknown_error",
+      });
+      return [];
+    }
+  };
+
   const diagnostics = {
     endpoint: `https://${rapidApiHost}${endpointPath}`,
     host: rapidApiHost,
@@ -427,8 +591,48 @@ export async function GET(request: NextRequest) {
     if (!primaryResult.profile) throw new Error(primaryResult.reason || "rapidapi_request_failed");
 
     const profile = primaryResult.profile;
+    let profileWithMedia = profile;
+
+    if (!profileWithMedia.recentMedia.length) {
+      const mediaStrategies: RequestStrategy[] = [];
+
+      if (rapidApiMediaPathRaw) {
+        mediaStrategies.push({
+          path: joinPaths(normalizedHost.basePath, rapidApiMediaPathRaw),
+          method: normalizeMethod(rapidApiMediaMethodRaw || "GET"),
+          usernameParam: rapidApiMediaParamRaw || "username",
+        });
+      } else if (isInstagram120) {
+        mediaStrategies.push(
+          {
+            path: joinPaths(normalizedHost.basePath, "/api/instagram/posts"),
+            method: "POST",
+            usernameParam: "username",
+          },
+          {
+            path: joinPaths(normalizedHost.basePath, "/api/instagram/posts"),
+            method: "GET",
+            usernameParam: "username",
+          },
+          {
+            path: joinPaths(normalizedHost.basePath, "/api/instagram/feed"),
+            method: "GET",
+            usernameParam: "username",
+          }
+        );
+      }
+
+      for (const strategy of mediaStrategies) {
+        const mediaUrls = await requestMedia(strategy);
+        if (mediaUrls.length) {
+          profileWithMedia = { ...profileWithMedia, recentMedia: mediaUrls };
+          break;
+        }
+      }
+    }
+
     const result: ApiResponse = {
-      profile,
+      profile: profileWithMedia,
       source: "rapidapi",
       diagnostics: debug ? { ...diagnostics, attempts } : undefined,
     };
