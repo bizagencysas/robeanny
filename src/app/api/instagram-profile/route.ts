@@ -81,65 +81,87 @@ const parseProfile = (payload: unknown, username: string): InstagramProfile | nu
   const root = payload as Record<string, unknown> | null;
   if (!root) return null;
 
-  const candidate =
-    (root.data as Record<string, unknown> | undefined)?.user ||
-    (root.data as Record<string, unknown> | undefined) ||
-    (root.user as Record<string, unknown> | undefined) ||
-    root;
+  const candidates = [
+    root.result as Record<string, unknown> | undefined,
+    (root.data as Record<string, unknown> | undefined)?.user,
+    root.data as Record<string, unknown> | undefined,
+    root.user as Record<string, unknown> | undefined,
+    root,
+  ].filter((candidate): candidate is Record<string, unknown> => Boolean(candidate));
 
-  if (!candidate || typeof candidate !== "object") return null;
+  for (const candidate of candidates) {
+    const edgeFollowedBy =
+      (candidate.edge_followed_by as Record<string, unknown> | undefined)?.count;
+    const edgeFollow = (candidate.edge_follow as Record<string, unknown> | undefined)?.count;
+    const edgeMedia =
+      (candidate.edge_owner_to_timeline_media as Record<string, unknown> | undefined)?.count;
 
-  const edgeFollowedBy =
-    (candidate.edge_followed_by as Record<string, unknown> | undefined)?.count;
-  const edgeFollow = (candidate.edge_follow as Record<string, unknown> | undefined)?.count;
-  const edgeMedia =
-    (candidate.edge_owner_to_timeline_media as Record<string, unknown> | undefined)?.count;
-
-  const parsed: InstagramProfile = {
-    username:
-      firstString(
-        candidate.username,
-        (candidate.user as Record<string, unknown> | undefined)?.username
-      ) || username,
-    fullName:
-      firstString(
-        candidate.full_name,
-        candidate.fullName,
-        candidate.name,
-        (candidate.user as Record<string, unknown> | undefined)?.full_name
-      ) || "Robeanny",
-    biography:
-      firstString(candidate.biography, candidate.bio, candidate.biography_with_entities) ||
-      FALLBACK_PROFILE.biography,
-    profilePicUrl:
-      firstString(
-        candidate.profile_pic_url_hd,
-        candidate.hd_profile_pic_url_info,
-        candidate.profile_pic_url,
-        candidate.profilePicUrl
-      ) || FALLBACK_PROFILE.profilePicUrl,
-    followers:
+    const detectedUsername = firstString(
+      candidate.username,
+      (candidate.user as Record<string, unknown> | undefined)?.username
+    );
+    const detectedFullName = firstString(
+      candidate.full_name,
+      candidate.fullName,
+      candidate.name,
+      (candidate.user as Record<string, unknown> | undefined)?.full_name
+    );
+    const detectedBio = firstString(
+      candidate.biography,
+      candidate.bio,
+      candidate.biography_with_entities
+    );
+    const detectedProfilePic = firstString(
+      candidate.profile_pic_url_hd,
+      candidate.hd_profile_pic_url_info,
+      candidate.profile_pic_url,
+      candidate.profilePicUrl
+    );
+    const detectedFollowers =
       toNumber(candidate.follower_count) ??
       toNumber(candidate.followers_count) ??
       toNumber(candidate.followers) ??
-      toNumber(edgeFollowedBy),
-    following:
+      toNumber(edgeFollowedBy);
+    const detectedFollowing =
       toNumber(candidate.following_count) ??
       toNumber(candidate.followings_count) ??
       toNumber(candidate.following) ??
-      toNumber(edgeFollow),
-    posts:
+      toNumber(edgeFollow);
+    const detectedPosts =
       toNumber(candidate.media_count) ??
       toNumber(candidate.posts_count) ??
       toNumber(candidate.posts) ??
-      toNumber(edgeMedia),
-    externalUrl:
-      firstString(candidate.external_url, candidate.externalUrl) ||
-      `https://www.instagram.com/${username}/`,
-    verified: Boolean(candidate.is_verified),
-  };
+      toNumber(edgeMedia);
 
-  return parsed.username ? parsed : null;
+    const hasRealSignal = Boolean(
+      detectedUsername ||
+        detectedFullName ||
+        detectedBio ||
+        detectedProfilePic ||
+        detectedFollowers !== null ||
+        detectedFollowing !== null ||
+        detectedPosts !== null ||
+        firstString(candidate.id, candidate.pk)
+    );
+
+    if (!hasRealSignal) continue;
+
+    return {
+      username: detectedUsername || username,
+      fullName: detectedFullName || detectedUsername || username,
+      biography: detectedBio,
+      profilePicUrl: detectedProfilePic || FALLBACK_PROFILE.profilePicUrl,
+      followers: detectedFollowers,
+      following: detectedFollowing,
+      posts: detectedPosts,
+      externalUrl:
+        firstString(candidate.external_url, candidate.externalUrl) ||
+        `https://www.instagram.com/${username}/`,
+      verified: Boolean(candidate.is_verified ?? candidate.verified),
+    };
+  }
+
+  return null;
 };
 
 const normalizeHost = (value?: string) => {

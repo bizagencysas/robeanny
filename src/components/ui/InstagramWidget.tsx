@@ -25,7 +25,7 @@ type ApiResponse = {
 const DEFAULT_PROFILE: InstagramProfile = {
   username: "robeannybl",
   fullName: "Robeanny",
-  biography: "Professional model · Medellin, Colombia",
+  biography: "",
   profilePicUrl:
     "https://res.cloudinary.com/dwpbbjp1d/image/upload/v1761417060/C331D4C7-A330-46C8-AB87-E451F1B4C119_il9n9f.jpg",
   followers: null,
@@ -122,7 +122,7 @@ export default function InstagramWidget() {
             </div>
 
             <p className="mt-5 line-clamp-4 text-sm leading-relaxed text-[#efe5d5]/72">
-              {profile.biography || DEFAULT_PROFILE.biography}
+              {profile.biography || "Biografia no disponible en este momento."}
             </p>
           </div>
 
