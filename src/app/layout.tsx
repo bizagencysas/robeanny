@@ -1,17 +1,17 @@
-import { Cormorant_Garamond, Montserrat } from "next/font/google";
+import { Manrope, Playfair_Display } from "next/font/google";
 import "./globals.css";
 
-const cormorantGaramond = Cormorant_Garamond({
-  weight: ["300", "400", "500", "600", "700"],
+const playfairDisplay = Playfair_Display({
   subsets: ["latin"],
-  variable: "--font-cormorant",
+  variable: "--font-bodoni",
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
-const montserrat = Montserrat({
-  weight: ["200", "300", "400", "500", "600", "700"],
+const manrope = Manrope({
   subsets: ["latin"],
-  variable: "--font-montserrat",
+  variable: "--font-manrope",
+  weight: ["300", "400", "500", "600", "700", "800"],
   display: "swap",
 });
 
@@ -21,10 +21,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html className={`${cormorantGaramond.variable} ${montserrat.variable} antialiased`} suppressHydrationWarning>
-      <body className="bg-black text-white">
-        {children}
-      </body>
+    <html
+      className={`${playfairDisplay.variable} ${manrope.variable} antialiased`}
+      suppressHydrationWarning
+    >
+      <body>{children}</body>
     </html>
   );
 }

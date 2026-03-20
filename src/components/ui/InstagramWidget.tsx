@@ -1,75 +1,146 @@
-import Image from "next/image";
-import { aboutImage, portfolioTeaser, sessionPhotos } from "@/lib/data";
+"use client";
+
+/* eslint-disable @next/next/no-img-element */
+
+import { useEffect, useState } from "react";
+
+type InstagramProfile = {
+  username: string;
+  fullName: string;
+  biography: string;
+  profilePicUrl: string;
+  followers: number | null;
+  following: number | null;
+  posts: number | null;
+  externalUrl: string;
+  verified: boolean;
+};
+
+type ApiResponse = {
+  profile?: InstagramProfile;
+  source?: "rapidapi" | "fallback";
+};
+
+const DEFAULT_PROFILE: InstagramProfile = {
+  username: "robeannybl",
+  fullName: "Robeanny",
+  biography: "Professional model · Medellin, Colombia",
+  profilePicUrl:
+    "https://res.cloudinary.com/dwpbbjp1d/image/upload/v1761417060/C331D4C7-A330-46C8-AB87-E451F1B4C119_il9n9f.jpg",
+  followers: null,
+  following: null,
+  posts: null,
+  externalUrl: "https://www.instagram.com/robeannybl/",
+  verified: false,
+};
+
+const compact = (value: number | null) => {
+  if (value === null) return "--";
+  return new Intl.NumberFormat("es-CO", {
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(value);
+};
 
 export default function InstagramWidget() {
-    // Combine 9 photos to make a 3x3 grid
-    const gridPhotos = [...sessionPhotos.slice(0, 5), ...portfolioTeaser.slice(0, 4).map(p => p.src)];
+  const [profile, setProfile] = useState<InstagramProfile>(DEFAULT_PROFILE);
+  const [source, setSource] = useState<"rapidapi" | "fallback">("fallback");
+  const [loading, setLoading] = useState(true);
 
-    return (
-        <div className="w-full h-full bg-black text-white flex flex-col font-sans relative overflow-hidden group/widget">
-            {/* Header */}
-            <div className="flex items-start p-4 md:p-6 border-b border-white/10 shrink-0">
-                <a
-                    href="https://www.instagram.com/robeannybl"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden relative mr-4 md:mr-6 flex-shrink-0 p-[2px] bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7]"
-                >
-                    <div className="w-full h-full rounded-full overflow-hidden relative border-2 border-black">
-                        <Image src={aboutImage} alt="Robeanny" fill className="object-cover" sizes="80px" />
-                    </div>
-                </a>
-                <div className="flex-1 flex flex-col justify-center pt-1 md:pt-2">
-                    <div className="flex items-center gap-4 mb-3 md:mb-4">
-                        <a href="https://www.instagram.com/robeannybl" target="_blank" rel="noopener noreferrer" className="font-semibold text-base md:text-lg hover:text-white/80 transition-colors">
-                            robeannybl
-                        </a>
-                        <a href="https://www.instagram.com/robeannybl" target="_blank" rel="noopener noreferrer" className="bg-[#0095f6] text-white text-xs md:text-sm font-semibold px-4 md:px-5 py-1.5 md:py-2 rounded-lg hover:bg-[#1877f2] transition-colors">
-                            Follow
-                        </a>
-                    </div>
-                    <div className="flex items-center gap-4 md:gap-8 text-xs md:text-sm">
-                        <div className="flex flex-col md:flex-row items-center md:gap-1"><span className="font-semibold">78</span> <span className="text-white/80 text-[10px] md:text-sm">posts</span></div>
-                        <div className="flex flex-col md:flex-row items-center md:gap-1"><span className="font-semibold">3.5K</span> <span className="text-white/80 text-[10px] md:text-sm">followers</span></div>
-                        <div className="flex flex-col md:flex-row items-center md:gap-1"><span className="font-semibold">404</span> <span className="text-white/80 text-[10px] md:text-sm">following</span></div>
-                    </div>
-                    <div className="mt-4 text-xs md:text-sm hidden md:block">
-                        <p className="font-semibold mb-1">ROBEANNY</p>
-                        <p className="text-white/80">Professional Model • Creator</p>
-                        <p className="text-white/80">Medellín, Colombia 🇨🇴</p>
-                        <a href="https://robeanny.com" target="_blank" rel="noopener noreferrer" className="text-[#e0f1ff] font-medium mt-1 inline-block hover:underline">robeanny.com</a>
-                    </div>
-                </div>
-            </div>
+  useEffect(() => {
+    const controller = new AbortController();
 
-            {/* Mobile Bio */}
-            <div className="px-4 pb-4 pt-2 border-b border-white/10 text-xs md:hidden shrink-0">
-                <p className="font-semibold mb-1">ROBEANNY</p>
-                <p className="text-white/80">Professional Model • Creator</p>
-                <p className="text-white/80">Medellín, Colombia 🇨🇴</p>
-                <a href="https://robeanny.com" target="_blank" rel="noopener noreferrer" className="text-[#e0f1ff] font-medium mt-1 block hover:underline">robeanny.com</a>
-            </div>
+    const fetchProfile = async () => {
+      try {
+        const response = await fetch("/api/instagram-profile?username=robeannybl", {
+          signal: controller.signal,
+        });
+        const data = (await response.json()) as ApiResponse;
 
-            {/* Grid */}
-            <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide bg-black relative">
-                <div className="grid grid-cols-3 gap-[2px]">
-                    {gridPhotos.map((src, i) => (
-                        <a key={i} href="https://www.instagram.com/robeannybl" target="_blank" rel="noopener noreferrer" className="relative aspect-square group block bg-white/5">
-                            <Image src={src} alt="Instagram post" fill className="object-cover" sizes="33vw" />
-                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
-                                <div className="flex items-center gap-4 text-white font-semibold text-sm">
-                                    <span className="flex items-center gap-1.5"><svg aria-label="Like" className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M16.792 3.904A4.989 4.989 0 0 1 21.5 9.122c0 3.072-2.652 4.959-5.197 7.222-2.512 2.243-3.865 3.469-4.303 3.752-.477-.309-2.143-1.823-4.303-3.752C5.141 14.072 2.5 12.167 2.5 9.122a4.989 4.989 0 0 1 4.708-5.218 4.21 4.21 0 0 1 3.675 1.941c.84 1.174.98 1.514 1.117 1.514s.277-.34 1.117-1.514a4.21 4.21 0 0 1 3.675-1.941z"></path></svg> {Math.floor(Math.random() * 8) + 1}k</span>
-                                    <span className="flex items-center gap-1.5"><svg aria-label="Comment" className="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M20.656 17.008a9.993 9.993 0 1 0-3.59 3.615L22 22Z" fill="none" stroke="currentColor" strokeLinejoin="round" strokeWidth="2"></path></svg> {Math.floor(Math.random() * 90) + 10}</span>
-                                </div>
-                            </div>
-                        </a>
-                    ))}
-                </div>
-                {/* Overlay gradient link */}
-                <a href="https://www.instagram.com/robeannybl" target="_blank" rel="noopener noreferrer" className="absolute bottom-0 left-0 w-full pt-16 pb-4 bg-gradient-to-t from-black via-black/80 to-transparent flex items-end justify-center text-xs md:text-sm text-white font-semibold opacity-0 group-hover/widget:opacity-100 transition-opacity duration-500">
-                    Ver en Instagram
-                </a>
-            </div>
+        if (data.profile) {
+          setProfile(data.profile);
+          setSource(data.source || "fallback");
+        }
+      } catch {
+        setSource("fallback");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+
+    return () => controller.abort();
+  }, []);
+
+  return (
+    <div className="relative h-full w-full overflow-hidden bg-[#0f0d0b] text-[#efe5d5]">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,rgba(199,154,89,0.25),rgba(199,154,89,0)_42%)]" />
+      <div className="relative z-10 flex h-full flex-col">
+        <div className="border-b border-[#efe5d5]/14 p-5">
+          <p className="text-[0.56rem] uppercase tracking-[0.3em] text-[#efe5d5]/58">
+            Instagram Live Profile
+          </p>
         </div>
-    )
+
+        <div className="flex flex-1 flex-col justify-between p-5 md:p-6">
+          <div>
+            <div className="mb-5 flex items-center gap-4">
+              <img
+                src={profile.profilePicUrl}
+                alt={profile.fullName}
+                className="h-16 w-16 rounded-full border border-[#efe5d5]/25 object-cover md:h-20 md:w-20"
+                loading="lazy"
+              />
+              <div>
+                <div className="flex items-center gap-2">
+                  <p className="text-base font-semibold text-[#efe5d5] md:text-lg">{profile.username}</p>
+                  {profile.verified ? (
+                    <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-[#3b82f6] text-[0.5rem] font-bold text-white">
+                      ✓
+                    </span>
+                  ) : null}
+                </div>
+                <p className="text-xs text-[#efe5d5]/62 md:text-sm">{profile.fullName}</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2">
+              <StatCard label="Posts" value={loading ? "..." : compact(profile.posts)} />
+              <StatCard label="Followers" value={loading ? "..." : compact(profile.followers)} />
+              <StatCard label="Following" value={loading ? "..." : compact(profile.following)} />
+            </div>
+
+            <p className="mt-5 line-clamp-4 text-sm leading-relaxed text-[#efe5d5]/72">
+              {profile.biography || DEFAULT_PROFILE.biography}
+            </p>
+          </div>
+
+          <div className="mt-6">
+            <a
+              href={profile.externalUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex w-full items-center justify-center gap-2 border border-[#efe5d5]/34 px-4 py-3 text-[0.62rem] uppercase tracking-[0.28em] text-[#efe5d5] transition-colors hover:border-[#efe5d5] hover:bg-[#efe5d5] hover:text-[#13110f]"
+            >
+              Ver perfil
+              <span>↗</span>
+            </a>
+            <p className="mt-3 text-center text-[0.56rem] uppercase tracking-[0.24em] text-[#efe5d5]/46">
+              {source === "rapidapi" ? "Synced via RapidAPI" : "Using fallback data"}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StatCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="border border-[#efe5d5]/16 bg-[#15120f]/62 px-3 py-3 text-center">
+      <p className="text-[0.56rem] uppercase tracking-[0.26em] text-[#efe5d5]/48">{label}</p>
+      <p className="mt-1 text-sm text-[#efe5d5] md:text-base">{value}</p>
+    </div>
+  );
 }

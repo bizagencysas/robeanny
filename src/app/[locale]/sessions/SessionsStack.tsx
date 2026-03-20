@@ -2,137 +2,160 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { motion, AnimatePresence, PanInfo } from "framer-motion";
-import { Undo2 } from "lucide-react";
+import { AnimatePresence, PanInfo, motion } from "framer-motion";
+import { ArrowRight, RotateCcw } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import { sessionPhotos } from "@/lib/data";
 
-const SWIPE_THRESHOLD = 50;
+const SWIPE_THRESHOLD = 85;
 
 export default function SessionsStack() {
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const [exitX, setExitX] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [exitX, setExitX] = useState(0);
+  const locale = useLocale();
+  const t = useTranslations("sessions");
 
-    const remainingCards = sessionPhotos.slice(currentIndex);
+  const remainingCards = sessionPhotos.slice(currentIndex);
 
-    const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-        if (info.offset.x > SWIPE_THRESHOLD || info.offset.x < -SWIPE_THRESHOLD) {
-            const flyAwayDistance = info.offset.x > 0 ? window.innerWidth : -window.innerWidth;
-            setExitX(flyAwayDistance);
-            if (currentIndex < sessionPhotos.length - 1) {
-                setCurrentIndex((prev) => prev + 1);
-            }
-        }
-    };
+  const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    if (info.offset.x > SWIPE_THRESHOLD || info.offset.x < -SWIPE_THRESHOLD) {
+      const flyAwayDistance = info.offset.x > 0 ? window.innerWidth : -window.innerWidth;
+      setExitX(flyAwayDistance);
+      if (currentIndex < sessionPhotos.length - 1) {
+        setCurrentIndex((prev) => prev + 1);
+      }
+    }
+  };
 
-    const handleUndo = () => {
-        if (currentIndex > 0) {
-            setExitX(-window.innerWidth);
-            setCurrentIndex((prev) => prev - 1);
-        }
-    };
+  const handleUndo = () => {
+    if (currentIndex > 0) {
+      setExitX(-window.innerWidth);
+      setCurrentIndex((prev) => prev - 1);
+    }
+  };
 
-    return (
-        <section className="relative w-full h-[100svh] min-h-[700px] bg-black text-white flex flex-col items-center justify-center overflow-hidden">
-            {/* Background massive title */}
-            <h2 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[25vw] md:text-[20vw] lg:text-[18vw] font-serif text-white/10 whitespace-nowrap tracking-tighter select-none pointer-events-none z-[1]">
-                SESIONES
-            </h2>
+  const handleNext = () => {
+    if (currentIndex < sessionPhotos.length - 1) {
+      setExitX(-window.innerWidth);
+      setCurrentIndex((prev) => prev + 1);
+    }
+  };
 
-            {/* The Stack */}
-            <div className="relative w-[85vw] md:w-[45vw] lg:w-[30vw] h-[65vh] max-h-[800px] z-10 perspective-[1000px]">
-                <AnimatePresence initial={false}>
-                    {remainingCards.map((url, i) => {
-                        const isTopCard = i === 0;
-                        if (i > 3) return null;
+  return (
+    <section className="dark-stage relative flex min-h-[100svh] w-full flex-col items-center justify-center overflow-hidden pb-12 pt-24 md:pb-16 md:pt-32">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(255,255,255,0.08),transparent_35%),radial-gradient(circle_at_80%_80%,rgba(165,140,99,0.23),transparent_30%)]" />
 
-                        const offset = i * 2;
-                        const scale = 1 - i * 0.05;
-                        const zIndex = remainingCards.length - i;
-                        const absoluteIndex = currentIndex + i;
-                        const randomRotation = absoluteIndex % 2 === 0 ? (absoluteIndex % 3) : -(absoluteIndex % 3);
+      <div className="page-shell relative z-20 mb-10 flex flex-wrap items-end justify-between gap-5">
+        <div>
+          <p className="label-kicker mb-4">Interactive Session Deck</p>
+          <h1 className="brand-display text-[clamp(2.1rem,6.5vw,5rem)] leading-[0.9] tracking-[0.08em] text-[#efe9de]">
+            {t("title")} {t("titleAccent")}
+          </h1>
+        </div>
+        <p className="max-w-md text-sm leading-relaxed text-[#efe9de]/58">{t("drag")}</p>
+      </div>
 
-                        return (
-                            <motion.div
-                                key={url}
-                                className={`absolute inset-0 w-full h-full origin-bottom rounded-sm shadow-[0_30px_60px_rgba(0,0,0,0.5)] border border-white/10 overflow-hidden cursor-grab active:cursor-grabbing bg-zinc-900 ${isTopCard ? "touch-none" : ""}`}
-                                style={{ zIndex }}
-                                initial={{
-                                    scale,
-                                    y: isTopCard ? 0 : offset * 10,
-                                    rotateZ: isTopCard ? 0 : randomRotation,
-                                    x: isTopCard ? exitX : 0,
-                                    opacity: 0
-                                }}
-                                animate={{
-                                    scale,
-                                    y: isTopCard ? 0 : offset * 10,
-                                    rotateZ: isTopCard ? 0 : randomRotation,
-                                    x: 0,
-                                    opacity: 1 - i * 0.15,
-                                    boxShadow: isTopCard
-                                        ? "0 30px 60px rgba(0,0,0,0.8)"
-                                        : "0 10px 20px rgba(0,0,0,0.3)"
-                                }}
-                                exit={{
-                                    x: exitX,
-                                    opacity: 0,
-                                    rotateZ: exitX > 0 ? 15 : -15,
-                                    scale: 0.9,
-                                    transition: { duration: 0.4, ease: "easeOut" }
-                                }}
-                                transition={{
-                                    type: "spring",
-                                    stiffness: 300,
-                                    damping: 25,
-                                    mass: isTopCard ? 1 : 1.5,
-                                }}
-                                drag={isTopCard ? "x" : false}
-                                dragDirectionLock={true}
-                                dragConstraints={{ left: 0, right: 0 }}
-                                dragElastic={1}
-                                onDragEnd={isTopCard ? handleDragEnd : undefined}
-                                whileTap={isTopCard ? { scale: 0.98, cursor: "grabbing" } : {}}
-                            >
-                                <Image
-                                    src={url}
-                                    alt={`Robeanny - Sesión ${absoluteIndex + 1}`}
-                                    fill
-                                    className="object-cover object-center pointer-events-none"
-                                    sizes="(max-width: 768px) 85vw, (max-width: 1200px) 45vw, 30vw"
-                                    priority={i < 2}
-                                    draggable={false}
-                                />
-                            </motion.div>
-                        );
-                    }).reverse()}
-                </AnimatePresence>
-            </div>
+      <h2 className="pointer-events-none absolute left-1/2 top-1/2 z-[1] -translate-x-1/2 -translate-y-1/2 whitespace-nowrap text-[23vw] font-[var(--font-bodoni)] tracking-[0.05em] text-[#efe9de]/6 md:text-[15vw]">
+        SESSIONS
+      </h2>
 
-            {/* Controls */}
-            <div className="absolute bottom-12 left-0 w-full px-8 md:px-16 flex justify-between items-center z-20">
-                <button
-                    onClick={handleUndo}
-                    disabled={currentIndex === 0}
-                    className={`group flex items-center justify-center w-12 h-12 rounded-full border border-white/20 bg-black/50 backdrop-blur-md transition-all duration-300 ${currentIndex === 0 ? "opacity-30 cursor-not-allowed" : "hover:bg-white hover:text-black cursor-pointer"}`}
-                    aria-label="Volver a foto anterior"
+      <div className="relative z-10 h-[62svh] max-h-[800px] w-[88vw] max-w-[430px] perspective-[1200px]">
+        <AnimatePresence initial={false}>
+          {remainingCards
+            .map((url, i) => {
+              if (i > 3) return null;
+              const isTop = i === 0;
+              const absoluteIndex = currentIndex + i;
+              const offset = i * 16;
+              const scale = 1 - i * 0.05;
+              const zIndex = remainingCards.length - i;
+              const tilt = absoluteIndex % 2 === 0 ? 1.3 : -1.3;
+
+              return (
+                <motion.div
+                  key={url}
+                  className={`absolute inset-0 overflow-hidden border border-[#efe9de]/20 bg-[#161412] shadow-[0_35px_70px_rgba(0,0,0,0.55)] ${isTop ? "touch-none" : ""}`}
+                  style={{ zIndex, touchAction: isTop ? "none" : "auto" }}
+                  initial={{
+                    x: isTop ? exitX : 0,
+                    y: isTop ? 0 : offset,
+                    rotateZ: isTop ? 0 : tilt,
+                    scale,
+                    opacity: 0,
+                  }}
+                  animate={{
+                    x: 0,
+                    y: isTop ? 0 : offset,
+                    rotateZ: isTop ? 0 : tilt,
+                    scale,
+                    opacity: 1 - i * 0.14,
+                  }}
+                  exit={{
+                    x: exitX,
+                    rotateZ: exitX > 0 ? 15 : -15,
+                    scale: 0.92,
+                    opacity: 0,
+                    transition: { duration: 0.38, ease: "easeOut" },
+                  }}
+                  transition={{ type: "spring", stiffness: 280, damping: 24, mass: isTop ? 1 : 1.3 }}
+                  drag={isTop ? "x" : false}
+                  dragDirectionLock
+                  dragConstraints={{ left: 0, right: 0 }}
+                  dragElastic={1}
+                  onDragEnd={isTop ? handleDragEnd : undefined}
+                  whileTap={isTop ? { scale: 0.985 } : {}}
                 >
-                    <Undo2 size={18} className="transition-transform group-hover:-translate-x-1" />
-                </button>
+                  <Image
+                    src={url}
+                    alt={`Robeanny session ${absoluteIndex + 1}`}
+                    fill
+                    className="pointer-events-none object-cover"
+                    sizes="(max-width: 768px) 88vw, 430px"
+                    priority={i < 2}
+                    draggable={false}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+                </motion.div>
+              );
+            })
+            .reverse()}
+        </AnimatePresence>
+      </div>
 
-                <div className="flex flex-col items-end">
-                    <span className="font-serif italic text-3xl md:text-4xl leading-none">
-                        {String(currentIndex + 1).padStart(2, "0")}
-                    </span>
-                    <div className="w-12 h-[1px] bg-white/30 my-2" />
-                    <span className="font-sans text-xs tracking-[0.2em] text-white/50">
-                        / {sessionPhotos.length}
-                    </span>
-                </div>
-            </div>
+      <div className="page-shell relative z-20 mt-10 flex items-center justify-between gap-5">
+        <button
+          onClick={handleUndo}
+          disabled={currentIndex === 0}
+          aria-label={t("back")}
+          className={`flex h-12 w-12 items-center justify-center border transition-all ${
+            currentIndex === 0
+              ? "cursor-not-allowed border-[#efe9de]/15 text-[#efe9de]/25"
+              : "border-[#efe9de]/35 text-[#efe9de]/72 hover:bg-[#efe9de] hover:text-[#161412]"
+          }`}
+        >
+          <RotateCcw size={16} />
+        </button>
 
-            <div className="absolute top-12 left-1/2 -translate-x-1/2 z-20 hidden md:flex opacity-50 pointer-events-none">
-                <p className="font-sans text-[10px] tracking-[0.3em] uppercase">Arrastra para explorar</p>
-            </div>
-        </section>
-    );
+        <div className="text-right">
+          <p className="brand-display text-3xl tracking-[0.08em] text-[#efe9de] md:text-4xl">
+            {String(currentIndex + 1).padStart(2, "0")}
+          </p>
+          <p className="mt-1 text-[0.62rem] uppercase tracking-[0.3em] text-[#efe9de]/52">/ {sessionPhotos.length}</p>
+        </div>
+
+        <button
+          onClick={handleNext}
+          disabled={currentIndex === sessionPhotos.length - 1}
+          aria-label={locale === "en" ? "Next photo" : "Siguiente foto"}
+          className={`flex h-12 w-12 items-center justify-center border transition-all ${
+            currentIndex === sessionPhotos.length - 1
+              ? "cursor-not-allowed border-[#efe9de]/15 text-[#efe9de]/25"
+              : "border-[#efe9de]/35 text-[#efe9de]/72 hover:bg-[#efe9de] hover:text-[#161412]"
+          }`}
+        >
+          <ArrowRight size={16} />
+        </button>
+      </div>
+    </section>
+  );
 }

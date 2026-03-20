@@ -6,10 +6,12 @@ export default function robots(): MetadataRoute.Robots {
             {
                 userAgent: "*",
                 allow: "/",
+                disallow: ["/api/", "/_next/"],
             },
             {
                 userAgent: "Googlebot",
                 allow: "/",
+                disallow: ["/api/"],
             },
         ],
         sitemap: "https://robeanny.com/sitemap.xml",

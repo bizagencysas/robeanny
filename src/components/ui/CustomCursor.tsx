@@ -2,55 +2,65 @@
 
 import { useEffect, useState } from "react";
 
+const interactiveSelector = [
+  "a",
+  "button",
+  "input",
+  "textarea",
+  "select",
+  "label",
+  "[data-cursor]",
+].join(",");
+
 export default function CustomCursor() {
-    const [position, setPosition] = useState({ x: 0, y: 0 });
-    const [isHovering, setIsHovering] = useState(false);
-    const [isMobile, setIsMobile] = useState(false);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isHovering, setIsHovering] = useState(false);
+  const [isEnabled, setIsEnabled] = useState(false);
 
-    useEffect(() => {
-        // Check if device is touch based
-        const checkMobile = () => {
-            setIsMobile(
-                window.matchMedia("(max-width: 768px)").matches ||
-                "ontouchstart" in window ||
-                navigator.maxTouchPoints > 0
-            );
-        };
-        checkMobile();
-        window.addEventListener("resize", checkMobile);
+  useEffect(() => {
+    const updateEnabled = () => {
+      const isTouch =
+        window.matchMedia("(pointer: coarse)").matches ||
+        "ontouchstart" in window ||
+        navigator.maxTouchPoints > 0;
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      setIsEnabled(!isTouch && !reduceMotion && window.innerWidth > 1024);
+    };
 
-        const handleMouseMove = (e: MouseEvent) => {
-            setPosition({ x: e.clientX, y: e.clientY });
-        };
+    const onMove = (e: MouseEvent) => {
+      setPosition({ x: e.clientX, y: e.clientY });
+      const target = e.target as HTMLElement;
+      setIsHovering(Boolean(target.closest(interactiveSelector)));
+    };
 
-        const handleMouseOver = (e: MouseEvent) => {
-            const target = e.target as HTMLElement;
-            // Check if target or its parent is interactive
-            const isInteractive = target.closest("a, button, input-[type='button'], input-[type='submit'], [data-cursor]");
-            setIsHovering(!!isInteractive);
-        };
+    updateEnabled();
+    window.addEventListener("resize", updateEnabled);
+    window.addEventListener("mousemove", onMove);
 
-        window.addEventListener("mousemove", handleMouseMove);
-        window.addEventListener("mouseover", handleMouseOver);
+    return () => {
+      window.removeEventListener("resize", updateEnabled);
+      window.removeEventListener("mousemove", onMove);
+    };
+  }, []);
 
-        return () => {
-            window.removeEventListener("resize", checkMobile);
-            window.removeEventListener("mousemove", handleMouseMove);
-            window.removeEventListener("mouseover", handleMouseOver);
-        };
-    }, []);
+  if (!isEnabled) return null;
 
-    if (isMobile) return null;
-
-    return (
-        <div
-            className="fixed top-0 left-0 w-8 h-8 pointer-events-none z-[9999] rounded-full border border-white mix-blend-difference transform -translate-x-1/2 -translate-y-1/2 transition-transform duration-300 ease-out will-change-transform"
-            style={{
-                left: `${position.x}px`,
-                top: `${position.y}px`,
-                transform: `translate(-50%, -50%) scale(${isHovering ? 1.5 : 1})`,
-                backgroundColor: isHovering ? "rgba(255, 255, 255, 1)" : "transparent",
-            }}
-        />
-    );
+  return (
+    <>
+      <div
+        className="pointer-events-none fixed left-0 top-0 z-[9998] h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#141312] transition-transform duration-200"
+        style={{ left: position.x, top: position.y }}
+      />
+      <div
+        className="pointer-events-none fixed left-0 top-0 z-[9997] h-9 w-9 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#141312]/40 transition-all duration-300"
+        style={{
+          left: position.x,
+          top: position.y,
+          transform: `translate(-50%, -50%) scale(${isHovering ? 1.5 : 1})`,
+          background: isHovering ? "rgba(20, 19, 18, 0.08)" : "transparent",
+          borderColor: isHovering ? "rgba(20, 19, 18, 0.8)" : "rgba(20, 19, 18, 0.35)",
+        }}
+      />
+    </>
+  );
 }

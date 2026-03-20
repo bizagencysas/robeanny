@@ -1,166 +1,219 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useLocale, useTranslations } from "next-intl";
 
 const navKeys = [
-    { href: "/", key: "home" },
-    { href: "/portfolio", key: "portfolio" },
-    { href: "/book", key: "book" },
-    { href: "/sessions", key: "sessions" },
-    { href: "/journal", key: "journal" },
-    { href: "/contact", key: "contact" },
+  { href: "/", key: "home" },
+  { href: "/portfolio", key: "portfolio" },
+  { href: "/book", key: "book" },
+  { href: "/sessions", key: "sessions" },
+  { href: "/journal", key: "journal" },
+  { href: "/contact", key: "contact" },
 ] as const;
 
+const stripLocale = (path: string) => {
+  if (path === "/en") return "/";
+  return path.startsWith("/en/") ? path.slice(3) : path;
+};
+
 export default function Navbar() {
-    const [isOpen, setIsOpen] = useState(false);
-    const [scrolled, setScrolled] = useState(false);
-    const pathname = usePathname();
-    const router = useRouter();
-    const locale = useLocale();
-    const t = useTranslations("nav");
+  const [isOpen, setIsOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const pathname = usePathname();
+  const router = useRouter();
+  const locale = useLocale();
+  const t = useTranslations("nav");
 
-    useEffect(() => {
-        const handleScroll = () => setScrolled(window.scrollY > 80);
-        window.addEventListener("scroll", handleScroll, { passive: true });
-        return () => window.removeEventListener("scroll", handleScroll);
-    }, []);
+  const normalizedPath = useMemo(() => {
+    const clean = stripLocale(pathname || "/");
+    return clean || "/";
+  }, [pathname]);
 
-    useEffect(() => { setIsOpen(false); }, [pathname]);
+  const toLocalePath = (href: string, targetLocale: string) => {
+    if (targetLocale === "en") return href === "/" ? "/en" : `/en${href}`;
+    return href;
+  };
 
-    useEffect(() => {
-        document.body.style.overflow = isOpen ? "hidden" : "";
-        return () => { document.body.style.overflow = ""; };
-    }, [isOpen]);
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 40);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
-    const switchLocale = (newLocale: string) => {
-        // Strip current locale prefix from pathname, then prepend new locale
-        const pathWithoutLocale = pathname.replace(/^\/(es|en)/, "") || "/";
-        const newPath = newLocale === "es" ? pathWithoutLocale : `/en${pathWithoutLocale === "/" ? "" : pathWithoutLocale}`;
-        router.push(newPath);
+  useEffect(() => {
+    document.body.style.overflow = isOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
     };
+  }, [isOpen]);
 
-    const isActive = (href: string) => {
-        const cleanPath = pathname.replace(/^\/(es|en)/, "") || "/";
-        return cleanPath === href;
-    };
+  const switchLocale = (nextLocale: string) => {
+    router.push(toLocalePath(normalizedPath, nextLocale));
+  };
 
-    return (
-        <>
-            <header
-                className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${scrolled ? "bg-black/80 backdrop-blur-md border-b border-white/5" : "bg-transparent"
-                    }`}
-            >
-                <nav className="max-w-[1800px] mx-auto px-6 md:px-12 h-16 md:h-20 flex items-center justify-between">
-                    {/* Logo */}
-                    <Link href="/" className="font-serif text-xl md:text-2xl tracking-[0.2em] text-white hover:opacity-70 transition-opacity z-50">
-                        ROBEANNY
+  const isActive = (href: string) => normalizedPath === href;
+
+  return (
+    <>
+      <header
+        className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${
+          scrolled || isOpen
+            ? "border-b border-black/10 bg-[rgba(250,247,242,0.88)] backdrop-blur-xl"
+            : "bg-transparent"
+        }`}
+      >
+        <nav className="page-shell flex h-[74px] items-center justify-between">
+          <Link
+            href={toLocalePath("/", locale)}
+            className="brand-display text-[1.3rem] tracking-[0.24em] text-[#171513] transition-opacity hover:opacity-65"
+          >
+            ROBEANNY
+          </Link>
+
+          <div className="hidden items-center gap-8 xl:flex">
+            {navKeys.map((link) => (
+              <Link
+                key={link.href}
+                href={toLocalePath(link.href, locale)}
+                className={`text-[0.64rem] uppercase tracking-[0.28em] transition-colors ${
+                  isActive(link.href)
+                    ? "text-[#171513]"
+                    : "text-[#171513]/55 hover:text-[#171513]"
+                }`}
+              >
+                {t(link.key)}
+              </Link>
+            ))}
+
+            <div className="ml-3 flex items-center gap-2 border-l border-black/15 pl-5">
+              <button
+                onClick={() => switchLocale("es")}
+                className={`text-[0.63rem] uppercase tracking-[0.24em] transition-colors ${
+                  locale === "es"
+                    ? "text-[#171513]"
+                    : "text-[#171513]/45 hover:text-[#171513]"
+                }`}
+              >
+                ES
+              </button>
+              <span className="text-[0.63rem] text-[#171513]/22">/</span>
+              <button
+                onClick={() => switchLocale("en")}
+                className={`text-[0.63rem] uppercase tracking-[0.24em] transition-colors ${
+                  locale === "en"
+                    ? "text-[#171513]"
+                    : "text-[#171513]/45 hover:text-[#171513]"
+                }`}
+              >
+                EN
+              </button>
+            </div>
+          </div>
+
+          <button
+            onClick={() => setIsOpen((prev) => !prev)}
+            aria-label={isOpen ? "Close menu" : "Open menu"}
+            className="relative flex h-9 w-9 flex-col items-center justify-center gap-1.5 xl:hidden"
+          >
+            <span
+              className={`h-px w-6 bg-[#171513] transition-all duration-300 ${
+                isOpen ? "translate-y-[3.5px] rotate-45" : ""
+              }`}
+            />
+            <span
+              className={`h-px w-6 bg-[#171513] transition-all duration-300 ${
+                isOpen ? "-translate-y-[3.5px] -rotate-45" : ""
+              }`}
+            />
+          </button>
+        </nav>
+      </header>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.36, ease: [0.16, 1, 0.3, 1] }}
+            className="fixed inset-0 z-40 dark-stage"
+          >
+            <div className="page-shell flex h-full flex-col justify-between pb-10 pt-28">
+              <nav className="flex flex-col gap-6">
+                {navKeys.map((link, index) => (
+                  <motion.div
+                    key={link.href}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -14 }}
+                    transition={{ delay: index * 0.05, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+                  >
+                    <Link
+                      href={toLocalePath(link.href, locale)}
+                      className={`brand-display block text-[clamp(2rem,9vw,4.3rem)] leading-[0.95] tracking-[0.05em] transition-colors ${
+                        isActive(link.href)
+                          ? "text-[#efe9de]"
+                          : "text-[#efe9de]/50 hover:text-[#efe9de]"
+                      }`}
+                    >
+                      {t(link.key)}
                     </Link>
+                  </motion.div>
+                ))}
+              </nav>
 
-                    {/* Desktop Nav + Lang Toggle */}
-                    <div className="hidden lg:flex items-center gap-8">
-                        {navKeys.map((link) => (
-                            <Link
-                                key={link.href}
-                                href={link.href}
-                                className={`font-sans text-[11px] tracking-[0.2em] uppercase transition-opacity duration-300 ${isActive(link.href) ? "text-white opacity-100" : "text-white/50 hover:text-white hover:opacity-100"
-                                    }`}
-                            >
-                                {t(link.key)}
-                            </Link>
-                        ))}
+              <div className="flex items-end justify-between gap-6">
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => switchLocale("es")}
+                    className={`border px-4 py-2 text-[0.62rem] uppercase tracking-[0.24em] transition-colors ${
+                      locale === "es"
+                        ? "border-[#efe9de] text-[#efe9de]"
+                        : "border-[#efe9de]/30 text-[#efe9de]/50"
+                    }`}
+                  >
+                    Espanol
+                  </button>
+                  <button
+                    onClick={() => switchLocale("en")}
+                    className={`border px-4 py-2 text-[0.62rem] uppercase tracking-[0.24em] transition-colors ${
+                      locale === "en"
+                        ? "border-[#efe9de] text-[#efe9de]"
+                        : "border-[#efe9de]/30 text-[#efe9de]/50"
+                    }`}
+                  >
+                    English
+                  </button>
+                </div>
 
-                        {/* Language Toggle */}
-                        <div className="flex items-center gap-1 ml-4 border-l border-white/10 pl-6">
-                            <button
-                                onClick={() => switchLocale("es")}
-                                className={`font-sans text-[10px] tracking-widest uppercase px-2 py-1 transition-colors ${locale === "es" ? "text-white" : "text-white/30 hover:text-white/60"
-                                    }`}
-                            >
-                                ES
-                            </button>
-                            <span className="text-white/15 text-[10px]">/</span>
-                            <button
-                                onClick={() => switchLocale("en")}
-                                className={`font-sans text-[10px] tracking-widest uppercase px-2 py-1 transition-colors ${locale === "en" ? "text-white" : "text-white/30 hover:text-white/60"
-                                    }`}
-                            >
-                                EN
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Mobile Hamburger */}
-                    <button
-                        onClick={() => setIsOpen(!isOpen)}
-                        className="lg:hidden relative z-50 w-8 h-8 flex flex-col items-center justify-center gap-[6px]"
-                        aria-label={isOpen ? "Close menu" : "Open menu"}
-                    >
-                        <span className={`block w-6 h-[1px] bg-white transition-all duration-300 ${isOpen ? "rotate-45 translate-y-[3.5px]" : ""}`} />
-                        <span className={`block w-6 h-[1px] bg-white transition-all duration-300 ${isOpen ? "-rotate-45 -translate-y-[3.5px]" : ""}`} />
-                    </button>
-                </nav>
-            </header>
-
-            {/* Mobile Fullscreen Menu */}
-            <AnimatePresence>
-                {isOpen && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                        className="fixed inset-0 z-40 bg-black flex flex-col items-center justify-center"
-                    >
-                        <nav className="flex flex-col items-center gap-8">
-                            {navKeys.map((link, i) => (
-                                <motion.div
-                                    key={link.href}
-                                    initial={{ opacity: 0, y: 30 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -20 }}
-                                    transition={{ delay: i * 0.06, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                                >
-                                    <Link
-                                        href={link.href}
-                                        className={`font-serif text-4xl md:text-5xl tracking-[0.1em] uppercase transition-opacity ${isActive(link.href) ? "text-white" : "text-white/40 hover:text-white"
-                                            }`}
-                                    >
-                                        {t(link.key)}
-                                    </Link>
-                                </motion.div>
-                            ))}
-                        </nav>
-
-                        {/* Language Toggle — Mobile */}
-                        <div className="absolute bottom-20 flex items-center gap-4">
-                            <button
-                                onClick={() => switchLocale("es")}
-                                className={`font-sans text-sm tracking-widest uppercase px-4 py-2 border transition-all ${locale === "es" ? "border-white text-white" : "border-white/20 text-white/30"
-                                    }`}
-                            >
-                                Español
-                            </button>
-                            <button
-                                onClick={() => switchLocale("en")}
-                                className={`font-sans text-sm tracking-widest uppercase px-4 py-2 border transition-all ${locale === "en" ? "border-white text-white" : "border-white/20 text-white/30"
-                                    }`}
-                            >
-                                English
-                            </button>
-                        </div>
-
-                        <div className="absolute bottom-8 flex items-center gap-6 text-white/30 text-[10px] tracking-[0.3em] uppercase font-sans">
-                            <a href="https://www.instagram.com/robeannybl" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Instagram</a>
-                            <span>·</span>
-                            <a href="https://www.tiktok.com/@robeannybbl" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">TikTok</a>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </>
-    );
+                <div className="flex items-center gap-4 text-[0.6rem] uppercase tracking-[0.28em] text-[#efe9de]/45">
+                  <a
+                    href="https://www.instagram.com/robeannybl"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-[#efe9de]"
+                  >
+                    Instagram
+                  </a>
+                  <span className="text-[#efe9de]/30">•</span>
+                  <a
+                    href="https://www.tiktok.com/@robeannybbl"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-[#efe9de]"
+                  >
+                    TikTok
+                  </a>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
 }
