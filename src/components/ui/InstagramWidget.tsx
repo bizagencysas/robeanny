@@ -43,10 +43,27 @@ const compact = (value: number | null) => {
   }).format(value);
 };
 
+const avatarCandidates = (profile: InstagramProfile) => {
+  const dynamicAvatar = `https://unavatar.io/instagram/${encodeURIComponent(profile.username)}`;
+  const unique = new Set<string>();
+  [profile.profilePicUrl, dynamicAvatar, DEFAULT_PROFILE.profilePicUrl].forEach((url) => {
+    if (typeof url === "string" && url.trim()) unique.add(url.trim());
+  });
+  return Array.from(unique);
+};
+
 export default function InstagramWidget() {
   const [profile, setProfile] = useState<InstagramProfile>(DEFAULT_PROFILE);
   const [source, setSource] = useState<"rapidapi" | "fallback">("fallback");
   const [loading, setLoading] = useState(true);
+  const [avatarIndex, setAvatarIndex] = useState(0);
+
+  const avatars = avatarCandidates(profile);
+  const currentAvatar = avatars[avatarIndex] || DEFAULT_PROFILE.profilePicUrl;
+
+  useEffect(() => {
+    setAvatarIndex(0);
+  }, [profile.profilePicUrl, profile.username]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -97,10 +114,17 @@ export default function InstagramWidget() {
           <div>
             <div className="mb-5 flex items-center gap-4">
               <img
-                src={profile.profilePicUrl}
+                src={currentAvatar}
                 alt={profile.fullName}
                 className="h-16 w-16 rounded-full border border-[#efe5d5]/25 object-cover md:h-20 md:w-20"
                 loading="lazy"
+                referrerPolicy="no-referrer"
+                onError={() => {
+                  setAvatarIndex((current) => {
+                    const next = current + 1;
+                    return next < avatars.length ? next : current;
+                  });
+                }}
               />
               <div>
                 <div className="flex items-center gap-2">

@@ -60,6 +60,16 @@ const firstString = (...values: unknown[]) => {
   return "";
 };
 
+const firstUrlInList = (value: unknown) => {
+  if (!Array.isArray(value)) return "";
+  for (const item of value) {
+    if (!item || typeof item !== "object") continue;
+    const url = firstString((item as Record<string, unknown>).url);
+    if (url) return url;
+  }
+  return "";
+};
+
 const toNumber = (value: unknown): number | null => {
   if (typeof value === "number" && Number.isFinite(value)) return value;
   if (typeof value === "string") {
@@ -113,8 +123,12 @@ const parseProfile = (payload: unknown, username: string): InstagramProfile | nu
     );
     const detectedProfilePic = firstString(
       candidate.profile_pic_url_hd,
+      candidate.profilePicUrlHD,
+      (candidate.hd_profile_pic_url_info as Record<string, unknown> | undefined)?.url,
+      firstUrlInList(candidate.hd_profile_pic_versions),
       candidate.hd_profile_pic_url_info,
       candidate.profile_pic_url,
+      firstUrlInList(candidate.profile_pic_versions),
       candidate.profilePicUrl
     );
     const detectedFollowers =
