@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
@@ -13,6 +13,7 @@ import {
   sessionsTeaser,
 } from "@/lib/data";
 import InstagramWidget from "@/components/ui/InstagramWidget";
+import { useTilt3D } from "@/lib/useTilt3D";
 
 const heroImages = [
   "/014A7144-2.jpg",
@@ -48,6 +49,12 @@ export default function HomePage() {
   const tCta = useTranslations("cta");
 
   const [activeSlide, setActiveSlide] = useState(0);
+  const mobileHeroRef = useRef<HTMLDivElement>(null);
+  const mobileInfoPanelRef = useRef<HTMLDivElement>(null);
+  const desktopHeroRef = useRef<HTMLDivElement>(null);
+  const sessionsTeaserRef = useRef<HTMLDivElement>(null);
+  const tiktokPanelRef = useRef<HTMLDivElement>(null);
+  const instagramPanelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -56,6 +63,13 @@ export default function HomePage() {
 
     return () => clearInterval(interval);
   }, []);
+
+  useTilt3D(mobileHeroRef, { maxRotateX: 3.8, maxRotateY: 4.4, scale: 1.01, mobileDrift: true });
+  useTilt3D(mobileInfoPanelRef, { maxRotateX: 2.8, maxRotateY: 3.3, scale: 1.006, mobileDrift: true });
+  useTilt3D(desktopHeroRef, { maxRotateX: 5.2, maxRotateY: 6.2, scale: 1.008, mobileDrift: false });
+  useTilt3D(sessionsTeaserRef, { maxRotateX: 3.6, maxRotateY: 4.4, scale: 1.006, mobileDrift: true });
+  useTilt3D(tiktokPanelRef, { maxRotateX: 2.6, maxRotateY: 3.6, scale: 1.005, mobileDrift: true });
+  useTilt3D(instagramPanelRef, { maxRotateX: 2.6, maxRotateY: 3.6, scale: 1.005, mobileDrift: true });
 
   const toLocalePath = useMemo(
     () =>
@@ -71,7 +85,14 @@ export default function HomePage() {
       <section className="dark-stage relative overflow-hidden border-b border-[#efe5d5]/10 pt-16 md:hidden">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(circle_at_25%_0%,rgba(199,154,89,0.38),rgba(199,154,89,0)_60%)]" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-[radial-gradient(circle_at_80%_100%,rgba(140,100,50,0.16),rgba(140,100,50,0)_50%)]" />
-        <div className="relative h-[72svh] min-h-[540px]">
+        <div
+          ref={mobileHeroRef}
+          className="relative h-[72svh] min-h-[540px] [transform-style:preserve-3d] transition-transform duration-500"
+          style={{
+            transform:
+              "perspective(1400px) rotateX(var(--tilt-rx,0deg)) rotateY(var(--tilt-ry,0deg)) scale(var(--tilt-scale,1))",
+          }}
+        >
           {heroImages.map((image, index) => (
             <Image
               key={image}
@@ -87,7 +108,7 @@ export default function HomePage() {
           ))}
           <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(8,7,6,0.08)_0%,rgba(8,7,6,0.22)_35%,rgba(8,7,6,0.92)_88%,rgba(8,7,6,0.98)_100%)]" />
           <div className="page-shell relative z-10 flex h-full flex-col justify-between pb-7 pt-5">
-            <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start justify-between gap-3" style={{ transform: "translateZ(44px)" }}>
               <div className="inline-flex items-center gap-2 rounded-full border border-[#efe5d5]/14 bg-[rgba(14,12,10,0.52)] px-3.5 py-1.5 text-[0.52rem] uppercase tracking-[0.3em] text-[#efe5d5]/70 backdrop-blur-lg">
                 <span className="inline-block h-1 w-1 rounded-full bg-[#c79a59]/80" />
                 <span>{tHero("subtitle")}</span>
@@ -99,7 +120,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="max-w-[18.5rem]">
+            <div className="max-w-[18.5rem]" style={{ transform: "translateZ(34px)" }}>
               <div className="mb-4 flex flex-wrap gap-1.5">
                 {(locale === "en"
                   ? ["Editorial", "Campaign", "Runway"]
@@ -125,7 +146,14 @@ export default function HomePage() {
         </div>
 
         <div className="page-shell relative z-10 pb-10">
-          <div className="luxury-panel border-[#efe5d5]/12 bg-[rgba(17,14,11,0.82)] p-4 text-[#efe5d5] backdrop-blur-md">
+          <div
+            ref={mobileInfoPanelRef}
+            className="luxury-panel border-[#efe5d5]/12 bg-[rgba(17,14,11,0.82)] p-4 text-[#efe5d5] backdrop-blur-md [transform-style:preserve-3d] transition-transform duration-500"
+            style={{
+              transform:
+                "perspective(1300px) rotateX(var(--tilt-rx,0deg)) rotateY(var(--tilt-ry,0deg)) scale(var(--tilt-scale,1))",
+            }}
+          >
             <div className="grid grid-cols-2 gap-1.5">
               {[
                 {
@@ -243,7 +271,14 @@ export default function HomePage() {
           </div>
 
           <div className="order-1 grid h-[58svh] min-h-[430px] grid-cols-2 grid-rows-[1.38fr_1fr] gap-3 sm:h-[64svh] sm:min-h-[520px] sm:gap-4 xl:order-2 xl:h-[82svh] xl:min-h-[700px]">
-            <div className="edge-fade group relative col-span-2 row-span-1 overflow-hidden bg-black/5">
+            <div
+              ref={desktopHeroRef}
+              className="edge-fade group relative col-span-2 row-span-1 overflow-hidden bg-black/5 [transform-style:preserve-3d] transition-transform duration-500"
+              style={{
+                transform:
+                  "perspective(1500px) rotateX(var(--tilt-rx,0deg)) rotateY(var(--tilt-ry,0deg)) scale(var(--tilt-scale,1))",
+              }}
+            >
               {heroImages.map((image, index) => (
                 <Image
                   key={image}
@@ -258,12 +293,26 @@ export default function HomePage() {
                 />
               ))}
               <div className="absolute inset-0 bg-gradient-to-t from-black/18 via-transparent to-transparent" />
-              <div className="absolute bottom-4 left-4 flex items-center gap-2 rounded-full bg-[#171513]/70 px-3 py-1.5 text-[0.58rem] uppercase tracking-[0.24em] text-[#efe9de] backdrop-blur">
+              <div
+                className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                style={{
+                  transform: "translateZ(26px)",
+                  background:
+                    "radial-gradient(circle at 18% 20%, rgba(255,255,255,0.16), rgba(255,255,255,0) 48%), radial-gradient(circle at 72% 78%, rgba(199,154,89,0.2), rgba(199,154,89,0) 55%)",
+                }}
+              />
+              <div
+                className="absolute bottom-4 left-4 flex items-center gap-2 rounded-full bg-[#171513]/70 px-3 py-1.5 text-[0.58rem] uppercase tracking-[0.24em] text-[#efe9de] backdrop-blur"
+                style={{ transform: "translateZ(38px)" }}
+              >
                 <span>{String(activeSlide + 1).padStart(2, "0")}</span>
                 <span className="text-[#efe9de]/55">/</span>
                 <span>{String(heroImages.length).padStart(2, "0")}</span>
               </div>
-              <div className="absolute right-4 top-4 border border-white/35 bg-black/35 px-3 py-2 text-[0.55rem] uppercase tracking-[0.28em] text-[#f3efe6] backdrop-blur">
+              <div
+                className="absolute right-4 top-4 border border-white/35 bg-black/35 px-3 py-2 text-[0.55rem] uppercase tracking-[0.28em] text-[#f3efe6] backdrop-blur"
+                style={{ transform: "translateZ(46px)" }}
+              >
                 {personalData.status}
               </div>
             </div>
@@ -336,7 +385,14 @@ export default function HomePage() {
 
       <section className="section-spacing dark-stage">
         <div className="page-shell grid gap-8 lg:grid-cols-[1fr_1fr]">
-          <div className="relative min-h-[460px] overflow-hidden border border-[#efe9de]/15">
+          <div
+            ref={sessionsTeaserRef}
+            className="relative min-h-[460px] overflow-hidden border border-[#efe9de]/15 [transform-style:preserve-3d] transition-transform duration-500"
+            style={{
+              transform:
+                "perspective(1400px) rotateX(var(--tilt-rx,0deg)) rotateY(var(--tilt-ry,0deg)) scale(var(--tilt-scale,1))",
+            }}
+          >
             <Image
               src={sessionsTeaser[0]}
               alt="Editorial session"
@@ -345,7 +401,7 @@ export default function HomePage() {
               sizes="(max-width: 1024px) 100vw, 50vw"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/20 to-transparent" />
-            <div className="absolute bottom-6 left-6 right-6">
+            <div className="absolute bottom-6 left-6 right-6" style={{ transform: "translateZ(40px)" }}>
               <p className="mb-3 text-[0.58rem] uppercase tracking-[0.3em] text-[#efe9de]/58">{tSessions("title")}</p>
               <h2 className="brand-display text-[clamp(2rem,5vw,4rem)] leading-[0.9] tracking-[0.06em] text-[#efe9de]">
                 {tSessions("titleAccent")}
@@ -394,7 +450,14 @@ export default function HomePage() {
           </div>
 
           <div className="grid gap-4 md:gap-5 lg:grid-cols-2">
-            <div className="luxury-panel h-[380px] overflow-hidden p-0 sm:h-[470px] md:h-[520px]">
+            <div
+              ref={tiktokPanelRef}
+              className="luxury-panel h-[380px] overflow-hidden p-0 [transform-style:preserve-3d] transition-transform duration-500 sm:h-[470px] md:h-[520px]"
+              style={{
+                transform:
+                  "perspective(1300px) rotateX(var(--tilt-rx,0deg)) rotateY(var(--tilt-ry,0deg)) scale(var(--tilt-scale,1))",
+              }}
+            >
               <iframe
                 src="https://www.tiktok.com/embed/@robeannybbl"
                 className="h-full w-full border-0"
@@ -403,7 +466,14 @@ export default function HomePage() {
                 allow="encrypted-media"
               />
             </div>
-            <div className="luxury-panel h-[480px] overflow-hidden p-0 sm:h-[500px] md:h-[520px]">
+            <div
+              ref={instagramPanelRef}
+              className="luxury-panel h-[480px] overflow-hidden p-0 [transform-style:preserve-3d] transition-transform duration-500 sm:h-[500px] md:h-[520px]"
+              style={{
+                transform:
+                  "perspective(1300px) rotateX(var(--tilt-rx,0deg)) rotateY(var(--tilt-ry,0deg)) scale(var(--tilt-scale,1))",
+              }}
+            >
               <InstagramWidget />
             </div>
           </div>
