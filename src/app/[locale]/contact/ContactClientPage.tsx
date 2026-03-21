@@ -1,19 +1,15 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { personalData } from "@/lib/data";
-import { useTilt3D } from "@/lib/useTilt3D";
 
 type FormState = "idle" | "submitting" | "success" | "error";
 
 export default function ContactPage() {
   const locale = useLocale();
   const t = useTranslations("contact");
-  const headerRef = useRef<HTMLDivElement>(null);
-  const asideRef = useRef<HTMLElement>(null);
-  const formRef = useRef<HTMLElement>(null);
 
   const [formState, setFormState] = useState<FormState>("idle");
   const [formData, setFormData] = useState({
@@ -48,21 +44,10 @@ export default function ContactPage() {
     }
   };
 
-  useTilt3D(headerRef, { maxRotateX: 4.6, maxRotateY: 5.2, scale: 1.008, idleDrift: true });
-  useTilt3D(asideRef, { maxRotateX: 5.4, maxRotateY: 6, scale: 1.012, idleDrift: true });
-  useTilt3D(formRef, { maxRotateX: 5.4, maxRotateY: 6, scale: 1.012, idleDrift: true });
-
   return (
     <div className="min-h-screen pb-24 pt-24 md:pt-32">
       <div className="page-shell">
-        <div
-          ref={headerRef}
-          className="luxury-panel depth-card border-black/8 p-5 md:border-0 md:bg-transparent md:p-0"
-          style={{
-            transform:
-              "perspective(1400px) rotateX(var(--tilt-rx,0deg)) rotateY(var(--tilt-ry,0deg)) scale(var(--tilt-scale,1))",
-          }}
-        >
+        <div className="luxury-panel border-black/8 p-5 md:border-0 md:bg-transparent md:p-0">
           <p className="label-kicker mb-5">Direct Contact</p>
           <h1 className="brand-display text-[clamp(2.4rem,7vw,6rem)] leading-[0.88] tracking-[0.05em] text-[#171513]">
             {t("pageTitle")}
@@ -70,14 +55,7 @@ export default function ContactPage() {
         </div>
 
         <div className="mt-10 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-          <aside
-            ref={asideRef}
-            className="luxury-panel depth-card h-fit p-6 md:p-8"
-            style={{
-              transform:
-                "perspective(1450px) rotateX(var(--tilt-rx,0deg)) rotateY(var(--tilt-ry,0deg)) scale(var(--tilt-scale,1))",
-            }}
-          >
+          <aside className="luxury-panel h-fit p-6 md:p-8">
             <h2 className="brand-display text-[clamp(1.7rem,4vw,3rem)] leading-[0.9] text-[#171513]">
               {t("workTogether")}
             </h2>
@@ -109,14 +87,7 @@ export default function ContactPage() {
             </div>
           </aside>
 
-          <section
-            ref={formRef}
-            className="luxury-panel depth-card p-6 md:p-8"
-            style={{
-              transform:
-                "perspective(1450px) rotateX(var(--tilt-rx,0deg)) rotateY(var(--tilt-ry,0deg)) scale(var(--tilt-scale,1))",
-            }}
-          >
+          <section className="luxury-panel p-6 md:p-8">
             {formState === "success" ? (
               <div className="flex min-h-[420px] flex-col items-center justify-center text-center">
                 <h3 className="brand-display text-[clamp(2rem,5vw,3.6rem)] leading-[0.9] text-[#171513]">{t("success")}</h3>

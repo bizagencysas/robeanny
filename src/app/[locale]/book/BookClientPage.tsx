@@ -1,11 +1,10 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { useLocale, useTranslations } from "next-intl";
 import { budgetOptions, personalData } from "@/lib/data";
-import { useTilt3D } from "@/lib/useTilt3D";
 
 type Step = 1 | 2 | 3 | 4;
 type FormState = "idle" | "submitting" | "success" | "error";
@@ -37,7 +36,6 @@ export default function BookPage() {
     description: "",
     budget: "",
   });
-  const headerRef = useRef<HTMLDivElement>(null);
 
   const toLocalePath = useMemo(
     () =>
@@ -62,15 +60,13 @@ export default function BookPage() {
     }
   };
 
-  useTilt3D(headerRef, { maxRotateX: 4.8, maxRotateY: 5.6, scale: 1.009, idleDrift: true });
-
   if (formState === "success") {
     return (
       <div className="dark-stage flex min-h-screen items-center justify-center px-6 py-20">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="depth-card w-full max-w-2xl border border-[#efe9de]/16 bg-[rgba(17,15,13,0.56)] p-8 text-center md:p-12"
+          className="w-full max-w-2xl border border-[#efe9de]/16 bg-[rgba(17,15,13,0.56)] p-8 text-center md:p-12"
         >
           <p className="label-kicker mb-5 justify-center">Booking Confirmed</p>
           <h2 className="brand-display text-[clamp(2.3rem,7vw,5.2rem)] leading-[0.88] tracking-[0.07em] text-[#efe9de]">
@@ -90,14 +86,7 @@ export default function BookPage() {
   return (
     <div className="min-h-screen pb-24 pt-24 md:pt-32">
       <div className="page-shell max-w-[980px]">
-        <div
-          ref={headerRef}
-          className="luxury-panel depth-card border-black/8 p-5 md:border-0 md:bg-transparent md:p-0"
-          style={{
-            transform:
-              "perspective(1400px) rotateX(var(--tilt-rx,0deg)) rotateY(var(--tilt-ry,0deg)) scale(var(--tilt-scale,1))",
-          }}
-        >
+        <div className="luxury-panel border-black/8 p-5 md:border-0 md:bg-transparent md:p-0">
           <p className="label-kicker mb-5">Booking Direction</p>
           <h1 className="brand-display text-[clamp(2.5rem,7vw,6rem)] leading-[0.88] tracking-[0.05em] text-[#171513]">
             {t("pageTitle")}
@@ -119,7 +108,7 @@ export default function BookPage() {
         <AnimatePresence mode="wait">
           {step === 1 && (
             <StepContainer key="step-1" title={t("step1Title")}>
-              <div className="depth-grid grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {typeKeys.map((key) => (
                   <button
                     key={key}
@@ -127,7 +116,7 @@ export default function BookPage() {
                       setProjectType(key);
                       setStep(2);
                     }}
-                    className={`depth-tile group rounded-xl border p-5 text-left transition-all md:rounded-none md:p-6 ${
+                    className={`group rounded-xl border p-5 text-left transition-all md:rounded-none md:p-6 ${
                       projectType === key
                         ? "border-black bg-black text-[#f8f3ea]"
                         : "border-black/10 bg-white/45 hover:border-black/30"
@@ -220,7 +209,7 @@ export default function BookPage() {
 
           {step === 4 && (
             <StepContainer key="step-4" title={t("step4Title")}>
-              <div className="depth-card border border-black/14 bg-white/55 p-5 md:p-6">
+              <div className="border border-black/14 bg-white/55 p-5 md:p-6">
                 <SummaryRow label="Type" value={t(`types.${projectType || "other"}`)} />
                 <SummaryRow label="Name" value={formData.name} />
                 <SummaryRow label="Email" value={formData.email} />
@@ -266,21 +255,13 @@ function StepContainer({
   title: string;
   children: React.ReactNode;
 }) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  useTilt3D(containerRef, { maxRotateX: 4.2, maxRotateY: 5.2, scale: 1.007, idleDrift: true });
-
   return (
     <motion.div
-      ref={containerRef}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -16 }}
       transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-      className="depth-card mt-9 rounded-2xl border border-black/10 bg-[rgba(255,255,255,0.52)] p-5 md:rounded-none md:p-8"
-      style={{
-        transform:
-          "perspective(1400px) rotateX(var(--tilt-rx,0deg)) rotateY(var(--tilt-ry,0deg)) scale(var(--tilt-scale,1))",
-      }}
+      className="mt-9 rounded-2xl border border-black/10 bg-[rgba(255,255,255,0.52)] p-5 md:rounded-none md:p-8"
     >
       <p className="mb-6 text-[0.64rem] uppercase tracking-[0.3em] text-[#171513]/52">{title}</p>
       {children}

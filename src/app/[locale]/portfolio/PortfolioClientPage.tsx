@@ -1,11 +1,10 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { portfolioPhotos } from "@/lib/data";
-import { useTilt3D } from "@/lib/useTilt3D";
 
 type LayoutMode = "editorial" | "grid" | "slideshow";
 
@@ -15,16 +14,11 @@ export default function PortfolioPage() {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const t = useTranslations("portfolio");
-  const headingRef = useRef<HTMLDivElement>(null);
-  const controlsRef = useRef<HTMLDivElement>(null);
 
   const openLightbox = (index: number) => {
     setLightboxIndex(index);
     setLightboxOpen(true);
   };
-
-  useTilt3D(headingRef, { maxRotateX: 5, maxRotateY: 6, scale: 1.01, idleDrift: true });
-  useTilt3D(controlsRef, { maxRotateX: 4, maxRotateY: 5, scale: 1.008, idleDrift: true });
 
   const progress = useMemo(
     () => Math.round(((currentSlide + 1) / portfolioPhotos.length) * 100),
@@ -36,14 +30,7 @@ export default function PortfolioPage() {
       <div className="page-shell mb-12 md:mb-16">
         <p className="label-kicker mb-5">Editorial Archive</p>
         <div className="grid gap-7 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
-          <div
-            ref={headingRef}
-            className="luxury-panel depth-card border-black/8 p-5 md:border-0 md:bg-transparent md:p-0"
-            style={{
-              transform:
-                "perspective(1450px) rotateX(var(--tilt-rx,0deg)) rotateY(var(--tilt-ry,0deg)) scale(var(--tilt-scale,1))",
-            }}
-          >
+          <div className="luxury-panel border-black/8 p-5 md:border-0 md:bg-transparent md:p-0">
             <h1 className="brand-display text-[clamp(2.6rem,7vw,6.2rem)] leading-[0.88] tracking-[0.06em] text-[#171513]">
               {t("pageTitle")}
             </h1>
@@ -52,14 +39,7 @@ export default function PortfolioPage() {
             </p>
           </div>
 
-          <div
-            ref={controlsRef}
-            className="luxury-panel depth-card p-4 md:p-5"
-            style={{
-              transform:
-                "perspective(1400px) rotateX(var(--tilt-rx,0deg)) rotateY(var(--tilt-ry,0deg)) scale(var(--tilt-scale,1))",
-            }}
-          >
+          <div className="luxury-panel p-4 md:p-5">
             <div className="mb-4 flex flex-wrap gap-2">
               {(["editorial", "grid", "slideshow"] as LayoutMode[]).map((mode) => (
                 <button
@@ -132,12 +112,12 @@ function EditorialLayout({
   const heights = ["h-[300px]", "h-[420px]", "h-[360px]", "h-[460px]", "h-[320px]"];
 
   return (
-    <div className="depth-grid columns-1 gap-4 sm:columns-2 md:columns-3 md:gap-5">
+    <div className="columns-1 gap-4 sm:columns-2 md:columns-3 md:gap-5">
       {photos.map((photo, i) => (
         <button
           key={photo.id}
           onClick={() => onPhotoClick(i)}
-          className="depth-tile mb-4 block w-full break-inside-avoid overflow-hidden rounded-xl border border-black/8 bg-white/50 md:mb-5 md:rounded-none"
+          className="mb-4 block w-full break-inside-avoid overflow-hidden rounded-xl border border-black/8 bg-white/50 md:mb-5 md:rounded-none"
         >
           <div className={`group relative w-full ${heights[i % heights.length]}`}>
             <Image
@@ -164,12 +144,12 @@ function GridLayout({
   onPhotoClick: (i: number) => void;
 }) {
   return (
-    <div className="depth-grid grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 md:gap-4 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 md:gap-4 lg:grid-cols-4">
       {photos.map((photo, i) => (
         <button
           key={photo.id}
           onClick={() => onPhotoClick(i)}
-          className="depth-tile group relative aspect-[3/4] overflow-hidden border border-black/12"
+          className="group relative aspect-[3/4] overflow-hidden border border-black/12"
         >
           <Image
             src={photo.src}
@@ -204,8 +184,8 @@ function SlideshowLayout({
   nextLabel: string;
 }) {
   return (
-    <div className="luxury-panel depth-card p-5 md:p-8">
-      <div className="depth-card relative min-h-[64svh] overflow-hidden border border-black/12 bg-[#e7dfd2]">
+    <div className="luxury-panel p-5 md:p-8">
+      <div className="relative min-h-[64svh] overflow-hidden border border-black/12 bg-[#e7dfd2]">
         <Image
           src={photos[current].src}
           alt={photos[current].alt}
