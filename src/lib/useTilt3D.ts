@@ -92,7 +92,7 @@ export function useTilt3D(
       const shouldDrift = idleDrift ?? mobileDrift;
       if (!shouldDrift) return;
 
-      const driftFactor = isCoarsePointer ? 0.56 : 0.36;
+      const driftFactor = isCoarsePointer ? 0.72 : 0.56;
 
       const animateDrift = (time: number) => {
         if (!interacting) {

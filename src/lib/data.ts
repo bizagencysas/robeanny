@@ -86,19 +86,68 @@ export const sessionPhotos = [
     "https://res.cloudinary.com/dwpbbjp1d/image/upload/v1761417059/0CC88888-0E62-4856-8FA9-BDF0B54389DC_fedulk.jpg"
 ];
 
-// --- The 43 Full Portfolio Lookbook Photos (Domain) ---
-export const portfolioPhotos = Array.from({ length: 43 }, (_, i) => ({
+// --- Full Portfolio (new Cloudinary upload) ---
+const uploadedPortfolioPhotos = [
+    "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101023/2_ltpa5y.webp",
+    "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101023/3_g6s9qa.webp",
+    "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101023/1_dhxvld.webp",
+    "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101024/4_juu9tc.webp",
+    "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101024/5_zlnfvt.webp",
+    "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101024/6_d2ejcx.webp",
+    "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101024/8_mh8o06.webp",
+    "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101025/7_jykyef.webp",
+    "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101025/12_cc65c6.webp",
+    "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101025/9_u0rebg.webp",
+    "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101025/11_ig9g6c.webp",
+    "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101025/10_czxgmo.webp",
+    "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101025/13_z7tvr9.webp",
+    "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101025/14_kpcwtg.webp",
+    "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101026/16_omk38d.webp",
+    "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101026/17_m0y8pz.webp",
+    "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101026/18_mvdfjo.webp",
+    "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101026/15_grfi8j.webp",
+    "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101026/19_yljvop.webp",
+    "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101027/20_n1ov9o.webp",
+    "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101028/21_mhr6fw.webp",
+    "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101028/22_gk4qab.webp",
+    "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101028/23_hpqs2i.webp",
+    "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101029/25_ikavjl.webp",
+    "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101029/24_hnetai.webp",
+    "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101029/27_bx0rjz.webp",
+    "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101029/26_tkmd3u.webp",
+    "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101030/28_b9o1sc.webp",
+    "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101031/29_ezxacy.webp",
+    "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101032/30_vdhb1m.webp",
+    "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101032/32_e1ttqa.webp",
+    "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101032/31_ysdjtu.webp",
+    "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101032/33_nbj9gu.webp",
+    "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101033/35_ictufq.webp",
+    "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101033/34_glydpq.webp",
+    "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101034/36_iizolr.webp",
+    "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101034/37_ks3tam.webp",
+    "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101036/38_pglire.webp",
+    "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101036/39_rxlhqk.webp",
+    "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101036/40_kzwqao.webp",
+    "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101036/41_x8jzjv.webp",
+    "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101037/42_a2pysh.webp",
+    "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101037/43_i1aoab.webp",
+];
+
+// Deterministic shuffle so portfolio never looks sequential.
+const portfolioShuffleOrder = Array.from(
+    { length: uploadedPortfolioPhotos.length },
+    (_, i) => (i * 17 + 7) % uploadedPortfolioPhotos.length
+);
+
+export const portfolioPhotos = portfolioShuffleOrder.map((sourceIndex, i) => ({
     id: i + 1,
-    src: `https://robeanny.me/${i + 1}.jpg`,
+    src: uploadedPortfolioPhotos[sourceIndex],
     alt: `Robeanny Bastardo - Portfolio ${i + 1}`,
 }));
 
-// --- Curated Home Teaser (best 8 from portfolio) ---
-export const portfolioTeaser = [1, 7, 14, 21, 25, 33, 38, 42].map(n => ({
-    id: n,
-    src: `https://robeanny.me/${n}.jpg`,
-    alt: `Robeanny Bastardo - Portfolio ${n}`,
-}));
+// --- Curated Home Teaser ---
+const portfolioTeaserOrder = [4, 11, 19, 2, 24, 31, 7, 37];
+export const portfolioTeaser = portfolioTeaserOrder.map((index) => ({ ...portfolioPhotos[index] }));
 
 // --- Sessions Teaser for Home (first 6) ---
 export const sessionsTeaser = sessionPhotos.slice(0, 6);
@@ -136,72 +185,142 @@ export interface JournalPost {
 
 export const journalPosts: JournalPost[] = [
     {
-        slug: "detras-de-camaras-medellin",
-        title: "Detrás de Cámaras: Mi Última Sesión Editorial en Medellín",
-        excerpt: "Un vistazo exclusivo al proceso creativo detrás de mi sesión editorial más reciente en el corazón de Medellín.",
-        date: "2025-01-15",
-        readTime: "4 min",
+        slug: "editorial-medellin-24-horas-reales",
+        title: "Cómo Se Construye un Editorial en 24 Horas (Sin Improvisar)",
+        excerpt: "Del moodboard al último disparo: así organizo una producción editorial completa en Medellín con timing real de set.",
+        date: "2026-02-18",
+        readTime: "7 min",
         category: "Behind the Scenes",
-        coverImage: sessionPhotos[0],
+        coverImage: sessionPhotos[6],
         content: [
-            "Cada sesión editorial empieza mucho antes de que se encienda la primera luz. Empieza con una idea, una emoción, un concepto que quieres capturar y congelar en el tiempo.",
-            "Para esta sesión en Medellín, quería explorar la dualidad entre lo clásico y lo contemporáneo. La ciudad misma es así: colonial y ultramoderna al mismo tiempo.",
-            "El equipo llegó a las 6 AM. Maquillaje, vestuario, iluminación — cada detalle fue cuidado con precisión quirúrgica. Tres cambios de look, dos locaciones, y ocho horas de trabajo intenso.",
-            "El resultado: una serie de imágenes que capturan exactamente lo que buscaba. Esa tensión elegante entre lo que eres y lo que proyectas."
+            "A las 7:30 p.m. del día anterior todavía estamos cerrando el call sheet, no soñando con poses. Un editorial fuerte empieza con logística: horarios cerrados, lista de looks por bloque y orden de cámara por locación.",
+            "Mi regla es simple: cada look debe tener intención narrativa, no solo verse bonito. Antes de dormir reviso tres cosas: silueta principal, textura protagonista y emoción del set. Si una de esas falla, se nota en foto.",
+            "A primera hora, maquillaje y styling trabajan en paralelo. Mientras se define piel y cabello, yo marco con el fotógrafo tres ángulos clave por esquema de luz. Eso ahorra energía y evita improvisar cuando ya estamos contra reloj.",
+            "En el segundo bloque siempre guardo un look de riesgo. Ese look no está hecho para gustarle a todo el mundo, está hecho para que el editorial tenga firma. Si todo sale perfecto pero seguro, el resultado se olvida rápido.",
+            "Cuando cerramos jornada, no elijo solo las fotos más limpias: elijo las que tienen actitud, tensión y lectura de marca. Publicar menos, pero con intención, fue el cambio que más elevó mi portafolio."
         ],
-        images: [sessionPhotos[0], sessionPhotos[4], sessionPhotos[8], sessionPhotos[12]],
+        images: [sessionPhotos[6], sessionPhotos[10], sessionPhotos[21], sessionPhotos[28]],
     },
     {
-        slug: "tips-primera-sesion",
-        title: "5 Tips para tu Primera Sesión Fotográfica Profesional",
-        excerpt: "Consejos prácticos desde mi experiencia para que tu primera sesión profesional sea un éxito absoluto.",
-        date: "2025-01-08",
-        readTime: "5 min",
-        category: "Tips",
-        coverImage: sessionPhotos[5],
-        content: [
-            "Tu primera sesión fotográfica profesional puede sentirse abrumadora. Recuerdo la mía: nervios, expectativas, y ese deseo intenso de que todo saliera perfecto.",
-            "1. PREPARA TU PIEL — Empieza a hidratarte al menos una semana antes. Tu piel es tu lienzo. Bebe agua, duerme bien, y cuida tu alimentación.",
-            "2. CONOCE TUS ÁNGULOS — Practica frente al espejo. No para ser vanidosa, sino para entender cómo la luz interactúa con tu rostro y tu cuerpo.",
-            "3. COMUNICA CON TU FOTÓGRAFO — Antes de la sesión, habla sobre la visión, el mood, las referencias. Un buen fotógrafo es un colaborador, no solo alguien que presiona el botón.",
-            "4. LLEVA OPCIONES DE VESTUARIO — Más de las que crees necesitar. Lo que se ve bien en persona no siempre funciona en cámara.",
-            "5. DISFRUTA EL PROCESO — La cámara captura energía. Si estás tensa, se nota. Si estás disfrutando, brillas."
-        ],
-        images: [sessionPhotos[5], sessionPhotos[9]],
-    },
-    {
-        slug: "de-puerto-ordaz-a-medellin",
-        title: "De Puerto Ordaz a Medellín: Mi Historia en el Modelaje",
-        excerpt: "La historia de cómo una chica de Venezuela encontró su camino en la industria de la moda colombiana.",
-        date: "2024-12-20",
+        slug: "casting-video-errores-que-cierran-puertas",
+        title: "Casting en Video: 7 Errores que Te Cierran Puertas",
+        excerpt: "Lo que más me piden corregir en castings digitales y cómo mejorar en una sola semana.",
+        date: "2026-02-07",
         readTime: "6 min",
-        category: "Personal",
-        coverImage: sessionPhotos[20],
+        category: "Tips",
+        coverImage: sessionPhotos[9],
         content: [
-            "Nací en Puerto Ordaz, una ciudad industrial en el sur de Venezuela. Lejos de las pasarelas de Milán o París, pero llena de sueños que no cabían en sus calles.",
-            "Desde pequeña supe que quería más. No porque mi ciudad no fuera suficiente, sino porque mi ambición no tenía fronteras. A los 18, tomé la decisión más difícil de mi vida: emigrar.",
-            "Colombia me recibió con los brazos abiertos. Medellín, específicamente, se convirtió en mi hogar y en mi trampolín profesional. La ciudad tiene una energía creativa que es difícil de explicar — tienes que vivirla.",
-            "Hoy, después de años de trabajo, sesiones, rechazos, y pequeñas victorias, puedo decir que estoy construyendo exactamente la carrera que soñé en aquel pueblo del sur de Venezuela.",
-            "El camino no ha sido fácil. Pero cada obstáculo me ha enseñado algo. Y cada foto que tomo es un recordatorio de por qué decidí seguir este sueño."
+            "Hoy muchos castings se ganan desde el celular. No necesitas un estudio, pero sí necesitas criterio. El error más común es grabar sin estructura: entras hablando nerviosa, giras sin dirección y cierras sin fuerza.",
+            "Error 1: luz de techo que te apaga la mirada. Busca luz lateral o ventana frontal suave. Error 2: cámara muy baja o muy cerca; el lente debe quedar a la altura de ojos, con espacio para caminar.",
+            "Error 3: hablar sin ritmo. Preséntate en 10 segundos, clara, sin pedir perdón por acento o por nervios. Seguridad no es gritar, seguridad es precisión.",
+            "Error 4: styling que compite con tu cuerpo. Para casting, menos ruido y mejor línea: top limpio, jean recto o look neutro que deje ver postura.",
+            "Error 5: olvidar perfil, manos y caminata. Un casting no es solo cara. Practica una secuencia de 30 segundos: frente, 3/4, perfil, back, caminata corta y cierre.",
+            "Mi consejo final: grábate tres veces y envía la tercera. La primera te suelta, la segunda te ordena y la tercera te posiciona."
         ],
-        images: [sessionPhotos[20], sessionPhotos[24], sessionPhotos[28]],
+        images: [sessionPhotos[9], sessionPhotos[14], sessionPhotos[25]],
     },
     {
-        slug: "tendencias-moda-2025",
-        title: "Tendencias de Moda 2025: Lo que Viene para Colombia",
-        excerpt: "Mi perspectiva sobre las tendencias que dominarán la moda colombiana este año.",
-        date: "2024-12-10",
-        readTime: "4 min",
+        slug: "de-puerto-ordaz-a-medellin-lo-que-no-sale-en-instagram",
+        title: "De Puerto Ordaz a Medellín: Lo Que No Sale en Instagram",
+        excerpt: "No fue un salto glamoroso: fue disciplina, adaptación y aprender a sostener un sueño con los pies en la tierra.",
+        date: "2026-01-29",
+        readTime: "8 min",
+        category: "Personal",
+        coverImage: sessionPhotos[24],
+        content: [
+            "Mudarse por trabajo suena heroico hasta que te toca hacerlo de verdad: cuentas ajustadas, pocas conexiones y cero margen para improvisar. Así empezó mi etapa en Medellín.",
+            "Los primeros meses no fueron de portadas, fueron de construir rutina. Entrenar postura, mejorar inglés de trabajo, entender contratos y llegar puntual incluso cuando todo se complica.",
+            "También aprendí a decir que no. No todo trabajo suma a largo plazo. Cuando un proyecto pide exposición pero no respeta tiempos ni uso de imagen, en realidad te está restando valor.",
+            "Con el tiempo encontré mi lenguaje visual: femenino, limpio, con carácter editorial. No fue un estilo que apareció de un día para otro; fue ensayo, error y mucha edición crítica.",
+            "Si algo me sostuvo fue entender que carrera no es viralidad. Carrera es consistencia. Las mejores oportunidades llegaron después de meses de trabajo silencioso.",
+            "Hoy miro atrás y agradezco ese proceso difícil. Me hizo mejor modelo, mejor profesional y mejor negociadora de mi propio trabajo."
+        ],
+        images: [sessionPhotos[24], sessionPhotos[27], sessionPhotos[31]],
+    },
+    {
+        slug: "moda-colombia-2026-silueta-color-textura",
+        title: "Moda Colombia 2026: Silueta, Color y Textura que Sí Venden",
+        excerpt: "Tres líneas de tendencia que ya se sienten en campañas y editoriales, sin repetir fórmulas de hace diez años.",
+        date: "2026-01-12",
+        readTime: "6 min",
         category: "Fashion",
         coverImage: sessionPhotos[15],
         content: [
-            "2025 promete ser un año interesante para la moda en Colombia. La industria local está madurando, y con ella, las tendencias se están sofisticando.",
-            "SOSTENIBILIDAD REAL — No solo como slogan de marketing. Los diseñadores colombianos están invirtiendo genuinamente en materiales sostenibles y procesos éticos. Marcas como Johanna Ortiz lideran este camino.",
-            "COLORES TIERRA — Los tonos neutros y terrosos van a dominar. Beige, terracota, verde oliva. Colombia tiene una paleta natural increíble, y la moda finalmente la está abrazando.",
-            "FUSIÓN CULTURAL — Lo indígena con lo contemporáneo. Lo artesanal con lo industrial. Las mejores colecciones de 2025 serán las que logren esta fusión con respeto y autenticidad.",
-            "Como modelo, estas tendencias me emocionan porque representan una industria que está encontrando su propia voz, sin necesidad de imitar lo europeo o lo americano."
+            "La conversación cambió: ya no basta con una prenda bonita, ahora la pregunta es cómo se mueve en cámara, cómo cae en cuerpo real y cómo conversa con una marca.",
+            "Silueta: vuelve la línea limpia, hombro definido y cintura marcada con construcción suave. Se siente fuerte, pero no rígida. Es una femineidad con autoridad.",
+            "Color: el negro sigue siendo rey editorial, pero lo veo combinado con crema, tabaco y vino profundo. Esa mezcla funciona brutal para piel latina y set de estudio.",
+            "Textura: brillo controlado, malla fina, satín opaco y sastrería liviana. En foto, la textura buena evita que todo se vea plano; en video, te da narrativa.",
+            "La tendencia más poderosa no es estética, es estratégica: piezas que sirven en campaña, contenido social y press sin cambiar toda la producción."
         ],
-        images: [sessionPhotos[15], sessionPhotos[19]],
+        images: [sessionPhotos[15], sessionPhotos[19], sessionPhotos[26]],
+    },
+    {
+        slug: "rutina-pre-shoot-piel-cuerpo-mente",
+        title: "Mi Rutina Pre-Shoot: Piel, Cuerpo y Cabeza en 48 Horas",
+        excerpt: "La preparación real antes de una producción importante, sin hacks milagrosos ni rutinas imposibles.",
+        date: "2025-12-03",
+        readTime: "5 min",
+        category: "Tips",
+        coverImage: sessionPhotos[2],
+        content: [
+            "Dos días antes bajo intensidad de entrenamiento. Quiero llegar activa, no fatigada. Dormir bien rinde más que cualquier truco de última hora.",
+            "Hidratación y comida simple: proteína, vegetales y carbohidrato limpio. Nada extremo. El objetivo no es cambiar tu cuerpo en 24 horas, es llegar estable.",
+            "Para piel, menos productos y más constancia. Limpieza suave, hidratación real y cero experimentos nuevos antes del set.",
+            "La parte mental importa igual: reviso referencias, practico transición de poses y llego con tres intenciones claras para cámara.",
+            "Cuando entras al set preparada, no posas por suerte: construyes imagen con control."
+        ],
+        images: [sessionPhotos[2], sessionPhotos[12], sessionPhotos[30]],
+    },
+    {
+        slug: "backstage-pasarela-colombia-notas-reales",
+        title: "Backstage de Pasarela en Colombia: Notas Reales de Producción",
+        excerpt: "Qué pasa de verdad detrás de una pasarela: tiempos, cambios rápidos y enfoque cuando todo va a mil.",
+        date: "2025-11-14",
+        readTime: "6 min",
+        category: "Behind the Scenes",
+        coverImage: sessionPhotos[18],
+        content: [
+            "Backstage no es caos, es sistema. Si no tienes sistema, el caos te come. Cada look debe estar marcado, planchado y listo en orden de salida.",
+            "En pasarela, el cuerpo comunica antes que el vestido. Postura, respiración y ritmo de pisada son parte del styling.",
+            "El cambio rápido entre salidas es entrenamiento puro: zapatos, accesorios, ajuste de cierre y vuelta a línea en segundos.",
+            "Aprendí a no contaminarme del estrés colectivo. Si el ambiente se acelera, yo bajo una marcha y ejecuto mejor.",
+            "La diferencia entre una pasada correcta y una inolvidable casi siempre está en la mirada."
+        ],
+        images: [sessionPhotos[18], sessionPhotos[22], sessionPhotos[29]],
+    },
+    {
+        slug: "contratos-uso-de-imagen-sin-perder-valor",
+        title: "Uso de Imagen y Contratos: Lo Básico para No Regalar Tu Trabajo",
+        excerpt: "Puntos mínimos que reviso antes de firmar: duración, territorios y medios. Profesionalismo también es cuidar tus derechos.",
+        date: "2025-10-26",
+        readTime: "7 min",
+        category: "Tips",
+        coverImage: sessionPhotos[5],
+        content: [
+            "Cuando empecé, decía sí a casi todo. Con el tiempo entendí que el problema no es trabajar mucho, es trabajar sin condiciones claras.",
+            "Primero reviso duración de uso: no es lo mismo tres meses que un año. Segundo, territorios: local, regional o global cambia completamente el valor.",
+            "Tercero, medios: redes, pauta digital, exterior, TV. Cada medio suma exposición y debe reflejarse en el acuerdo.",
+            "Si no está escrito, no existe. Un correo ambiguo después se vuelve conflicto seguro.",
+            "Poner límites no te hace difícil; te hace profesional. Y los equipos serios lo respetan."
+        ],
+        images: [sessionPhotos[5], sessionPhotos[11], sessionPhotos[16]],
+    },
+    {
+        slug: "portafolio-que-vende-no-solo-se-ve-bonito",
+        title: "Cómo Construir un Portafolio que Vende (No Solo que se Ve Bonito)",
+        excerpt: "Selección, orden y narrativa visual para que un cliente entienda tu valor en menos de 30 segundos.",
+        date: "2025-09-08",
+        readTime: "6 min",
+        category: "Tips",
+        coverImage: sessionPhotos[0],
+        content: [
+            "Un buen portafolio no es una carpeta infinita. Es una edición quirúrgica: pocas fotos, alta intención y variedad controlada.",
+            "Abro con una imagen de impacto, sigo con versatilidad de planos y cierro con una foto memorable. Esa estructura guía la lectura del cliente.",
+            "También separo por objetivo: editorial, comercial y belleza. Mezclar todo sin orden confunde, y la confusión no vende.",
+            "Cada tres meses hago limpieza: si una foto no me representa hoy, sale. Portafolio vivo, carrera viva.",
+            "Tu portafolio debe responder una pregunta clara: ¿por qué tú para esta campaña?"
+        ],
+        images: [sessionPhotos[0], sessionPhotos[8], sessionPhotos[20]],
     },
 ];
 

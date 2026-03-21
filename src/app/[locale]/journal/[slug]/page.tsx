@@ -87,7 +87,7 @@ export default async function JournalPostPage({ params }: Props) {
           ← Journal
         </Link>
 
-        <div className="mt-8 border-b border-black/12 pb-8">
+        <div className="depth-card mt-8 border-b border-black/12 pb-8">
           <div className="mb-5 flex flex-wrap items-center gap-3 text-[0.58rem] uppercase tracking-[0.3em] text-[#171513]/48">
             <span>{post.category}</span>
             <span>•</span>
@@ -102,7 +102,7 @@ export default async function JournalPostPage({ params }: Props) {
           <p className="mt-5 max-w-3xl text-sm leading-relaxed text-[#171513]/62 md:text-base">{post.excerpt}</p>
         </div>
 
-        <div className="edge-fade relative mt-8 min-h-[52svh] overflow-hidden">
+        <div className="edge-fade depth-card relative mt-8 min-h-[52svh] overflow-hidden">
           <Image
             src={post.coverImage}
             alt={post.title}
@@ -119,7 +119,7 @@ export default async function JournalPostPage({ params }: Props) {
               <p className="text-[1.03rem] leading-[1.95] text-[#171513]/80 md:text-[1.15rem]">{paragraph}</p>
 
               {i > 0 && i % 2 === 1 && post.images[Math.floor(i / 2)] && (
-                <div className="mt-8 overflow-hidden border border-black/12">
+                <div className="depth-card mt-8 overflow-hidden border border-black/12">
                   <div className="relative h-[380px] w-full md:h-[520px]">
                     <Image
                       src={post.images[Math.floor(i / 2)]}
@@ -135,12 +135,12 @@ export default async function JournalPostPage({ params }: Props) {
           ))}
         </div>
 
-        <div className="mt-14 grid gap-4 border-t border-black/12 pt-8 md:grid-cols-2">
+        <div className="depth-grid mt-14 grid gap-4 border-t border-black/12 pt-8 md:grid-cols-2">
           <div>
             {prevPost ? (
               <Link
                 href={localizedPath(locale, `/journal/${prevPost.slug}`)}
-                className="group block border border-black/14 bg-white/55 p-4 transition-colors hover:border-black/35"
+                className="depth-tile group block border border-black/14 bg-white/55 p-4 transition-colors hover:border-black/35"
               >
                 <p className="text-[0.58rem] uppercase tracking-[0.28em] text-[#171513]/50">← Previous</p>
                 <p className="brand-display mt-3 text-[clamp(1.3rem,3.2vw,2rem)] leading-[0.95] text-[#171513] group-hover:text-[#171513]/82">
@@ -154,7 +154,7 @@ export default async function JournalPostPage({ params }: Props) {
             {nextPost ? (
               <Link
                 href={localizedPath(locale, `/journal/${nextPost.slug}`)}
-                className="group block border border-black/14 bg-white/55 p-4 text-right transition-colors hover:border-black/35"
+                className="depth-tile group block border border-black/14 bg-white/55 p-4 text-right transition-colors hover:border-black/35"
               >
                 <p className="text-[0.58rem] uppercase tracking-[0.28em] text-[#171513]/50">Next →</p>
                 <p className="brand-display mt-3 text-[clamp(1.3rem,3.2vw,2rem)] leading-[0.95] text-[#171513] group-hover:text-[#171513]/82">

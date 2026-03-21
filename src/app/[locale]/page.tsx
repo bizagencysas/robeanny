@@ -29,8 +29,8 @@ const featuredPortfolioOrder = [6, 8, 14, 0, 21, 29, 17];
 
 const featuredPortfolio = featuredPortfolioOrder.map((photoIndex, index) => ({
   id: photoIndex + 1,
-  src: sessionPhotos[photoIndex],
-  alt: `Robeanny editorial ${photoIndex + 1}`,
+  src: portfolioPhotos[photoIndex]?.src ?? sessionPhotos[photoIndex],
+  alt: portfolioPhotos[photoIndex]?.alt ?? `Robeanny editorial ${photoIndex + 1}`,
   layout:
     index === 0
       ? "hero"
@@ -52,9 +52,9 @@ export default function HomePage() {
   const mobileHeroRef = useRef<HTMLDivElement>(null);
   const mobileInfoPanelRef = useRef<HTMLDivElement>(null);
   const desktopHeroRef = useRef<HTMLDivElement>(null);
+  const aboutCardRef = useRef<HTMLDivElement>(null);
+  const measurementsCardRef = useRef<HTMLDivElement>(null);
   const sessionsTeaserRef = useRef<HTMLDivElement>(null);
-  const tiktokPanelRef = useRef<HTMLDivElement>(null);
-  const instagramPanelRef = useRef<HTMLDivElement>(null);
   const selectedWorkRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -65,13 +65,13 @@ export default function HomePage() {
     return () => clearInterval(interval);
   }, []);
 
-  useTilt3D(mobileHeroRef, { maxRotateX: 6.8, maxRotateY: 8.6, scale: 1.024, idleDrift: true });
-  useTilt3D(mobileInfoPanelRef, { maxRotateX: 4.5, maxRotateY: 5.8, scale: 1.012, idleDrift: true });
-  useTilt3D(desktopHeroRef, { maxRotateX: 9.5, maxRotateY: 12.5, scale: 1.024, idleDrift: true });
-  useTilt3D(sessionsTeaserRef, { maxRotateX: 6.2, maxRotateY: 8.4, scale: 1.015, idleDrift: true });
-  useTilt3D(tiktokPanelRef, { maxRotateX: 4.2, maxRotateY: 5.4, scale: 1.01, idleDrift: true });
-  useTilt3D(instagramPanelRef, { maxRotateX: 4.2, maxRotateY: 5.4, scale: 1.01, idleDrift: true });
-  useTilt3D(selectedWorkRef, { maxRotateX: 4.5, maxRotateY: 6.2, scale: 1.008, idleDrift: true });
+  useTilt3D(mobileHeroRef, { maxRotateX: 4.2, maxRotateY: 5.4, scale: 1.012, idleDrift: true });
+  useTilt3D(mobileInfoPanelRef, { maxRotateX: 3, maxRotateY: 4, scale: 1.006, idleDrift: true });
+  useTilt3D(desktopHeroRef, { maxRotateX: 7, maxRotateY: 9, scale: 1.015, idleDrift: true });
+  useTilt3D(aboutCardRef, { maxRotateX: 5, maxRotateY: 6, scale: 1.01, idleDrift: true });
+  useTilt3D(measurementsCardRef, { maxRotateX: 5, maxRotateY: 6, scale: 1.01, idleDrift: true });
+  useTilt3D(sessionsTeaserRef, { maxRotateX: 4.2, maxRotateY: 5.2, scale: 1.008, idleDrift: true });
+  useTilt3D(selectedWorkRef, { maxRotateX: 3.4, maxRotateY: 4.4, scale: 1.005, idleDrift: true });
 
   const toLocalePath = useMemo(
     () =>
@@ -83,13 +83,13 @@ export default function HomePage() {
   );
 
   return (
-    <div className="future-home w-full overflow-hidden">
+    <div className="w-full overflow-hidden">
       <section className="dark-stage relative overflow-hidden border-b border-[#efe5d5]/10 pt-16 md:hidden">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(circle_at_25%_0%,rgba(199,154,89,0.38),rgba(199,154,89,0)_60%)]" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-[radial-gradient(circle_at_80%_100%,rgba(140,100,50,0.16),rgba(140,100,50,0)_50%)]" />
         <div
           ref={mobileHeroRef}
-          className="future-mobile-hero relative h-[72svh] min-h-[540px] [transform-style:preserve-3d] transition-transform duration-500"
+          className="depth-card relative h-[72svh] min-h-[540px] [transform-style:preserve-3d] transition-transform duration-500"
           style={{
             transform:
               "perspective(1400px) rotateX(var(--tilt-rx,0deg)) rotateY(var(--tilt-ry,0deg)) scale(var(--tilt-scale,1))",
@@ -150,7 +150,7 @@ export default function HomePage() {
         <div className="page-shell relative z-10 pb-10">
           <div
             ref={mobileInfoPanelRef}
-            className="luxury-panel future-mobile-panel border-[#efe5d5]/12 bg-[rgba(17,14,11,0.82)] p-4 text-[#efe5d5] backdrop-blur-md [transform-style:preserve-3d] transition-transform duration-500"
+            className="luxury-panel depth-card border-[#efe5d5]/12 bg-[rgba(17,14,11,0.82)] p-4 text-[#efe5d5] backdrop-blur-md [transform-style:preserve-3d] transition-transform duration-500"
             style={{
               transform:
                 "perspective(1300px) rotateX(var(--tilt-rx,0deg)) rotateY(var(--tilt-ry,0deg)) scale(var(--tilt-scale,1))",
@@ -272,10 +272,10 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="future-hero-stage order-1 grid h-[58svh] min-h-[430px] grid-cols-2 grid-rows-[1.38fr_1fr] gap-3 sm:h-[64svh] sm:min-h-[520px] sm:gap-4 xl:order-2 xl:h-[82svh] xl:min-h-[700px]">
+          <div className="depth-stage order-1 grid h-[58svh] min-h-[430px] grid-cols-2 grid-rows-[1.38fr_1fr] gap-3 sm:h-[64svh] sm:min-h-[520px] sm:gap-4 xl:order-2 xl:h-[82svh] xl:min-h-[700px]">
             <div
               ref={desktopHeroRef}
-              className="edge-fade future-hero-card group relative col-span-2 row-span-1 overflow-hidden bg-black/5 [transform-style:preserve-3d] transition-transform duration-500"
+              className="edge-fade depth-card group relative col-span-2 row-span-1 overflow-hidden bg-black/5 [transform-style:preserve-3d] transition-transform duration-500"
               style={{
                 transform:
                   "perspective(1500px) rotateX(var(--tilt-rx,0deg)) rotateY(var(--tilt-ry,0deg)) scale(var(--tilt-scale,1))",
@@ -319,7 +319,14 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="edge-fade future-support-card relative overflow-hidden">
+            <div
+              ref={aboutCardRef}
+              className="edge-fade depth-subcard relative overflow-hidden"
+              style={{
+                transform:
+                  "perspective(1300px) rotateX(var(--tilt-rx,0deg)) rotateY(var(--tilt-ry,0deg)) scale(var(--tilt-scale,1))",
+              }}
+            >
               <Image
                 src={aboutImage}
                 alt="Robeanny portrait"
@@ -329,7 +336,14 @@ export default function HomePage() {
               />
             </div>
 
-            <div className="luxury-panel future-support-card flex flex-col justify-between p-5 md:p-6">
+            <div
+              ref={measurementsCardRef}
+              className="luxury-panel depth-subcard flex flex-col justify-between p-5 md:p-6"
+              style={{
+                transform:
+                  "perspective(1300px) rotateX(var(--tilt-rx,0deg)) rotateY(var(--tilt-ry,0deg)) scale(var(--tilt-scale,1))",
+              }}
+            >
               <p className="text-[0.58rem] uppercase tracking-[0.32em] text-[#efe5d5]/48">Measurements</p>
               <div className="grid grid-cols-2 gap-2">
                 {measurements.slice(0, 6).map((item) => (
@@ -357,13 +371,17 @@ export default function HomePage() {
             </div>
             <div
               ref={selectedWorkRef}
-              className="future-work-grid grid grid-cols-2 gap-[1px] bg-black/10 md:grid-cols-3"
+              className="depth-grid grid grid-cols-2 gap-[1px] bg-black/10 md:grid-cols-3 [transform-style:preserve-3d] transition-transform duration-500"
+              style={{
+                transform:
+                  "perspective(1500px) rotateX(var(--tilt-rx,0deg)) rotateY(var(--tilt-ry,0deg)) scale(var(--tilt-scale,1))",
+              }}
             >
               {featuredPortfolio.map((photo) => (
                 <Link
                   href={toLocalePath("/portfolio")}
                   key={photo.id}
-                  className={`future-work-tile group relative overflow-hidden bg-[#e8e1d5] ${
+                  className={`depth-tile group relative overflow-hidden bg-[#e8e1d5] ${
                     photo.layout === "hero"
                       ? "col-span-2 md:col-span-2"
                       : photo.layout === "featured"
@@ -419,7 +437,7 @@ export default function HomePage() {
               <Link
                 href={toLocalePath("/sessions")}
                 key={image}
-                className="group edge-fade relative min-h-[210px] overflow-hidden"
+                className="depth-tile group edge-fade relative min-h-[210px] overflow-hidden"
               >
                 <Image
                   src={image}
@@ -455,14 +473,7 @@ export default function HomePage() {
           </div>
 
           <div className="grid gap-4 md:gap-5 lg:grid-cols-2">
-            <div
-              ref={tiktokPanelRef}
-              className="luxury-panel h-[380px] overflow-hidden p-0 [transform-style:preserve-3d] transition-transform duration-500 sm:h-[470px] md:h-[520px]"
-              style={{
-                transform:
-                  "perspective(1300px) rotateX(var(--tilt-rx,0deg)) rotateY(var(--tilt-ry,0deg)) scale(var(--tilt-scale,1))",
-              }}
-            >
+            <div className="luxury-panel h-[380px] overflow-hidden p-0 sm:h-[470px] md:h-[520px]">
               <iframe
                 src="https://www.tiktok.com/embed/@robeannybbl"
                 className="h-full w-full border-0"
@@ -471,19 +482,12 @@ export default function HomePage() {
                 allow="encrypted-media"
               />
             </div>
-            <div
-              ref={instagramPanelRef}
-              className="luxury-panel h-[480px] overflow-hidden p-0 [transform-style:preserve-3d] transition-transform duration-500 sm:h-[500px] md:h-[520px]"
-              style={{
-                transform:
-                  "perspective(1300px) rotateX(var(--tilt-rx,0deg)) rotateY(var(--tilt-ry,0deg)) scale(var(--tilt-scale,1))",
-              }}
-            >
+            <div className="luxury-panel h-[480px] overflow-hidden p-0 sm:h-[500px] md:h-[520px]">
               <InstagramWidget />
             </div>
           </div>
 
-          <div className="mt-5 grid gap-4 sm:grid-cols-3">
+          <div className="depth-grid mt-5 grid gap-4 sm:grid-cols-3">
             {[
               { label: "Instagram", value: "@robeannybl", href: personalData.socials.instagram },
               { label: "TikTok", value: "@robeannybbl", href: personalData.socials.tiktok },
@@ -494,7 +498,7 @@ export default function HomePage() {
                 href={item.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="luxury-panel p-5 transition-colors hover:border-black/30"
+                className="depth-tile luxury-panel p-5 transition-colors hover:border-black/30"
               >
                 <p className="text-[0.58rem] uppercase tracking-[0.3em] text-[#171513]/45">{item.label}</p>
                 <p className="mt-2 text-sm text-[#171513]/84">{item.value}</p>

@@ -1,15 +1,21 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { journalCategories, journalPosts } from "@/lib/data";
+import { useTilt3D } from "@/lib/useTilt3D";
 
 export default function JournalPage() {
   const locale = useLocale();
   const t = useTranslations("journal");
   const [activeCategory, setActiveCategory] = useState("All");
+  const headerRef = useRef<HTMLDivElement>(null);
+  const leadRef = useRef<HTMLAnchorElement>(null);
+
+  useTilt3D(headerRef, { maxRotateX: 4.6, maxRotateY: 5.4, scale: 1.008, idleDrift: true });
+  useTilt3D(leadRef, { maxRotateX: 5.6, maxRotateY: 6.4, scale: 1.012, idleDrift: true });
 
   const toLocalePath = useMemo(
     () =>
@@ -39,7 +45,14 @@ export default function JournalPage() {
   return (
     <div className="min-h-screen pb-24 pt-24 md:pt-32">
       <div className="page-shell">
-        <div className="luxury-panel border-black/8 p-5 md:border-0 md:bg-transparent md:p-0">
+        <div
+          ref={headerRef}
+          className="luxury-panel depth-card border-black/8 p-5 md:border-0 md:bg-transparent md:p-0"
+          style={{
+            transform:
+              "perspective(1400px) rotateX(var(--tilt-rx,0deg)) rotateY(var(--tilt-ry,0deg)) scale(var(--tilt-scale,1))",
+          }}
+        >
           <p className="label-kicker mb-5">Editorial Notes</p>
           <h1 className="brand-display text-[clamp(2.5rem,7vw,6rem)] leading-[0.88] tracking-[0.05em] text-[#171513]">
             {t("pageTitle")}
@@ -65,8 +78,13 @@ export default function JournalPage() {
 
         {leadPost && (
           <Link
+            ref={leadRef}
             href={toLocalePath(`/journal/${leadPost.slug}`)}
-            className="group mt-8 grid gap-5 rounded-2xl border border-black/10 bg-white/50 p-3.5 transition-colors hover:border-black/25 md:grid-cols-[1.1fr_0.9fr] md:rounded-none md:p-5"
+            className="depth-card group mt-8 grid gap-5 rounded-2xl border border-black/10 bg-white/50 p-3.5 transition-colors hover:border-black/25 md:grid-cols-[1.1fr_0.9fr] md:rounded-none md:p-5"
+            style={{
+              transform:
+                "perspective(1450px) rotateX(var(--tilt-rx,0deg)) rotateY(var(--tilt-ry,0deg)) scale(var(--tilt-scale,1))",
+            }}
           >
             <div className="relative min-h-[300px] overflow-hidden">
               <Image
@@ -98,12 +116,12 @@ export default function JournalPage() {
         )}
 
         {restPosts.length > 0 && (
-          <div className="mt-7 grid gap-4 md:grid-cols-2">
+          <div className="depth-grid mt-7 grid gap-4 md:grid-cols-2">
             {restPosts.map((post) => (
               <Link
                 key={post.slug}
                 href={toLocalePath(`/journal/${post.slug}`)}
-                className="group rounded-xl border border-black/10 bg-white/50 p-3.5 transition-colors hover:border-black/25 md:rounded-none"
+                className="depth-tile group rounded-xl border border-black/10 bg-white/50 p-3.5 transition-colors hover:border-black/25 md:rounded-none"
               >
                 <div className="relative h-[280px] overflow-hidden">
                   <Image
