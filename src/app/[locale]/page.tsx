@@ -55,6 +55,7 @@ export default function HomePage() {
   const sessionsTeaserRef = useRef<HTMLDivElement>(null);
   const tiktokPanelRef = useRef<HTMLDivElement>(null);
   const instagramPanelRef = useRef<HTMLDivElement>(null);
+  const selectedWorkRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -64,12 +65,13 @@ export default function HomePage() {
     return () => clearInterval(interval);
   }, []);
 
-  useTilt3D(mobileHeroRef, { maxRotateX: 3.8, maxRotateY: 4.4, scale: 1.01, mobileDrift: true });
-  useTilt3D(mobileInfoPanelRef, { maxRotateX: 2.8, maxRotateY: 3.3, scale: 1.006, mobileDrift: true });
-  useTilt3D(desktopHeroRef, { maxRotateX: 5.2, maxRotateY: 6.2, scale: 1.008, mobileDrift: false });
-  useTilt3D(sessionsTeaserRef, { maxRotateX: 3.6, maxRotateY: 4.4, scale: 1.006, mobileDrift: true });
-  useTilt3D(tiktokPanelRef, { maxRotateX: 2.6, maxRotateY: 3.6, scale: 1.005, mobileDrift: true });
-  useTilt3D(instagramPanelRef, { maxRotateX: 2.6, maxRotateY: 3.6, scale: 1.005, mobileDrift: true });
+  useTilt3D(mobileHeroRef, { maxRotateX: 6.8, maxRotateY: 8.6, scale: 1.024, idleDrift: true });
+  useTilt3D(mobileInfoPanelRef, { maxRotateX: 4.5, maxRotateY: 5.8, scale: 1.012, idleDrift: true });
+  useTilt3D(desktopHeroRef, { maxRotateX: 9.5, maxRotateY: 12.5, scale: 1.024, idleDrift: true });
+  useTilt3D(sessionsTeaserRef, { maxRotateX: 6.2, maxRotateY: 8.4, scale: 1.015, idleDrift: true });
+  useTilt3D(tiktokPanelRef, { maxRotateX: 4.2, maxRotateY: 5.4, scale: 1.01, idleDrift: true });
+  useTilt3D(instagramPanelRef, { maxRotateX: 4.2, maxRotateY: 5.4, scale: 1.01, idleDrift: true });
+  useTilt3D(selectedWorkRef, { maxRotateX: 4.5, maxRotateY: 6.2, scale: 1.008, idleDrift: true });
 
   const toLocalePath = useMemo(
     () =>
@@ -81,13 +83,13 @@ export default function HomePage() {
   );
 
   return (
-    <div className="w-full overflow-hidden">
+    <div className="future-home w-full overflow-hidden">
       <section className="dark-stage relative overflow-hidden border-b border-[#efe5d5]/10 pt-16 md:hidden">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(circle_at_25%_0%,rgba(199,154,89,0.38),rgba(199,154,89,0)_60%)]" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-[radial-gradient(circle_at_80%_100%,rgba(140,100,50,0.16),rgba(140,100,50,0)_50%)]" />
         <div
           ref={mobileHeroRef}
-          className="relative h-[72svh] min-h-[540px] [transform-style:preserve-3d] transition-transform duration-500"
+          className="future-mobile-hero relative h-[72svh] min-h-[540px] [transform-style:preserve-3d] transition-transform duration-500"
           style={{
             transform:
               "perspective(1400px) rotateX(var(--tilt-rx,0deg)) rotateY(var(--tilt-ry,0deg)) scale(var(--tilt-scale,1))",
@@ -148,13 +150,13 @@ export default function HomePage() {
         <div className="page-shell relative z-10 pb-10">
           <div
             ref={mobileInfoPanelRef}
-            className="luxury-panel border-[#efe5d5]/12 bg-[rgba(17,14,11,0.82)] p-4 text-[#efe5d5] backdrop-blur-md [transform-style:preserve-3d] transition-transform duration-500"
+            className="luxury-panel future-mobile-panel border-[#efe5d5]/12 bg-[rgba(17,14,11,0.82)] p-4 text-[#efe5d5] backdrop-blur-md [transform-style:preserve-3d] transition-transform duration-500"
             style={{
               transform:
                 "perspective(1300px) rotateX(var(--tilt-rx,0deg)) rotateY(var(--tilt-ry,0deg)) scale(var(--tilt-scale,1))",
             }}
           >
-            <div className="grid grid-cols-2 gap-1.5">
+            <div className="grid grid-cols-2 gap-1.5" style={{ transform: "translateZ(34px)" }}>
               {[
                 {
                   label: locale === "en" ? "Portfolio" : "Portfolio",
@@ -180,7 +182,7 @@ export default function HomePage() {
               ))}
             </div>
 
-            <div className="mt-4 border-t border-[#efe5d5]/10 pt-4">
+            <div className="mt-4 border-t border-[#efe5d5]/10 pt-4" style={{ transform: "translateZ(24px)" }}>
               <p className="mb-3 text-[0.5rem] uppercase tracking-[0.32em] text-[#efe5d5]/40">
                 {locale === "en" ? "Measurements" : "Medidas"}
               </p>
@@ -194,7 +196,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="mt-4 flex flex-col gap-2.5">
+            <div className="mt-4 flex flex-col gap-2.5" style={{ transform: "translateZ(42px)" }}>
               <Link href={toLocalePath("/portfolio")} className="luxury-button w-full justify-center">
                 {tHero("cta")}
                 <span>→</span>
@@ -270,10 +272,10 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="order-1 grid h-[58svh] min-h-[430px] grid-cols-2 grid-rows-[1.38fr_1fr] gap-3 sm:h-[64svh] sm:min-h-[520px] sm:gap-4 xl:order-2 xl:h-[82svh] xl:min-h-[700px]">
+          <div className="future-hero-stage order-1 grid h-[58svh] min-h-[430px] grid-cols-2 grid-rows-[1.38fr_1fr] gap-3 sm:h-[64svh] sm:min-h-[520px] sm:gap-4 xl:order-2 xl:h-[82svh] xl:min-h-[700px]">
             <div
               ref={desktopHeroRef}
-              className="edge-fade group relative col-span-2 row-span-1 overflow-hidden bg-black/5 [transform-style:preserve-3d] transition-transform duration-500"
+              className="edge-fade future-hero-card group relative col-span-2 row-span-1 overflow-hidden bg-black/5 [transform-style:preserve-3d] transition-transform duration-500"
               style={{
                 transform:
                   "perspective(1500px) rotateX(var(--tilt-rx,0deg)) rotateY(var(--tilt-ry,0deg)) scale(var(--tilt-scale,1))",
@@ -317,7 +319,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="edge-fade relative overflow-hidden">
+            <div className="edge-fade future-support-card relative overflow-hidden">
               <Image
                 src={aboutImage}
                 alt="Robeanny portrait"
@@ -327,7 +329,7 @@ export default function HomePage() {
               />
             </div>
 
-            <div className="luxury-panel flex flex-col justify-between p-5 md:p-6">
+            <div className="luxury-panel future-support-card flex flex-col justify-between p-5 md:p-6">
               <p className="text-[0.58rem] uppercase tracking-[0.32em] text-[#efe5d5]/48">Measurements</p>
               <div className="grid grid-cols-2 gap-2">
                 {measurements.slice(0, 6).map((item) => (
@@ -353,12 +355,15 @@ export default function HomePage() {
               </h2>
               <p className="mt-5 max-w-md text-sm leading-relaxed text-[#171513]/63">{tPortfolio("cta")}</p>
             </div>
-            <div className="grid grid-cols-2 gap-[1px] bg-black/10 md:grid-cols-3">
+            <div
+              ref={selectedWorkRef}
+              className="future-work-grid grid grid-cols-2 gap-[1px] bg-black/10 md:grid-cols-3"
+            >
               {featuredPortfolio.map((photo) => (
                 <Link
                   href={toLocalePath("/portfolio")}
                   key={photo.id}
-                  className={`group relative overflow-hidden bg-[#e8e1d5] ${
+                  className={`future-work-tile group relative overflow-hidden bg-[#e8e1d5] ${
                     photo.layout === "hero"
                       ? "col-span-2 md:col-span-2"
                       : photo.layout === "featured"

@@ -6,6 +6,7 @@ type TiltOptions = {
   maxRotateX?: number;
   maxRotateY?: number;
   scale?: number;
+  idleDrift?: boolean;
   mobileDrift?: boolean;
 };
 
@@ -15,6 +16,7 @@ export function useTilt3D(
     maxRotateX = 5,
     maxRotateY = 6,
     scale = 1.008,
+    idleDrift = true,
     mobileDrift = true,
   }: TiltOptions = {}
 ) {
@@ -87,13 +89,16 @@ export function useTilt3D(
     };
 
     const startDrift = () => {
-      if (!mobileDrift || !isCoarsePointer) return;
+      const shouldDrift = idleDrift ?? mobileDrift;
+      if (!shouldDrift) return;
+
+      const driftFactor = isCoarsePointer ? 0.56 : 0.36;
 
       const animateDrift = (time: number) => {
         if (!interacting) {
           driftTime = time;
-          targetX = Math.sin(driftTime / 1700) * (maxRotateX * 0.38);
-          targetY = Math.cos(driftTime / 2100) * (maxRotateY * 0.42);
+          targetX = Math.sin(driftTime / 1450) * (maxRotateX * driftFactor);
+          targetY = Math.cos(driftTime / 1950) * (maxRotateY * driftFactor);
           queueRender();
         }
         driftRaf = window.requestAnimationFrame(animateDrift);
@@ -118,5 +123,5 @@ export function useTilt3D(
       if (raf) window.cancelAnimationFrame(raf);
       if (driftRaf) window.cancelAnimationFrame(driftRaf);
     };
-  }, [ref, maxRotateX, maxRotateY, scale, mobileDrift]);
+  }, [ref, maxRotateX, maxRotateY, scale, idleDrift, mobileDrift]);
 }
