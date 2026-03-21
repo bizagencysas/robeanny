@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { useLocale, useTranslations } from "next-intl";
 import {
   aboutImage,
@@ -25,12 +26,29 @@ const heroImages = [
   "/he4.jpg",
 ];
 
-const featuredPortfolioOrder = [6, 8, 14, 0, 21, 29, 17];
+const featuredPortfolioOrder = [7, 19, 3, 26, 12, 34, 1];
+
+const featuredDepthTransforms = [
+  "translateZ(86px) rotateX(7deg) rotateY(-14deg)",
+  "translateZ(48px) rotateX(4deg) rotateY(8deg)",
+  "translateZ(42px) rotateX(3deg) rotateY(-9deg)",
+  "translateZ(64px) rotateX(-4deg) rotateY(12deg)",
+  "translateZ(38px) rotateX(2deg) rotateY(-6deg)",
+  "translateZ(46px) rotateX(-3deg) rotateY(10deg)",
+  "translateZ(34px) rotateX(2deg) rotateY(-5deg)",
+];
+
+const cinematicTransition = {
+  duration: 13,
+  repeat: Infinity,
+  ease: [0.45, 0.03, 0.1, 1] as const,
+};
 
 const featuredPortfolio = featuredPortfolioOrder.map((photoIndex, index) => ({
   id: photoIndex + 1,
   src: portfolioPhotos[photoIndex]?.src ?? sessionPhotos[photoIndex],
   alt: portfolioPhotos[photoIndex]?.alt ?? `Robeanny editorial ${photoIndex + 1}`,
+  depthTransform: featuredDepthTransforms[index] ?? "translateZ(34px)",
   layout:
     index === 0
       ? "hero"
@@ -65,13 +83,13 @@ export default function HomePage() {
     return () => clearInterval(interval);
   }, []);
 
-  useTilt3D(mobileHeroRef, { maxRotateX: 4.2, maxRotateY: 5.4, scale: 1.012, idleDrift: true });
-  useTilt3D(mobileInfoPanelRef, { maxRotateX: 3, maxRotateY: 4, scale: 1.006, idleDrift: true });
-  useTilt3D(desktopHeroRef, { maxRotateX: 7, maxRotateY: 9, scale: 1.015, idleDrift: true });
-  useTilt3D(aboutCardRef, { maxRotateX: 5, maxRotateY: 6, scale: 1.01, idleDrift: true });
-  useTilt3D(measurementsCardRef, { maxRotateX: 5, maxRotateY: 6, scale: 1.01, idleDrift: true });
-  useTilt3D(sessionsTeaserRef, { maxRotateX: 4.2, maxRotateY: 5.2, scale: 1.008, idleDrift: true });
-  useTilt3D(selectedWorkRef, { maxRotateX: 3.4, maxRotateY: 4.4, scale: 1.005, idleDrift: true });
+  useTilt3D(mobileHeroRef, { maxRotateX: 10, maxRotateY: 12, scale: 1.03, idleDrift: true });
+  useTilt3D(mobileInfoPanelRef, { maxRotateX: 7.5, maxRotateY: 9.5, scale: 1.02, idleDrift: true });
+  useTilt3D(desktopHeroRef, { maxRotateX: 13, maxRotateY: 17, scale: 1.04, idleDrift: true });
+  useTilt3D(aboutCardRef, { maxRotateX: 9, maxRotateY: 12, scale: 1.025, idleDrift: true });
+  useTilt3D(measurementsCardRef, { maxRotateX: 8, maxRotateY: 10, scale: 1.02, idleDrift: true });
+  useTilt3D(sessionsTeaserRef, { maxRotateX: 8.5, maxRotateY: 11, scale: 1.022, idleDrift: true });
+  useTilt3D(selectedWorkRef, { maxRotateX: 8, maxRotateY: 10, scale: 1.02, idleDrift: true });
 
   const toLocalePath = useMemo(
     () =>
@@ -92,21 +110,38 @@ export default function HomePage() {
           className="depth-card relative h-[72svh] min-h-[540px] [transform-style:preserve-3d] transition-transform duration-500"
           style={{
             transform:
-              "perspective(1400px) rotateX(var(--tilt-rx,0deg)) rotateY(var(--tilt-ry,0deg)) scale(var(--tilt-scale,1))",
+              "perspective(1700px) translateZ(18px) rotateX(calc(var(--tilt-rx,0deg) + 4deg)) rotateY(calc(var(--tilt-ry,0deg) - 7deg)) scale(calc(var(--tilt-scale,1) * 1.015))",
           }}
         >
           {heroImages.map((image, index) => (
-            <Image
+            <motion.div
               key={image}
-              src={image}
-              alt={`Robeanny hero ${index + 1}`}
-              fill
-              priority={index === 0}
-              className={`object-cover object-top transition-[opacity,transform] duration-[1400ms] ${
-                index === activeSlide ? "scale-100 opacity-100" : "scale-[1.03] opacity-0"
+              className={`absolute inset-0 transition-[opacity] duration-[1400ms] ${
+                index === activeSlide ? "opacity-100" : "opacity-0"
               }`}
-              sizes="100vw"
-            />
+              animate={
+                index === activeSlide
+                  ? {
+                      scale: [1.02, 1.11, 1.02],
+                      x: [0, 10, -8, 0],
+                      y: [0, -8, 5, 0],
+                    }
+                  : { scale: 1.06, x: 0, y: 0 }
+              }
+              transition={{
+                ...cinematicTransition,
+                duration: 14 + index * 0.35,
+              }}
+            >
+              <Image
+                src={image}
+                alt={`Robeanny hero ${index + 1}`}
+                fill
+                priority={index === 0}
+                className="object-cover object-[center_16%]"
+                sizes="100vw"
+              />
+            </motion.div>
           ))}
           <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(8,7,6,0.08)_0%,rgba(8,7,6,0.22)_35%,rgba(8,7,6,0.92)_88%,rgba(8,7,6,0.98)_100%)]" />
           <div className="page-shell relative z-10 flex h-full flex-col justify-between pb-7 pt-5">
@@ -153,7 +188,7 @@ export default function HomePage() {
             className="luxury-panel depth-card border-[#efe5d5]/12 bg-[rgba(17,14,11,0.82)] p-4 text-[#efe5d5] backdrop-blur-md [transform-style:preserve-3d] transition-transform duration-500"
             style={{
               transform:
-                "perspective(1300px) rotateX(var(--tilt-rx,0deg)) rotateY(var(--tilt-ry,0deg)) scale(var(--tilt-scale,1))",
+                "perspective(1600px) translateZ(14px) rotateX(calc(var(--tilt-rx,0deg) + 2.5deg)) rotateY(calc(var(--tilt-ry,0deg) - 5deg)) scale(calc(var(--tilt-scale,1) * 1.01))",
             }}
           >
             <div className="grid grid-cols-2 gap-1.5" style={{ transform: "translateZ(34px)" }}>
@@ -209,7 +244,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="dark-stage relative hidden overflow-hidden border-b border-[#efe5d5]/14 pt-20 md:block md:pt-28">
+      <section className="dark-stage relative hidden overflow-visible border-b border-[#efe5d5]/14 pt-20 md:block md:pt-28">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-52 bg-[radial-gradient(circle_at_20%_0%,rgba(199,154,89,0.42),rgba(199,154,89,0))]" />
         <div className="page-shell grid gap-6 pb-10 md:gap-8 md:pb-14 xl:grid-cols-[1.08fr_0.92fr] xl:items-center xl:pb-20">
           <div className="order-2 md:pr-8 xl:order-1">
@@ -278,21 +313,38 @@ export default function HomePage() {
               className="edge-fade depth-card group relative col-span-2 row-span-1 overflow-hidden bg-black/5 [transform-style:preserve-3d] transition-transform duration-500"
               style={{
                 transform:
-                  "perspective(1500px) rotateX(var(--tilt-rx,0deg)) rotateY(var(--tilt-ry,0deg)) scale(var(--tilt-scale,1))",
+                  "perspective(2400px) translateZ(84px) rotateX(calc(var(--tilt-rx,0deg) + 6deg)) rotateY(calc(var(--tilt-ry,0deg) - 15deg)) scale(calc(var(--tilt-scale,1) * 1.02))",
               }}
             >
               {heroImages.map((image, index) => (
-                <Image
+                <motion.div
                   key={image}
-                  src={image}
-                  alt={`Robeanny hero ${index + 1}`}
-                  fill
-                  priority={index === 0}
-                  className={`object-cover object-top transition-[opacity,transform] duration-[1300ms] ${
-                    index === activeSlide ? "scale-100 opacity-100" : "scale-[1.02] opacity-0"
+                  className={`absolute inset-0 transition-[opacity] duration-[1300ms] ${
+                    index === activeSlide ? "opacity-100" : "opacity-0"
                   }`}
-                  sizes="(max-width: 768px) 100vw, 55vw"
-                />
+                  animate={
+                    index === activeSlide
+                      ? {
+                          scale: [1.02, 1.08, 1.02],
+                          x: [0, -12, 8, 0],
+                          y: [0, 10, -6, 0],
+                        }
+                      : { scale: 1.05, x: 0, y: 0 }
+                  }
+                  transition={{
+                    ...cinematicTransition,
+                    duration: 16 + index * 0.25,
+                  }}
+                >
+                  <Image
+                    src={image}
+                    alt={`Robeanny hero ${index + 1}`}
+                    fill
+                    priority={index === 0}
+                    className="object-cover object-[center_17%]"
+                    sizes="(max-width: 768px) 100vw, 55vw"
+                  />
+                </motion.div>
               ))}
               <div className="absolute inset-0 bg-gradient-to-t from-black/18 via-transparent to-transparent" />
               <div
@@ -324,16 +376,22 @@ export default function HomePage() {
               className="edge-fade depth-subcard relative overflow-hidden"
               style={{
                 transform:
-                  "perspective(1300px) rotateX(var(--tilt-rx,0deg)) rotateY(var(--tilt-ry,0deg)) scale(var(--tilt-scale,1))",
+                  "perspective(1700px) translateZ(42px) rotateX(calc(var(--tilt-rx,0deg) + 2deg)) rotateY(calc(var(--tilt-ry,0deg) + 10deg)) scale(calc(var(--tilt-scale,1) * 1.008))",
               }}
             >
-              <Image
-                src={aboutImage}
-                alt="Robeanny portrait"
-                fill
-                className="object-cover object-center"
-                sizes="(max-width: 768px) 50vw, 26vw"
-              />
+              <motion.div
+                className="absolute inset-0"
+                animate={{ scale: [1.03, 1.09, 1.03], x: [0, -5, 5, 0], y: [0, -4, 4, 0] }}
+                transition={{ ...cinematicTransition, duration: 17 }}
+              >
+                <Image
+                  src={aboutImage}
+                  alt="Robeanny portrait"
+                  fill
+                  className="object-cover object-center"
+                  sizes="(max-width: 768px) 50vw, 26vw"
+                />
+              </motion.div>
             </div>
 
             <div
@@ -341,7 +399,7 @@ export default function HomePage() {
               className="luxury-panel depth-subcard flex flex-col justify-between p-5 md:p-6"
               style={{
                 transform:
-                  "perspective(1300px) rotateX(var(--tilt-rx,0deg)) rotateY(var(--tilt-ry,0deg)) scale(var(--tilt-scale,1))",
+                  "perspective(1700px) translateZ(30px) rotateX(calc(var(--tilt-rx,0deg) + 1deg)) rotateY(calc(var(--tilt-ry,0deg) - 9deg)) scale(calc(var(--tilt-scale,1) * 1.008))",
               }}
             >
               <p className="text-[0.58rem] uppercase tracking-[0.32em] text-[#efe5d5]/48">Measurements</p>
@@ -374,7 +432,7 @@ export default function HomePage() {
               className="depth-grid grid grid-cols-2 gap-[1px] bg-black/10 md:grid-cols-3 [transform-style:preserve-3d] transition-transform duration-500"
               style={{
                 transform:
-                  "perspective(1500px) rotateX(var(--tilt-rx,0deg)) rotateY(var(--tilt-ry,0deg)) scale(var(--tilt-scale,1))",
+                  "perspective(2300px) translateZ(38px) rotateX(calc(var(--tilt-rx,0deg) + 2deg)) rotateY(calc(var(--tilt-ry,0deg) - 6deg)) scale(calc(var(--tilt-scale,1) * 1.01))",
               }}
             >
               {featuredPortfolio.map((photo) => (
@@ -388,16 +446,31 @@ export default function HomePage() {
                         ? "col-span-1 md:col-span-2"
                         : "col-span-1"
                   }`}
+                  style={{ transform: photo.depthTransform }}
                 >
-                  <div className="relative h-[180px] w-full sm:h-[220px] md:h-[240px]">
-                    <Image
-                      src={photo.src}
-                      alt={photo.alt}
-                      fill
-                      className="object-cover transition-transform duration-[1400ms] group-hover:scale-105"
-                      sizes="(max-width: 768px) 33vw, 25vw"
-                    />
-                    <div className="absolute inset-0 bg-black/0 transition-colors duration-500 group-hover:bg-black/20" />
+                  <div className="relative h-[190px] w-full sm:h-[230px] md:h-[250px]">
+                    <motion.div
+                      className="absolute inset-0"
+                      animate={{
+                        y: [0, -7, 4, 0],
+                        rotate: [0, 0.7, -0.45, 0],
+                        scale: [1, 1.03, 1],
+                      }}
+                      transition={{
+                        ...cinematicTransition,
+                        duration: 10 + (photo.id % 5) * 1.4,
+                        delay: (photo.id % 4) * 0.35,
+                      }}
+                    >
+                      <Image
+                        src={photo.src}
+                        alt={photo.alt}
+                        fill
+                        className="bg-[#f0e6d8] object-contain p-2 transition-transform duration-[1400ms] group-hover:scale-[1.03]"
+                        sizes="(max-width: 768px) 33vw, 25vw"
+                      />
+                    </motion.div>
+                    <div className="absolute inset-0 bg-black/0 transition-colors duration-500 group-hover:bg-black/16" />
                   </div>
                 </Link>
               ))}
@@ -413,16 +486,22 @@ export default function HomePage() {
             className="relative min-h-[460px] overflow-hidden border border-[#efe9de]/15 [transform-style:preserve-3d] transition-transform duration-500"
             style={{
               transform:
-                "perspective(1400px) rotateX(var(--tilt-rx,0deg)) rotateY(var(--tilt-ry,0deg)) scale(var(--tilt-scale,1))",
+                "perspective(2100px) translateZ(28px) rotateX(calc(var(--tilt-rx,0deg) + 3deg)) rotateY(calc(var(--tilt-ry,0deg) - 8deg)) scale(calc(var(--tilt-scale,1) * 1.01))",
             }}
           >
-            <Image
-              src={sessionsTeaser[0]}
-              alt="Editorial session"
-              fill
-              className="object-cover"
-              sizes="(max-width: 1024px) 100vw, 50vw"
-            />
+            <motion.div
+              className="absolute inset-0"
+              animate={{ scale: [1.02, 1.08, 1.02], x: [0, 8, -6, 0], y: [0, -8, 5, 0] }}
+              transition={{ ...cinematicTransition, duration: 18 }}
+            >
+              <Image
+                src={sessionsTeaser[0]}
+                alt="Editorial session"
+                fill
+                className="object-cover object-[center_15%]"
+                sizes="(max-width: 1024px) 100vw, 50vw"
+              />
+            </motion.div>
             <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/20 to-transparent" />
             <div className="absolute bottom-6 left-6 right-6" style={{ transform: "translateZ(40px)" }}>
               <p className="mb-3 text-[0.58rem] uppercase tracking-[0.3em] text-[#efe9de]/58">{tSessions("title")}</p>
@@ -439,13 +518,23 @@ export default function HomePage() {
                 key={image}
                 className="depth-tile group edge-fade relative min-h-[210px] overflow-hidden"
               >
-                <Image
-                  src={image}
-                  alt={`Session ${index + 2}`}
-                  fill
-                  className="object-cover transition-transform duration-[1400ms] group-hover:scale-105"
-                  sizes="(max-width: 1024px) 50vw, 24vw"
-                />
+                <motion.div
+                  className="absolute inset-0"
+                  animate={{ scale: [1.02, 1.07, 1.02], y: [0, -6, 4, 0] }}
+                  transition={{
+                    ...cinematicTransition,
+                    duration: 11 + index * 1.3,
+                    delay: index * 0.25,
+                  }}
+                >
+                  <Image
+                    src={image}
+                    alt={`Session ${index + 2}`}
+                    fill
+                    className="object-cover transition-transform duration-[1400ms] group-hover:scale-105"
+                    sizes="(max-width: 1024px) 50vw, 24vw"
+                  />
+                </motion.div>
                 <div className="absolute inset-0 bg-black/0 transition-colors duration-500 group-hover:bg-black/28" />
               </Link>
             ))}
