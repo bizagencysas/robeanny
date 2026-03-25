@@ -23,7 +23,7 @@ import {
 } from "@/lib/secret-studio";
 
 export const runtime = "nodejs";
-export const maxDuration = 800;
+export const maxDuration = 300;
 
 type GenerateBody = {
   provider?: StudioProvider;
@@ -137,6 +137,7 @@ function isPresetId(value: string): value is StudioPresetId {
     "full_body_catalogue",
     "seated_studio",
     "commercial_denim",
+    "sensual_editorial",
   ].includes(value);
 }
 

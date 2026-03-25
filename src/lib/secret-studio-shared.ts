@@ -17,7 +17,8 @@ export type StudioPresetId =
   | "beauty_crop"
   | "full_body_catalogue"
   | "seated_studio"
-  | "commercial_denim";
+  | "commercial_denim"
+  | "sensual_editorial";
 export type StudioPreset = {
   id: StudioPresetId;
   label: string;
@@ -145,6 +146,26 @@ export const STUDIO_PRESETS: StudioPreset[] = [
         "soft diffused studio lighting with elegant skin highlights and believable shadow falloff",
       stylingNotes:
         "clean denim studio shoot, polished basics, restrained finish",
+    },
+  },
+  {
+    id: "sensual_editorial",
+    label: "Sensual Editorial",
+    description:
+      "Sesión de estudio más sensual y fashion, siempre no explícita y totalmente vestida.",
+    notes:
+      "Sensual studio editorial, confident model energy, dark-brown eyes, strong feminine silhouette, fully clothed, non-explicit.",
+    plan: {
+      creativeDirection: "sensual studio editorial",
+      wardrobe:
+        "an opaque black bodysuit or a body-skimming editorial look with a sharp blazer, sleek boots, and refined accessories",
+      albumPose:
+        "confident studio pose with elongated legs, elegant posture, and restrained sensual energy",
+      location: "a clean studio set with soft warm neutrals and minimal distractions",
+      lighting:
+        "controlled studio light with smooth shadow shaping, realistic skin texture, and confident editorial definition",
+      stylingNotes:
+        "sensual editorial styling, model-test confidence, no nudity, no transparency, no explicit exposure",
     },
   },
 ];
