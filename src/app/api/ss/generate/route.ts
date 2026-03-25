@@ -281,10 +281,14 @@ async function ensureCloudinaryPresetServer() {
   if (!response.ok) {
     const payload = await response.json().catch(() => null);
     const message = payload?.error?.message || payload?.message || "";
+    const normalized = message.toLowerCase();
 
     if (
-      !message.toLowerCase().includes("already exists") &&
-      !message.toLowerCase().includes("existing")
+      !normalized.includes("already exists") &&
+      !normalized.includes("existing") &&
+      !normalized.includes("already been taken") &&
+      !normalized.includes("name has already been taken") &&
+      !normalized.includes("taken")
     ) {
       throw new Error(
         message ||

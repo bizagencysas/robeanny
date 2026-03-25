@@ -68,10 +68,14 @@ export async function POST(request: NextRequest) {
 
   if (!response.ok) {
     const message = payload?.error?.message || payload?.message || "";
+    const normalized = message.toLowerCase();
 
     if (
-      message.toLowerCase().includes("already exists") ||
-      message.toLowerCase().includes("existing")
+      normalized.includes("already exists") ||
+      normalized.includes("existing") ||
+      normalized.includes("already been taken") ||
+      normalized.includes("name has already been taken") ||
+      normalized.includes("taken")
     ) {
       return NextResponse.json({
         success: true,
