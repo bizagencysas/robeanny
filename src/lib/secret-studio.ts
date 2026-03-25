@@ -1,6 +1,7 @@
 import { createHash, timingSafeEqual } from "crypto";
 import {
   SECRET_STUDIO_FALLBACK_REFERENCES,
+  SecretStudioCreativePlan,
   StudioAspectRatio,
   StudioProvider,
   getStudioProviderLabel,
@@ -10,17 +11,7 @@ export const SECRET_STUDIO_COOKIE = "__robeanny_ss";
 export const SECRET_STUDIO_DEFAULT_CODE = "ROBEANNYBASTARDO";
 export { SECRET_STUDIO_FALLBACK_REFERENCES, getStudioProviderLabel };
 export type { StudioAspectRatio, StudioProvider };
-
-export type SecretStudioCreativePlan = {
-  creativeDirection: string;
-  wardrobe: string;
-  albumPose: string;
-  hair: string;
-  lighting: string;
-  location: string;
-  lens: string;
-  stylingNotes: string;
-};
+export type { SecretStudioCreativePlan };
 
 const disallowedPromptTerms = [
   "desnuda",
@@ -63,6 +54,10 @@ const wardrobeIdeas = [
   "a chic oversized shirt with sculpted shorts and refined knee-high boots",
   "a minimalist cream set with a ribbed top and fluid trousers",
   "a sleek after-dark look with a satin blazer and refined fashion styling",
+  "a velvet evening set with tailored structure, luxe heels, and restrained jewelry",
+  "a polished leather editorial look with a sharp blazer and sleek studio styling",
+  "a silk shirt with premium tailored trousers and elegant pointed heels",
+  "a power suit with sculpted tailoring, refined accessories, and campaign-ready polish",
 ];
 
 const poseIdeas = [
@@ -205,7 +200,7 @@ export function isSecretStudioCodeValid(candidate: string) {
 export function getAvailableStudioProviders(): StudioProvider[] {
   const providers: StudioProvider[] = [];
 
-  if (process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_API_KEY) {
+  if (hasVertexAiConfiguration()) {
     providers.push("google");
   }
 
@@ -216,8 +211,77 @@ export function getAvailableStudioProviders(): StudioProvider[] {
   return providers;
 }
 
-export function getGoogleApiKey() {
-  return process.env.GEMINI_API_KEY || process.env.GOOGLE_AI_API_KEY || "";
+export function getVertexAiProjectId() {
+  return (
+    process.env.VERTEX_AI_PROJECT_ID?.trim() ||
+    process.env.GOOGLE_CLOUD_PROJECT?.trim() ||
+    process.env.GCLOUD_PROJECT?.trim() ||
+    "perfect-crow-450723-i3"
+  );
+}
+
+export function getVertexAiLocation() {
+  return (
+    process.env.VERTEX_AI_LOCATION?.trim() ||
+    process.env.GOOGLE_CLOUD_LOCATION?.trim() ||
+    "us-central1"
+  );
+}
+
+export function getGoogleCredentialsJson() {
+  return process.env.GOOGLE_CREDENTIALS_JSON?.trim() || "";
+}
+
+export function parseGoogleCredentialsJson() {
+  const raw = getGoogleCredentialsJson();
+
+  if (!raw) {
+    throw new Error(
+      "Falta `GOOGLE_CREDENTIALS_JSON` con el JSON completo de la cuenta de servicio para Vertex AI."
+    );
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as Record<string, string>;
+
+    if (!parsed.client_email || !parsed.private_key) {
+      throw new Error("missing-fields");
+    }
+
+    return parsed;
+  } catch {
+    throw new Error(
+      "`GOOGLE_CREDENTIALS_JSON` no contiene un JSON válido de cuenta de servicio."
+    );
+  }
+}
+
+export function hasVertexAiConfiguration() {
+  const projectId = getVertexAiProjectId();
+  const credentialsJson = getGoogleCredentialsJson();
+
+  if (!projectId || !credentialsJson) {
+    return false;
+  }
+
+  try {
+    parseGoogleCredentialsJson();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function assertVertexAiConfiguration() {
+  const projectId = getVertexAiProjectId();
+  const location = getVertexAiLocation();
+  const credentials = parseGoogleCredentialsJson();
+
+  return {
+    projectId,
+    location,
+    credentials,
+  };
 }
 
 export function getOpenAiImageSize(aspectRatio: StudioAspectRatio) {

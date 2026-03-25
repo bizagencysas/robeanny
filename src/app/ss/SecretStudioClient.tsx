@@ -4,8 +4,12 @@ import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import {
   GoogleQualityMode,
+  STUDIO_PRESETS,
   StudioAspectRatio,
+  StudioPresetId,
   StudioProvider,
+  getStudioEstimatedCost,
+  getStudioPreset,
   getStudioProviderLabel,
 } from "@/lib/secret-studio-shared";
 import {
@@ -14,16 +18,21 @@ import {
   listSavedStudioShots,
   saveStudioShot,
 } from "@/lib/secret-studio-db";
+import {
+  ensureSecretStudioCloudinaryPreset,
+  uploadStudioImageToCloudinary,
+} from "@/lib/secret-studio-cloudinary";
 
 type GeneratedShot = {
   id: string;
-  imageUrl: string;
+  imageUrl?: string;
   prompt: string;
   provider: StudioProvider;
   providerLabel: string;
   aspectRatio: string;
   notes: string;
   recipe: Record<string, string>;
+  status: "pending" | "ready";
 };
 
 type GeneratedAlbum = {
@@ -33,9 +42,12 @@ type GeneratedAlbum = {
   providerLabel: string;
   aspectRatio: string;
   notes: string;
+  presetId: StudioPresetId;
+  presetLabel: string;
   recipe: Record<string, string>;
   recipeSignature: string;
   shots: GeneratedShot[];
+  completedCount: number;
 };
 
 type ReferenceItem = {
@@ -46,32 +58,46 @@ type ReferenceItem = {
   source: "fallback" | "upload";
 };
 
-type GenerateResponse = {
-  success: true;
-  provider: StudioProvider;
-  providerLabel: string;
-  prompt: string;
-  prompts: string[];
-  recipe: Record<string, string>;
-  recipeSignature: string;
-  aspectRatio: string;
-  iteration: number;
-  albumSize: number;
-  googleQualityMode: GoogleQualityMode | null;
-  images: string[];
-  note: string | null;
-};
-
-const directionOptions = [
-  "Editorial glam",
-  "Studio clean",
-  "Luxury campaign",
-  "Beauty close-up",
-  "Rooftop cinematic",
-  "Resort chic",
-  "Street luxury",
-  "Catalogue premium",
-];
+type GenerateStreamEvent =
+  | {
+      type: "meta";
+      provider: StudioProvider;
+      providerLabel: string;
+      prompt: string;
+      prompts: string[];
+      recipe: Record<string, string>;
+      recipeSignature: string;
+      aspectRatio: string;
+      iteration: number;
+      albumSize: number;
+      googleQualityMode: GoogleQualityMode | null;
+      note: string | null;
+      presetId: StudioPresetId;
+    }
+  | {
+      type: "progress";
+      completed: number;
+      total: number;
+      stage: string;
+    }
+  | {
+      type: "image";
+      index: number;
+      imageUrl: string;
+      prompt: string;
+      completed: number;
+      total: number;
+      stage: string;
+    }
+  | {
+      type: "done";
+      completed: number;
+      total: number;
+    }
+  | {
+      type: "error";
+      error: string;
+    };
 
 const aspectRatioOptions: StudioAspectRatio[] = [
   "4:5",
@@ -106,6 +132,10 @@ function downloadImage(url: string, filename: string) {
   anchor.remove();
 }
 
+function isJsonResponse(response: Response) {
+  return response.headers.get("content-type")?.includes("application/json");
+}
+
 export default function SecretStudioClient({
   initialUnlocked,
   availableProviders,
@@ -125,15 +155,13 @@ export default function SecretStudioClient({
       ? "google"
       : availableProviders[0] || ""
   );
-  const [direction, setDirection] = useState("Studio clean");
+  const [presetId, setPresetId] = useState<StudioPresetId>("white_seamless");
   const [aspectRatio, setAspectRatio] = useState<StudioAspectRatio>("4:5");
   const [albumSize, setAlbumSize] = useState<6 | 8>(6);
   const [faceLockStrong, setFaceLockStrong] = useState(true);
   const [googleQualityMode, setGoogleQualityMode] =
     useState<GoogleQualityMode>("premium");
-  const [notes, setNotes] = useState(
-    "Ultra-professional studio shoot, seamless luxury backdrop, expensive commercial beauty finish, natural beauty, premium styling, dark-brown eyes."
-  );
+  const [notes, setNotes] = useState("");
   const [iteration, setIteration] = useState(0);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationProgress, setGenerationProgress] = useState(0);
@@ -152,41 +180,37 @@ export default function SecretStudioClient({
     }))
   );
 
+  const [liveAlbum, setLiveAlbum] = useState<GeneratedAlbum | null>(null);
   const [sessionAlbums, setSessionAlbums] = useState<GeneratedAlbum[]>([]);
   const [savedShots, setSavedShots] = useState<SavedStudioShot[]>([]);
   const [savedLoading, setSavedLoading] = useState(true);
 
-  const currentAlbum = sessionAlbums[0] || null;
+  const selectedPreset = useMemo(() => getStudioPreset(presetId), [presetId]);
+  const currentAlbum = liveAlbum || sessionAlbums[0] || null;
   const basePrompt = currentAlbum?.shots[0]?.prompt || "";
   const isPromptLong = basePrompt.length > 280;
   const promptPreview =
     isPromptLong && !showFullPrompt
       ? `${basePrompt.slice(0, 280).trim()}...`
       : basePrompt;
+  const estimatedCost = provider
+    ? getStudioEstimatedCost({
+        provider,
+        albumSize,
+        aspectRatio,
+        googleQualityMode,
+      })
+    : null;
 
   const providerDescription = useMemo(() => {
     if (provider === "google") {
       return googleQualityMode === "premium"
-        ? "Google Premium prioriza calidad de estudio y consistencia, aunque cuesta más por imagen."
-        : "Google Economy usa Flash para ahorrar, pero la calidad suele bajar bastante.";
+        ? "Google Premium es el modo fuerte: más fiel con rostro, más serio para estudio y bastante más caro."
+        : "Google Economy usa Flash para ahorrar, pero cae en calidad y consistencia facial.";
     }
 
     if (provider === "openai") {
-      return "OpenAI sigue disponible, pero por ahora se siente más lento y menos confiable para realismo fino.";
-    }
-
-    return "";
-  }, [provider, googleQualityMode]);
-
-  const estimatedExperience = useMemo(() => {
-    if (provider === "google") {
-      return googleQualityMode === "premium"
-        ? "Más realista y consistente. Ideal cuando quieres el mejor look."
-        : "Más rápido y más barato, pero menos potente para detalle fino.";
-    }
-
-    if (provider === "openai") {
-      return "Experimental aquí: más lento y con más riesgo de timeout en álbumes largos.";
+      return "OpenAI queda como experimental: tarda más, puede verse más fake y no lo pondría como motor principal aquí.";
     }
 
     return "";
@@ -201,7 +225,7 @@ export default function SecretStudioClient({
 
       const saved = JSON.parse(raw) as Partial<{
         provider: StudioProvider;
-        direction: string;
+        presetId: StudioPresetId;
         aspectRatio: StudioAspectRatio;
         albumSize: 6 | 8;
         faceLockStrong: boolean;
@@ -212,7 +236,7 @@ export default function SecretStudioClient({
       if (saved.provider && availableProviders.includes(saved.provider)) {
         setProvider(saved.provider);
       }
-      if (saved.direction) setDirection(saved.direction);
+      if (saved.presetId) setPresetId(saved.presetId);
       if (saved.aspectRatio) setAspectRatio(saved.aspectRatio);
       if (saved.albumSize === 6 || saved.albumSize === 8) {
         setAlbumSize(saved.albumSize);
@@ -239,7 +263,7 @@ export default function SecretStudioClient({
       SETTINGS_STORAGE_KEY,
       JSON.stringify({
         provider,
-        direction,
+        presetId,
         aspectRatio,
         albumSize,
         faceLockStrong,
@@ -249,60 +273,13 @@ export default function SecretStudioClient({
     );
   }, [
     provider,
-    direction,
+    presetId,
     aspectRatio,
     albumSize,
     faceLockStrong,
     googleQualityMode,
     notes,
   ]);
-
-  useEffect(() => {
-    if (!isGenerating) {
-      setGenerationProgress(0);
-      setGenerationStage("");
-      return;
-    }
-
-    const stages =
-      provider === "openai"
-        ? [
-            "Preparando receta del álbum...",
-            "Enviando referencias...",
-            "Renderizando tomas...",
-            "Esperando respuesta del modelo...",
-            "Armando el álbum final...",
-          ]
-        : [
-            "Preparando receta del álbum...",
-            "Sincronizando referencias faciales...",
-            "Generando las primeras tomas...",
-            "Cerrando el álbum...",
-          ];
-
-    let currentProgress = 6;
-    let stageIndex = 0;
-    setGenerationProgress(currentProgress);
-    setGenerationStage(stages[stageIndex]);
-
-    const timer = window.setInterval(() => {
-      currentProgress = Math.min(
-        currentProgress + (provider === "openai" ? 4 : 7),
-        94
-      );
-
-      const nextStageIndex = Math.min(
-        Math.floor((currentProgress / 100) * stages.length),
-        stages.length - 1
-      );
-
-      stageIndex = nextStageIndex;
-      setGenerationProgress(currentProgress);
-      setGenerationStage(stages[stageIndex]);
-    }, provider === "openai" ? 2200 : 1500);
-
-    return () => window.clearInterval(timer);
-  }, [isGenerating, provider]);
 
   async function refreshSavedShots() {
     try {
@@ -352,6 +329,7 @@ export default function SecretStudioClient({
     await fetch("/api/ss/logout", { method: "POST" }).catch(() => null);
     setUnlocked(false);
     setSessionAlbums([]);
+    setLiveAlbum(null);
     setError("");
     setProviderNote("");
   }
@@ -401,10 +379,13 @@ export default function SecretStudioClient({
 
     try {
       setIsGenerating(true);
-      setGenerationProgress(5);
-      setGenerationStage("Preparando álbum...");
+      setGenerationProgress(4);
+      setGenerationStage("Preparando receta del álbum...");
       setError("");
       setProviderNote("");
+      setShowFullPrompt(false);
+      setLiveAlbum(null);
+
       const albumSeed = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
       const excludedRecipeSignatures = sessionAlbums
         .slice(0, 4)
@@ -418,7 +399,8 @@ export default function SecretStudioClient({
         },
         body: JSON.stringify({
           provider,
-          direction,
+          presetId,
+          direction: selectedPreset.label,
           aspectRatio,
           albumSize,
           faceLockStrong,
@@ -432,47 +414,143 @@ export default function SecretStudioClient({
         }),
       });
 
-      const payload = (await response.json().catch(() => null)) as
-        | GenerateResponse
-        | { error?: string }
-        | null;
-
-      if (!response.ok || !payload || !("success" in payload)) {
-        throw new Error(payload && "error" in payload ? payload.error || "No se pudo generar." : "No se pudo generar.");
+      if (!response.ok) {
+        const payload = isJsonResponse(response)
+          ? await response.json().catch(() => null)
+          : null;
+        throw new Error(payload?.error || "No se pudo generar.");
       }
 
-      const createdAt = new Date().toISOString();
-      const shots = payload.images.map((imageUrl, index) => ({
-        id: createId("shot"),
-        imageUrl,
-        prompt: payload.prompts[index] || payload.prompt,
-        provider: payload.provider,
-        providerLabel: payload.providerLabel,
-        aspectRatio: payload.aspectRatio,
-        notes,
-        recipe: payload.recipe,
-      }));
+      if (!response.body) {
+        throw new Error("El servidor respondió sin stream de progreso.");
+      }
 
-      const album: GeneratedAlbum = {
-        id: createId("album"),
-        createdAt,
-        provider: payload.provider,
-        providerLabel: payload.providerLabel,
-        aspectRatio: payload.aspectRatio,
-        notes,
-        recipe: payload.recipe,
-        recipeSignature: payload.recipeSignature,
-        shots,
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let streamedAlbum: GeneratedAlbum | null = null;
+      let completedSuccessfully = false;
+
+      const syncLiveAlbum = () => {
+        if (!streamedAlbum) return;
+
+        setLiveAlbum({
+          ...streamedAlbum,
+          shots: streamedAlbum.shots.map((shot) => ({ ...shot })),
+        });
       };
 
-      setSessionAlbums((current) => [album, ...current].slice(0, 6));
-      setIteration((value) => value + 1);
-      setShowFullPrompt(false);
-      setGenerationProgress(100);
-      setGenerationStage("Álbum listo.");
-      setProviderNote(payload.note || "");
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed) continue;
+
+          const event = JSON.parse(trimmed) as GenerateStreamEvent;
+
+          if (event.type === "meta") {
+            streamedAlbum = {
+              id: createId("album"),
+              createdAt: new Date().toISOString(),
+              provider: event.provider,
+              providerLabel: event.providerLabel,
+              aspectRatio: event.aspectRatio,
+              notes,
+              presetId: event.presetId,
+              presetLabel: getStudioPreset(event.presetId).label,
+              recipe: event.recipe,
+              recipeSignature: event.recipeSignature,
+              completedCount: 0,
+              shots: Array.from({ length: event.albumSize }, (_, index) => ({
+                id: createId(`shot-${index + 1}`),
+                imageUrl: undefined,
+                prompt: event.prompts[index] || event.prompt,
+                provider: event.provider,
+                providerLabel: event.providerLabel,
+                aspectRatio: event.aspectRatio,
+                notes,
+                recipe: event.recipe,
+                status: "pending",
+              })),
+            };
+            setProviderNote(event.note || "");
+            syncLiveAlbum();
+            continue;
+          }
+
+          if (event.type === "progress") {
+            const ratio = event.total ? event.completed / event.total : 0;
+            setGenerationProgress(Math.max(6, Math.round(ratio * 100)));
+            setGenerationStage(event.stage);
+            continue;
+          }
+
+          if (event.type === "image") {
+            if (streamedAlbum) {
+              const shot = streamedAlbum.shots[event.index];
+
+              if (shot) {
+                streamedAlbum.shots[event.index] = {
+                  ...shot,
+                  prompt: event.prompt,
+                  imageUrl: event.imageUrl,
+                  status: "ready",
+                };
+                streamedAlbum.completedCount = event.completed;
+                syncLiveAlbum();
+              }
+            }
+
+            const ratio = event.total ? event.completed / event.total : 0;
+            setGenerationProgress(Math.max(10, Math.round(ratio * 100)));
+            setGenerationStage(event.stage);
+            continue;
+          }
+
+          if (event.type === "done") {
+            completedSuccessfully = true;
+            setGenerationProgress(100);
+            setGenerationStage("Álbum listo.");
+
+            if (streamedAlbum) {
+              const finalAlbum: GeneratedAlbum = {
+                ...streamedAlbum,
+                completedCount: event.completed,
+                shots: streamedAlbum.shots.filter(
+                  (shot): shot is GeneratedShot =>
+                    shot.status === "ready" && Boolean(shot.imageUrl)
+                ),
+              };
+
+              setSessionAlbums((current) => [finalAlbum, ...current].slice(0, 6));
+              setLiveAlbum(null);
+            }
+
+            setIteration((value) => value + 1);
+            continue;
+          }
+
+          if (event.type === "error") {
+            throw new Error(event.error);
+          }
+        }
+      }
+
+      if (!completedSuccessfully) {
+        throw new Error("La generación se cortó antes de completar el álbum.");
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : "No pude generar el álbum.";
+
+      setLiveAlbum(null);
+      setGenerationProgress(0);
+      setGenerationStage("");
 
       if (message.includes("504") || message.toLowerCase().includes("timeout")) {
         setError(
@@ -487,7 +565,17 @@ export default function SecretStudioClient({
   }
 
   async function handleSaveCurrent(shot: GeneratedShot) {
+    if (!shot.imageUrl) return;
+
     try {
+      await ensureSecretStudioCloudinaryPreset();
+      const uploaded = await uploadStudioImageToCloudinary({
+        imageUrl: shot.imageUrl,
+        filename: `robeanny-${Date.now()}-${Math.random()
+          .toString(36)
+          .slice(2, 8)}`,
+      });
+
       await saveStudioShot({
         id: shot.id,
         createdAt: new Date().toISOString(),
@@ -496,19 +584,37 @@ export default function SecretStudioClient({
         prompt: shot.prompt,
         notes: shot.notes,
         aspectRatio: shot.aspectRatio,
-        imageUrl: shot.imageUrl,
+        imageUrl: uploaded.secureUrl,
+        storage: "cloudinary",
+        cloudinaryPublicId: uploaded.publicId,
+        cloudinaryFolder: uploaded.folder,
         recipe: shot.recipe,
       });
 
       await refreshSavedShots();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "No pude guardar la foto.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "No pude guardar la foto en Cloudinary."
+      );
     }
   }
 
   async function handleSaveAlbum(album: GeneratedAlbum) {
     try {
+      await ensureSecretStudioCloudinaryPreset();
+
       for (const shot of album.shots) {
+        if (!shot.imageUrl) continue;
+
+        const uploaded = await uploadStudioImageToCloudinary({
+          imageUrl: shot.imageUrl,
+          filename: `robeanny-${Date.now()}-${Math.random()
+            .toString(36)
+            .slice(2, 8)}`,
+        });
+
         await saveStudioShot({
           id: `${album.id}-${shot.id}`,
           createdAt: new Date().toISOString(),
@@ -517,19 +623,30 @@ export default function SecretStudioClient({
           prompt: shot.prompt,
           notes: shot.notes,
           aspectRatio: shot.aspectRatio,
-          imageUrl: shot.imageUrl,
+          imageUrl: uploaded.secureUrl,
+          storage: "cloudinary",
+          cloudinaryPublicId: uploaded.publicId,
+          cloudinaryFolder: uploaded.folder,
           recipe: shot.recipe,
         });
       }
 
       await refreshSavedShots();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "No pude guardar el álbum.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "No pude guardar el álbum en Cloudinary."
+      );
     }
   }
 
   function removeSessionAlbum(id: string) {
     setSessionAlbums((current) => current.filter((album) => album.id !== id));
+
+    if (liveAlbum?.id === id) {
+      setLiveAlbum(null);
+    }
   }
 
   async function handleDeleteSaved(id: string) {
@@ -585,25 +702,6 @@ export default function SecretStudioClient({
                 {unlocking ? "Desbloqueando..." : "Entrar a Secret Studio"}
               </button>
             </div>
-
-            <div className="mt-6 grid gap-3 text-sm text-[#f5ecdd]/62 sm:grid-cols-2">
-              <div className="rounded-2xl border border-white/8 bg-white/4 p-4">
-                <p className="text-[0.64rem] uppercase tracking-[0.26em] text-[#d8bb8e]">
-                  Motores
-                </p>
-                <p className="mt-2 leading-6">
-                  OpenAI GPT Image y Google con modos Premium/Economy listos para referencias y variaciones consecutivas.
-                </p>
-              </div>
-              <div className="rounded-2xl border border-white/8 bg-white/4 p-4">
-                <p className="text-[0.64rem] uppercase tracking-[0.26em] text-[#d8bb8e]">
-                  Privacidad
-                </p>
-                <p className="mt-2 leading-6">
-                  `noindex`, cookie privada y guardado local en tu navegador para que no quede expuesto.
-                </p>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -622,9 +720,9 @@ export default function SecretStudioClient({
               Secret Studio
             </h1>
             <p className="mt-4 max-w-3xl text-[0.98rem] leading-7 text-[#f7efe4]/72">
-              Genera nuevas sesiones editoriales a partir de referencias reales de Robeanny:
-              álbumes completos con cambio progresivo de styling, poses, cabello, encuadres y dirección creativa.
-              El flujo está limitado a moda, beauty y retrato profesional para adulto con consentimiento.
+              Ahora `/ss` trabaja con presets reales de sesión, progreso por foto y
+              estimación de costo antes de disparar. Dentro del álbum se mantiene el mismo look;
+              el siguiente álbum rehace la receta completa.
             </p>
           </div>
 
@@ -647,7 +745,7 @@ export default function SecretStudioClient({
           </div>
         </div>
 
-        <div className="grid gap-6 xl:grid-cols-[440px_minmax(0,1fr)]">
+        <div className="grid gap-6 xl:grid-cols-[460px_minmax(0,1fr)]">
           <aside className="space-y-6">
             <section className="rounded-[2rem] border border-white/10 bg-[rgba(18,14,11,0.78)] p-6">
               <div className="mb-5 flex items-start justify-between gap-4">
@@ -667,6 +765,7 @@ export default function SecretStudioClient({
               <div className="grid gap-3 sm:grid-cols-2">
                 {(["google", "openai"] as StudioProvider[]).map((item) => {
                   const enabled = availableProviders.includes(item);
+                  const selected = provider === item;
 
                   return (
                     <button
@@ -675,19 +774,28 @@ export default function SecretStudioClient({
                       disabled={!enabled}
                       onClick={() => setProvider(item)}
                       className={`rounded-[1.3rem] border px-4 py-4 text-left transition ${
-                        provider === item
+                        selected
                           ? "border-[#d8bb8e] bg-[rgba(216,187,142,0.12)]"
                           : "border-white/10 bg-white/4"
                       } ${enabled ? "" : "cursor-not-allowed opacity-40"}`}
                     >
-                      <p className="text-[0.66rem] uppercase tracking-[0.24em] text-[#d8bb8e]">
-                        {item === "google" ? "Google Image" : "OpenAI GPT Image"}
-                      </p>
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-[0.66rem] uppercase tracking-[0.24em] text-[#d8bb8e]">
+                          {item === "google" ? "Google Vertex AI" : "OpenAI GPT Image"}
+                        </p>
+                        {item === "openai" ? (
+                          <span className="rounded-full border border-[#f2a7a7]/30 bg-[rgba(182,77,77,0.12)] px-2 py-1 text-[0.52rem] uppercase tracking-[0.24em] text-[#ffd2d2]">
+                            Experimental
+                          </span>
+                        ) : null}
+                      </div>
                       <p className="mt-2 text-sm leading-6 text-[#f7efe4]/68">
                         {enabled
-                          ? getStudioProviderLabel(item)
+                          ? item === "openai"
+                            ? "Disponible, pero aquí lo dejo como opción secundaria."
+                            : getStudioProviderLabel(item)
                           : item === "google"
-                            ? "Falta `GEMINI_API_KEY` o `GOOGLE_AI_API_KEY`"
+                            ? "Falta `VERTEX_AI_PROJECT_ID` o `GOOGLE_CREDENTIALS_JSON`"
                             : "Falta `OPENAI_API_KEY`"}
                       </p>
                     </button>
@@ -701,12 +809,12 @@ export default function SecretStudioClient({
                     {
                       id: "premium",
                       title: "Google Premium",
-                      description: "Más calidad, más costo.",
+                      description: "Identidad mejor, look más serio, más caro.",
                     },
                     {
                       id: "economy",
                       title: "Google Economy",
-                      description: "Más barato, menos calidad.",
+                      description: "Más barato, pero claramente más flojo.",
                     },
                   ] as const).map((item) => (
                     <button
@@ -729,90 +837,144 @@ export default function SecretStudioClient({
                   ))}
                 </div>
               ) : null}
+
+              {estimatedCost ? (
+                <div className="mt-4 rounded-[1.4rem] border border-[#d8bb8e]/18 bg-[rgba(216,187,142,0.08)] p-4">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-[0.62rem] uppercase tracking-[0.24em] text-[#d8bb8e]">
+                        Costo estimado
+                      </p>
+                      <p className="mt-1 text-[1.1rem] text-[#fff2db]">
+                        {estimatedCost.label} por álbum
+                      </p>
+                    </div>
+                    <span className="rounded-full border border-[#d8bb8e]/25 px-3 py-1 text-[0.58rem] uppercase tracking-[0.24em] text-[#f4dfbf]">
+                      {albumSize} fotos
+                    </span>
+                  </div>
+                  <p className="mt-3 text-sm leading-6 text-[#f7efe4]/64">
+                    {estimatedCost.providerNote}
+                  </p>
+                </div>
+              ) : null}
             </section>
 
             <section className="rounded-[2rem] border border-white/10 bg-[rgba(18,14,11,0.78)] p-6">
               <p className="text-[0.64rem] uppercase tracking-[0.28em] text-[#d8bb8e]">
-                Dirección creativa
+                Preset de sesión
               </p>
+              <p className="mt-2 text-sm leading-6 text-[#f7efe4]/62">
+                Estos presets ya no son decorativos. Cada uno obliga fondo, iluminación, pose base y dirección real en backend.
+              </p>
+
               <div className="mt-4 grid gap-3">
-                <select
-                  value={direction}
-                  onChange={(event) => setDirection(event.target.value)}
-                  className="rounded-2xl border border-white/10 bg-[#120f0d] px-4 py-3 text-[#f7efe4] outline-none"
-                >
-                  {directionOptions.map((item) => (
-                    <option key={item} value={item}>
-                      {item}
-                    </option>
-                  ))}
-                </select>
+                {STUDIO_PRESETS.map((preset) => (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    onClick={() => setPresetId(preset.id)}
+                    className={`rounded-[1.35rem] border px-4 py-4 text-left transition ${
+                      presetId === preset.id
+                        ? "border-[#d8bb8e] bg-[rgba(216,187,142,0.14)]"
+                        : "border-white/10 bg-white/4"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-[0.68rem] uppercase tracking-[0.24em] text-[#d8bb8e]">
+                        {preset.label}
+                      </p>
+                      {presetId === preset.id ? (
+                        <span className="rounded-full border border-[#d8bb8e]/25 px-2 py-1 text-[0.54rem] uppercase tracking-[0.24em] text-[#fff2db]">
+                          Activo
+                        </span>
+                      ) : null}
+                    </div>
+                    <p className="mt-2 text-sm leading-6 text-[#f7efe4]/68">
+                      {preset.description}
+                    </p>
+                  </button>
+                ))}
+              </div>
 
-                <div className="grid grid-cols-3 gap-2">
-                  {aspectRatioOptions.map((item) => (
-                    <button
-                      key={item}
-                      type="button"
-                      onClick={() => setAspectRatio(item)}
-                      className={`rounded-full border px-3 py-2 text-[0.7rem] uppercase tracking-[0.22em] transition ${
-                        aspectRatio === item
-                          ? "border-[#d8bb8e] bg-[rgba(216,187,142,0.14)] text-[#fff2db]"
-                          : "border-white/10 text-[#f7efe4]/58"
-                      }`}
-                    >
-                      {item}
-                    </button>
-                  ))}
-                </div>
+              <div className="mt-5 grid grid-cols-3 gap-2">
+                {aspectRatioOptions.map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    onClick={() => setAspectRatio(item)}
+                    className={`rounded-full border px-3 py-2 text-[0.7rem] uppercase tracking-[0.22em] transition ${
+                      aspectRatio === item
+                        ? "border-[#d8bb8e] bg-[rgba(216,187,142,0.14)] text-[#fff2db]"
+                        : "border-white/10 text-[#f7efe4]/58"
+                    }`}
+                  >
+                    {item}
+                  </button>
+                ))}
+              </div>
 
-                <div className="grid grid-cols-2 gap-2">
-                  {[6, 8].map((item) => (
-                    <button
-                      key={item}
-                      type="button"
-                      onClick={() => setAlbumSize(item as 6 | 8)}
-                      className={`rounded-full border px-3 py-2 text-[0.7rem] uppercase tracking-[0.22em] transition ${
-                        albumSize === item
-                          ? "border-[#d8bb8e] bg-[rgba(216,187,142,0.14)] text-[#fff2db]"
-                          : "border-white/10 text-[#f7efe4]/58"
-                      }`}
-                    >
-                      {item} fotos
-                    </button>
-                  ))}
-                </div>
+              {provider === "google" ? (
+                <p className="mt-3 text-sm leading-6 text-[#f7efe4]/56">
+                  En Vertex AI dejo la generación real fijada a `3:4` para Imagen 3 con referencia facial, aunque aquí sigas viendo el selector.
+                </p>
+              ) : null}
 
-                <button
-                  type="button"
-                  onClick={() => setFaceLockStrong((value) => !value)}
-                  className={`rounded-[1.2rem] border px-4 py-3 text-left transition ${
-                    faceLockStrong
-                      ? "border-[#d8bb8e] bg-[rgba(216,187,142,0.14)]"
-                      : "border-white/10 bg-white/4"
-                  }`}
-                >
-                  <p className="text-[0.66rem] uppercase tracking-[0.24em] text-[#d8bb8e]">
-                    Face Lock Strong
-                  </p>
-                  <p className="mt-2 text-sm leading-6 text-[#f7efe4]/68">
-                    {faceLockStrong
-                      ? "Activo en ambos motores. Prioriza rostro real y ojos café oscuro."
-                      : "Desactivado. Permite más libertad creativa, pero puede variar más la cara."}
-                  </p>
-                </button>
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                {[6, 8].map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    onClick={() => setAlbumSize(item as 6 | 8)}
+                    className={`rounded-full border px-3 py-2 text-[0.7rem] uppercase tracking-[0.22em] transition ${
+                      albumSize === item
+                        ? "border-[#d8bb8e] bg-[rgba(216,187,142,0.14)] text-[#fff2db]"
+                        : "border-white/10 text-[#f7efe4]/58"
+                    }`}
+                  >
+                    {item} fotos
+                  </button>
+                ))}
+              </div>
 
-                <textarea
-                  value={notes}
-                  onChange={(event) => setNotes(event.target.value)}
-                  rows={6}
-                  placeholder="Ejemplo: luxury fashion, warm skin tones, polished waves, soft confidence, campaign feel..."
-                  className="rounded-[1.4rem] border border-white/10 bg-[#120f0d] px-4 py-4 text-[0.95rem] leading-7 text-[#f7efe4] outline-none"
-                />
+              <button
+                type="button"
+                onClick={() => setFaceLockStrong((value) => !value)}
+                className={`mt-3 w-full rounded-[1.2rem] border px-4 py-3 text-left transition ${
+                  faceLockStrong
+                    ? "border-[#d8bb8e] bg-[rgba(216,187,142,0.14)]"
+                    : "border-white/10 bg-white/4"
+                }`}
+              >
+                <p className="text-[0.66rem] uppercase tracking-[0.24em] text-[#d8bb8e]">
+                  Face Lock Strong
+                </p>
+                <p className="mt-2 text-sm leading-6 text-[#f7efe4]/68">
+                  {faceLockStrong
+                    ? "Activo. Preserva rostro real, asimetrías y ojos café oscuro en ambos motores."
+                    : "Desactivado. Da más libertad creativa, pero puede variar más la identidad."}
+                </p>
+              </button>
 
-                <div className="rounded-[1.4rem] border border-[#d8bb8e]/16 bg-[rgba(216,187,142,0.06)] p-4 text-sm leading-6 text-[#f7efe4]/62">
-                  Evito desnudos o pedidos explícitos para mantener el flujo editorial, usable y seguro.
-                  A cambio, empujo fuerte en fashion, beauty, campaign, lookbook y retrato premium.
-                </div>
+              <div className="mt-4 rounded-[1.4rem] border border-white/10 bg-white/4 p-4">
+                <p className="text-[0.62rem] uppercase tracking-[0.24em] text-[#d8bb8e]">
+                  Base del preset
+                </p>
+                <p className="mt-3 text-sm leading-7 text-[#f7efe4]/66">
+                  {selectedPreset.notes}
+                </p>
+              </div>
+
+              <textarea
+                value={notes}
+                onChange={(event) => setNotes(event.target.value)}
+                rows={5}
+                placeholder="Notas extra opcionales. Ejemplo: same gold jewelry, cleaner hands, stronger jawline, softer smile..."
+                className="mt-4 w-full rounded-[1.4rem] border border-white/10 bg-[#120f0d] px-4 py-4 text-[0.95rem] leading-7 text-[#f7efe4] outline-none"
+              />
+
+              <div className="mt-4 rounded-[1.4rem] border border-[#d8bb8e]/16 bg-[rgba(216,187,142,0.06)] p-4 text-sm leading-6 text-[#f7efe4]/62">
+                El preset manda la estructura real del álbum. Tus notas extra solo refinan el resultado; ya no dependen de un dropdown “bonito” sin efecto real.
               </div>
             </section>
 
@@ -883,10 +1045,10 @@ export default function SecretStudioClient({
                     Álbum actual
                   </p>
                   <p className="mt-2 text-sm leading-6 text-[#f7efe4]/62">
-                    Cada clic crea un álbum completo. Dentro del álbum se mantiene el mismo look; en el siguiente se cambia todo.
+                    Cada clic crea un álbum completo. El progreso ahora es real: cada foto aparece apenas termina.
                   </p>
                 </div>
-                {currentAlbum ? (
+                {currentAlbum && !isGenerating ? (
                   <div className="flex flex-wrap gap-3">
                     <button
                       type="button"
@@ -905,6 +1067,28 @@ export default function SecretStudioClient({
                   </div>
                 ) : null}
               </div>
+
+              {isGenerating ? (
+                <div className="mt-5 rounded-[1.5rem] border border-[#d8bb8e]/18 bg-[rgba(216,187,142,0.08)] p-4">
+                  <div className="flex items-center justify-between gap-4">
+                    <p className="text-[0.68rem] uppercase tracking-[0.24em] text-[#d8bb8e]">
+                      Generando en vivo
+                    </p>
+                    <span className="text-[0.68rem] uppercase tracking-[0.22em] text-[#fff2db]">
+                      {generationProgress}%
+                    </span>
+                  </div>
+                  <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/8">
+                    <div
+                      className="h-full rounded-full bg-[linear-gradient(90deg,#d8bb8e,#fff1dc)] transition-all duration-500"
+                      style={{ width: `${generationProgress}%` }}
+                    />
+                  </div>
+                  <p className="mt-3 text-sm leading-6 text-[#f7efe4]/68">
+                    {generationStage || "Preparando el álbum..."}
+                  </p>
+                </div>
+              ) : null}
 
               {error ? (
                 <div className="mt-5 rounded-[1.3rem] border border-[#f2a7a7]/30 bg-[rgba(182,77,77,0.12)] px-4 py-4 text-sm text-[#ffd2d2]">
@@ -928,29 +1112,49 @@ export default function SecretStudioClient({
                           className="h-fit self-start overflow-hidden rounded-[1.5rem] border border-white/10 bg-white/4"
                         >
                           <div className="relative aspect-[4/5]">
-                            <Image
-                              src={shot.imageUrl}
-                              alt={`Album shot ${index + 1}`}
-                              fill
-                              unoptimized
-                              className="object-cover"
-                              sizes="(max-width: 1280px) 100vw, 420px"
-                            />
+                            {shot.imageUrl ? (
+                              <Image
+                                src={shot.imageUrl}
+                                alt={`Album shot ${index + 1}`}
+                                fill
+                                unoptimized
+                                className="object-cover"
+                                sizes="(max-width: 1280px) 100vw, 420px"
+                              />
+                            ) : (
+                              <div className="flex h-full items-center justify-center bg-[linear-gradient(145deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02))]">
+                                <div className="text-center">
+                                  <p className="text-[0.62rem] uppercase tracking-[0.24em] text-[#d8bb8e]">
+                                    Renderizando
+                                  </p>
+                                  <p className="mt-3 text-sm text-[#f7efe4]/54">
+                                    Foto {index + 1} de {currentAlbum.shots.length}
+                                  </p>
+                                </div>
+                              </div>
+                            )}
                           </div>
                           <div className="flex flex-wrap gap-2 px-4 py-4">
                             <button
                               type="button"
+                              disabled={!shot.imageUrl}
                               onClick={() => handleSaveCurrent(shot)}
-                              className="rounded-full border border-white/10 px-3 py-2 text-[0.62rem] uppercase tracking-[0.22em] text-[#f7efe4]/60 transition hover:border-[#f7efe4] hover:text-[#f7efe4]"
+                              className="rounded-full border border-white/10 px-3 py-2 text-[0.62rem] uppercase tracking-[0.22em] text-[#f7efe4]/60 transition hover:border-[#f7efe4] hover:text-[#f7efe4] disabled:cursor-not-allowed disabled:opacity-40"
                             >
                               Guardar
                             </button>
                             <button
                               type="button"
+                              disabled={!shot.imageUrl}
                               onClick={() =>
-                                downloadImage(shot.imageUrl, `robeanny-album-${index + 1}-${Date.now()}.png`)
+                                shot.imageUrl
+                                  ? downloadImage(
+                                      shot.imageUrl,
+                                      `robeanny-album-${index + 1}-${Date.now()}.png`
+                                    )
+                                  : null
                               }
-                              className="rounded-full border border-white/10 px-3 py-2 text-[0.62rem] uppercase tracking-[0.22em] text-[#f7efe4]/60 transition hover:border-[#f7efe4] hover:text-[#f7efe4]"
+                              className="rounded-full border border-white/10 px-3 py-2 text-[0.62rem] uppercase tracking-[0.22em] text-[#f7efe4]/60 transition hover:border-[#f7efe4] hover:text-[#f7efe4] disabled:cursor-not-allowed disabled:opacity-40"
                             >
                               Descargar
                             </button>
@@ -965,7 +1169,16 @@ export default function SecretStudioClient({
                           Álbum
                         </p>
                         <p className="mt-2 text-sm leading-6 text-[#f7efe4]/72">
-                          {currentAlbum.shots.length} fotos con el mismo look base
+                          {currentAlbum.completedCount}/{currentAlbum.shots.length} fotos listas
+                        </p>
+                      </div>
+
+                      <div className="rounded-[1.5rem] border border-white/10 bg-white/4 p-4">
+                        <p className="text-[0.64rem] uppercase tracking-[0.28em] text-[#d8bb8e]">
+                          Preset activo
+                        </p>
+                        <p className="mt-3 text-sm leading-7 text-[#f7efe4]/64">
+                          {currentAlbum.presetLabel}
                         </p>
                       </div>
 
@@ -991,6 +1204,7 @@ export default function SecretStudioClient({
                         </p>
                         <p className="mt-3 text-sm leading-7 text-[#f7efe4]/64">
                           {currentAlbum.providerLabel}
+                          {currentAlbum.provider === "openai" ? " · experimental" : ""}
                         </p>
                       </div>
 
@@ -1019,7 +1233,7 @@ export default function SecretStudioClient({
                       Lista para el siguiente álbum
                     </p>
                     <p className="mx-auto mt-4 max-w-2xl text-[0.98rem] leading-7 text-[#f7efe4]/60">
-                      Sube referencias, elige motor, define si quieres 6 u 8 fotos y presiona generar. El sistema mantendrá el look dentro del álbum y lo cambiará en el siguiente.
+                      Elige un preset real, revisa el costo estimado, sube referencias y dispara el álbum. Las fotos irán apareciendo una por una mientras se generan.
                     </p>
                   </div>
                 )}
@@ -1033,7 +1247,7 @@ export default function SecretStudioClient({
                     Historial de esta sesión
                   </p>
                   <p className="mt-2 text-sm leading-6 text-[#f7efe4]/62">
-                    Cada entrada es un álbum completo con un look distinto.
+                    Cada entrada es un álbum completo con una receta distinta.
                   </p>
                 </div>
                 <span className="rounded-full border border-white/10 px-3 py-1 text-[0.62rem] uppercase tracking-[0.24em] text-[#f7efe4]/54">
@@ -1060,7 +1274,7 @@ export default function SecretStudioClient({
                     <div className="space-y-3 px-4 py-4">
                       <div className="flex items-center justify-between gap-3">
                         <p className="text-[0.62rem] uppercase tracking-[0.24em] text-[#d8bb8e]">
-                          {album.providerLabel}
+                          {album.presetLabel}
                         </p>
                         <span className="text-[0.62rem] uppercase tracking-[0.22em] text-[#f7efe4]/40">
                           {album.shots.length} fotos
@@ -1092,10 +1306,10 @@ export default function SecretStudioClient({
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="text-[0.64rem] uppercase tracking-[0.28em] text-[#d8bb8e]">
-                    Guardadas en este navegador
+                    Guardadas
                   </p>
                   <p className="mt-2 text-sm leading-6 text-[#f7efe4]/62">
-                    Estas fotos viven en IndexedDB local, no en un storage público del sitio.
+                    Estas fotos quedan registradas localmente y, si Cloudinary está listo, se guardan en la carpeta `robeanny`.
                   </p>
                 </div>
                 <button

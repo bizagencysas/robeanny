@@ -9,6 +9,9 @@ export type SavedStudioShot = {
   notes: string;
   aspectRatio: string;
   imageUrl: string;
+  storage: "cloudinary" | "local";
+  cloudinaryPublicId?: string;
+  cloudinaryFolder?: string;
   recipe: Record<string, string>;
 };
 
