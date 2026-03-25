@@ -119,12 +119,12 @@ export default function SecretStudioClient({
   const [provider, setProvider] = useState<StudioProvider | "">(
     availableProviders[0] || ""
   );
-  const [direction, setDirection] = useState(directionOptions[0]);
+  const [direction, setDirection] = useState("Studio clean");
   const [aspectRatio, setAspectRatio] = useState<StudioAspectRatio>("4:5");
   const [albumSize, setAlbumSize] = useState<6 | 8>(6);
   const [faceLockStrong, setFaceLockStrong] = useState(true);
   const [notes, setNotes] = useState(
-    "High-end fashion, editorial polish, natural beauty, premium styling, dark-brown eyes."
+    "Ultra-professional studio shoot, seamless luxury backdrop, expensive commercial beauty finish, natural beauty, premium styling, dark-brown eyes."
   );
   const [iteration, setIteration] = useState(0);
   const [isGenerating, setIsGenerating] = useState(false);

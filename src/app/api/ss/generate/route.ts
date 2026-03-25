@@ -314,6 +314,7 @@ async function generateCreativePlan({
     "Make the album feel meaningfully different from the recent recipes.",
     "Keep it premium, commercial, elegant, wearable, and fully clothed.",
     "The same woman must remain recognizable, with dark-brown eyes.",
+    "Strong preference: polished professional studio imagery, seamless clean backdrop, luxury campaign lighting, expensive commercial beauty finish, world-class medium-format feel.",
     `Freshness token: ${albumSeed}-${attempt}.`,
     `Requested direction: ${direction}.`,
     `Aspect ratio: ${aspectRatio}.`,

@@ -43,6 +43,7 @@ const disallowedPromptTerms = [
 ];
 
 const creativeDirections = [
+  "ultra-premium luxury studio campaign",
   "luxury campaign portrait",
   "clean beauty editorial",
   "minimal studio fashion story",
@@ -87,6 +88,7 @@ const hairIdeas = [
 ];
 
 const lightingIdeas = [
+  "ultra-refined studio softbox lighting with perfect highlight rolloff and luxury skin rendering",
   "soft diffused studio lighting with elegant skin highlights",
   "bright editorial daylight entering from one side",
   "cinematic golden-hour light with gentle contrast",
@@ -98,6 +100,7 @@ const lightingIdeas = [
 ];
 
 const locationIdeas = [
+  "a pristine luxury white seamless studio with subtle sculpted shadows",
   "a premium white cyc studio",
   "a refined beige editorial set with textured walls",
   "a bright contemporary penthouse interior",
@@ -109,6 +112,7 @@ const locationIdeas = [
 ];
 
 const lensIdeas = [
+  "captured on a top-tier medium-format studio setup with ultra-premium optics, immaculate dynamic range, and luxury campaign detail",
   "captured on an 85mm portrait lens with realistic depth of field",
   "captured on a 50mm fashion lens with crisp eyes and natural perspective",
   "captured on a 70mm editorial lens with premium magazine sharpness",
@@ -153,6 +157,7 @@ const polishRules = [
 ];
 
 const stylingNotesIdeas = [
+  "seamless studio set, luxury beauty retouching, elite commercial polish, expensive campaign finish",
   "premium gold jewelry, refined manicure, polished campaign finish",
   "minimalist styling, clean silhouette, luxury catalogue energy",
   "soft glam makeup, elevated accessories, modern editorial polish",
@@ -345,6 +350,7 @@ export function buildSecretStudioPrompt({
     "Preserve her exact identity, facial structure, skin tone, body proportions, smile, and beauty details so she remains unmistakably the same person.",
     identityLockInstructions,
     openAiIdentityLock,
+    "Visual target: an ultra-professional studio photoshoot with elite commercial polish, as if captured on an extraordinary world-class medium-format fashion setup.",
     `Creative direction: ${creativeDirection}.`,
     `Wardrobe: ${wardrobe}.`,
     `Pose: ${shotPose}.`,
@@ -357,6 +363,7 @@ export function buildSecretStudioPrompt({
     `Expression: ${expression}.`,
     `Aspect ratio target: ${aspectRatio}.`,
     "Eye color must be dark brown.",
+    "Prefer a polished studio environment, seamless premium backdrop, controlled shadows, elegant contrast, crisp facial detail, and expensive commercial beauty finish.",
     "The final image must look like a real luxury editorial photoshoot, fully clothed, tasteful, elegant, and commercially usable.",
     "Keep the styling elevated, photorealistic, and current. Add natural micro-details in skin, hair, fabric texture, and lighting falloff.",
     `Follow these quality rules: ${polishRules.join(", ")}.`,
