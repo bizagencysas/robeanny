@@ -889,6 +889,7 @@ export async function POST(request: NextRequest) {
   try {
     assertSafeCreativeNotes(notes);
 
+    const fallbackReferenceSet = new Set(SECRET_STUDIO_FALLBACK_REFERENCES);
     const uniqueReferences = Array.from(
       new Set(
         incomingReferences.length
@@ -896,10 +897,13 @@ export async function POST(request: NextRequest) {
           : SECRET_STUDIO_FALLBACK_REFERENCES
       )
     ).sort((left, right) => {
-      const leftPriority = left.startsWith("data:") ? 0 : 1;
-      const rightPriority = right.startsWith("data:") ? 0 : 1;
+      const getPriority = (value: string) => {
+        if (value.startsWith("data:")) return 0;
+        if (!fallbackReferenceSet.has(value)) return 1;
+        return 2;
+      };
 
-      return leftPriority - rightPriority;
+      return getPriority(left) - getPriority(right);
     });
 
     const uploadedReferences = uniqueReferences.filter((reference) =>
@@ -1004,7 +1008,7 @@ export async function POST(request: NextRequest) {
           ? await (async () => {
               const googleBaseReferences = preparedReferences.slice(
                 0,
-                Math.min(preparedReferences.length, 3)
+                Math.min(preparedReferences.length, 2)
               );
               const results: Array<{
                 index: number;
@@ -1059,7 +1063,7 @@ export async function POST(request: NextRequest) {
                   const index = offset + 1;
                   const activeReferences = [albumAnchorReference, ...googleBaseReferences].slice(
                     0,
-                    4
+                    3
                   );
                   const generatedDataUrl = await generateWithVertexGeminiImage({
                     prompt: item.prompt,
