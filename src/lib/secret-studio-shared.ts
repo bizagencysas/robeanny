@@ -1,5 +1,6 @@
 export type StudioProvider = "google" | "openai";
 export type StudioAspectRatio = "1:1" | "3:4" | "4:5" | "9:16" | "16:9";
+export type GoogleQualityMode = "premium" | "economy";
 
 export const SECRET_STUDIO_FALLBACK_REFERENCES = [
   "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101026/17_m0y8pz.webp",

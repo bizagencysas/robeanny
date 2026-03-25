@@ -3,6 +3,7 @@
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import {
+  GoogleQualityMode,
   StudioAspectRatio,
   StudioProvider,
   getStudioProviderLabel,
@@ -56,6 +57,7 @@ type GenerateResponse = {
   aspectRatio: string;
   iteration: number;
   albumSize: number;
+  googleQualityMode: GoogleQualityMode | null;
   images: string[];
   note: string | null;
 };
@@ -123,6 +125,8 @@ export default function SecretStudioClient({
   const [aspectRatio, setAspectRatio] = useState<StudioAspectRatio>("4:5");
   const [albumSize, setAlbumSize] = useState<6 | 8>(6);
   const [faceLockStrong, setFaceLockStrong] = useState(true);
+  const [googleQualityMode, setGoogleQualityMode] =
+    useState<GoogleQualityMode>("premium");
   const [notes, setNotes] = useState(
     "Ultra-professional studio shoot, seamless luxury backdrop, expensive commercial beauty finish, natural beauty, premium styling, dark-brown eyes."
   );
@@ -149,7 +153,9 @@ export default function SecretStudioClient({
 
   const providerDescription = useMemo(() => {
     if (provider === "google") {
-      return "Nano Banana 2 suele ser excelente para iterar rápido con referencias y variaciones visuales.";
+      return googleQualityMode === "premium"
+        ? "Google Premium prioriza calidad de estudio y consistencia, aunque cuesta más por imagen."
+        : "Google Economy usa Flash para ahorrar, pero la calidad suele bajar bastante.";
     }
 
     if (provider === "openai") {
@@ -157,7 +163,7 @@ export default function SecretStudioClient({
     }
 
     return "";
-  }, [provider]);
+  }, [provider, googleQualityMode]);
 
   async function refreshSavedShots() {
     try {
@@ -275,6 +281,7 @@ export default function SecretStudioClient({
           aspectRatio,
           albumSize,
           faceLockStrong,
+          googleQualityMode,
           notes,
           iteration,
           albumSeed,

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
+  GoogleQualityMode,
   SECRET_STUDIO_COOKIE,
   SECRET_STUDIO_FALLBACK_REFERENCES,
   SecretStudioCreativePlan,
@@ -28,6 +29,7 @@ type GenerateBody = {
   albumSeed?: string;
   excludedRecipeSignatures?: string[];
   recentRecipes?: Array<Record<string, string>>;
+  googleQualityMode?: GoogleQualityMode;
   references?: string[];
 };
 
@@ -165,14 +167,35 @@ async function generateWithOpenAi({
 async function generateWithGoogle({
   prompt,
   aspectRatio,
+  googleQualityMode,
   references,
 }: {
   prompt: string;
   aspectRatio: StudioAspectRatio;
+  googleQualityMode: GoogleQualityMode;
   references: PreparedReference[];
 }) {
+  const googleModelConfig =
+    googleQualityMode === "premium"
+      ? {
+          model:
+            process.env.GOOGLE_PREMIUM_IMAGE_MODEL ||
+            "gemini-3-pro-image-preview",
+          imageSize: process.env.GOOGLE_PREMIUM_IMAGE_SIZE || "1K",
+        }
+      : {
+          model:
+            process.env.GOOGLE_ECONOMY_IMAGE_MODEL ||
+            process.env.GOOGLE_IMAGE_MODEL ||
+            "gemini-2.5-flash-image",
+          imageSize:
+            process.env.GOOGLE_ECONOMY_IMAGE_SIZE ||
+            process.env.GOOGLE_IMAGE_SIZE ||
+            "1K",
+        };
+
   const response = await fetch(
-    "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent",
+    `https://generativelanguage.googleapis.com/v1beta/models/${googleModelConfig.model}:generateContent`,
     {
       method: "POST",
       headers: {
@@ -197,7 +220,7 @@ async function generateWithGoogle({
           responseModalities: ["TEXT", "IMAGE"],
           imageConfig: {
             aspectRatio,
-            imageSize: "2K",
+            imageSize: googleModelConfig.imageSize,
           },
         },
       }),
@@ -289,6 +312,28 @@ function normalizeCreativePlan(
   };
 }
 
+async function runWithConcurrency<T>(
+  tasks: Array<() => Promise<T>>,
+  concurrency: number
+) {
+  const results: T[] = new Array(tasks.length);
+  let nextIndex = 0;
+
+  async function worker() {
+    while (nextIndex < tasks.length) {
+      const currentIndex = nextIndex;
+      nextIndex += 1;
+      results[currentIndex] = await tasks[currentIndex]();
+    }
+  }
+
+  await Promise.all(
+    Array.from({ length: Math.min(concurrency, tasks.length) }, () => worker())
+  );
+
+  return results;
+}
+
 async function generateCreativePlan({
   provider,
   direction,
@@ -308,6 +353,10 @@ async function generateCreativePlan({
   attempt: number;
   recentRecipes: Array<Record<string, string>>;
 }) {
+  if (provider === "google") {
+    return null;
+  }
+
   const plannerPrompt = [
     "Create a distinct fashion album recipe for a real adult female model based on photo references.",
     "Return JSON only with these keys: creativeDirection, wardrobe, albumPose, hair, lighting, location, lens, stylingNotes.",
@@ -433,6 +482,8 @@ export async function POST(request: NextRequest) {
     : 6;
   const albumSize = Math.min(Math.max(requestedAlbumSize, 6), 8);
   const faceLockStrong = body.faceLockStrong !== false;
+  const googleQualityMode =
+    body.googleQualityMode === "economy" ? "economy" : "premium";
   const albumSeed =
     typeof body.albumSeed === "string" && body.albumSeed.trim()
       ? body.albumSeed.trim()
@@ -489,16 +540,19 @@ export async function POST(request: NextRequest) {
     let recipeSignature = "";
 
     for (let attempt = 0; attempt < 8; attempt += 1) {
-      const creativePlan = await generateCreativePlan({
-        provider: requestedProvider,
-        direction,
-        notes,
-        aspectRatio,
-        faceLockStrong,
-        albumSeed,
-        attempt,
-        recentRecipes,
-      });
+      const creativePlan =
+        requestedProvider === "openai"
+          ? await generateCreativePlan({
+              provider: requestedProvider,
+              direction,
+              notes,
+              aspectRatio,
+              faceLockStrong,
+              albumSeed,
+              attempt,
+              recentRecipes,
+            })
+          : null;
 
       const candidatePrompts = Array.from({ length: albumSize }, (_, shotIndex) =>
         buildSecretStudioPrompt({
@@ -527,14 +581,13 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const images: string[] = [];
-
-    for (const item of prompts) {
+    const taskFactories = prompts.map((item) => async () => {
       const result =
         requestedProvider === "google"
           ? await generateWithGoogle({
               prompt: item.prompt,
               aspectRatio,
+              googleQualityMode,
               references: preparedReferences,
             })
           : await generateWithOpenAi({
@@ -543,10 +596,14 @@ export async function POST(request: NextRequest) {
               references: preparedReferences,
             });
 
-      if (result.images[0]) {
-        images.push(result.images[0]);
-      }
-    }
+      return result.images[0] || null;
+    });
+
+    const generatedImages = await runWithConcurrency(
+      taskFactories,
+      requestedProvider === "openai" ? 3 : 2
+    );
+    const images = generatedImages.filter(Boolean) as string[];
 
     if (!images.length) {
       throw new Error("No pude completar el álbum en esta generación.");
@@ -563,10 +620,13 @@ export async function POST(request: NextRequest) {
       aspectRatio,
       iteration,
       albumSize,
+      googleQualityMode: requestedProvider === "google" ? googleQualityMode : null,
       images,
       note:
         requestedProvider === "google"
-          ? "Nano Banana 2 puede incluir SynthID watermark según la política actual de Google."
+          ? googleQualityMode === "premium"
+            ? "Google Premium usa un modelo de imagen más caro y con mejor calidad; puede incluir SynthID watermark según la política actual de Google."
+            : "Google Economy usa un modelo Flash más barato; puede incluir SynthID watermark según la política actual de Google."
           : null,
     });
   } catch (error) {
