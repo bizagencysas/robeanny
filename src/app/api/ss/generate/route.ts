@@ -440,11 +440,13 @@ async function generateWithVertexGeminiImage({
   aspectRatio,
   references,
   seed,
+  hasAlbumAnchor = false,
 }: {
   prompt: string;
   aspectRatio: StudioAspectRatio;
   references: PreparedReference[];
   seed: number;
+  hasAlbumAnchor?: boolean;
 }) {
   const { projectId } = getVertexSession();
   const token = await getVertexAccessToken();
@@ -472,6 +474,9 @@ async function generateWithVertexGeminiImage({
                 "Keep dark-brown eyes, real skin texture, believable pores, natural asymmetry, and non-waxy skin.",
                 "Avoid CGI look, waxy skin, mannequin posture, distorted anatomy, extra fingers, extra limbs, generic beauty-face, and fake gradient backgrounds.",
                 "Prefer grounded studio realism over stylized glamour.",
+                hasAlbumAnchor
+                  ? "The first attached image is the album anchor. Match its exact woman, wardrobe, hair, makeup, backdrop, and lighting direction."
+                  : "Establish a clean, believable studio look that can be repeated across the full album.",
               ].join(" "),
             },
           ],
@@ -489,8 +494,13 @@ async function generateWithVertexGeminiImage({
               {
                 text: [
                   prompt,
-                  "Use all attached reference photos as the same real woman.",
+                  hasAlbumAnchor
+                    ? "Use the first attached image as the continuity anchor for this album and the remaining images as identity references."
+                    : "Use all attached reference photos as the same real woman.",
                   "Preserve her exact face, skin tone, hairline, jawline, nose, lips, and dark-brown eyes.",
+                  hasAlbumAnchor
+                    ? "Match the same exact outfit pieces, same hair styling, same makeup, same studio set, and same light quality from the anchor image. Only change pose, crop, and expression."
+                    : "Lock one single outfit, one single hair setup, one single makeup direction, and one single studio lighting setup for the whole album.",
                   "Create one single highly realistic studio photo with believable lighting, believable clothing construction, and natural human anatomy.",
                 ].join(" "),
               },
@@ -987,54 +997,114 @@ export async function POST(request: NextRequest) {
       });
 
       let completed = 0;
+      const images =
+        requestedProvider === "google"
+          ? await (async () => {
+              const googleBaseReferences = preparedReferences.slice(
+                0,
+                Math.min(preparedReferences.length, 3)
+              );
+              const sequentialResults: Array<{
+                index: number;
+                imageUrl: string;
+                cloudinaryPublicId: string;
+                cloudinaryFolder: string;
+                prompt: string;
+              }> = [];
+              let albumAnchorReference: PreparedReference | null = null;
 
-      const images = await runWithConcurrency(
-        prompts.map((item, index) => async () => {
-          const generatedDataUrl =
-            requestedProvider === "google"
-              ? await generateWithVertexGeminiImage({
+              for (let index = 0; index < prompts.length; index += 1) {
+                const item = prompts[index];
+                const activeReferences = albumAnchorReference
+                  ? [albumAnchorReference, ...googleBaseReferences].slice(0, 4)
+                  : googleBaseReferences;
+                const generatedDataUrl = await generateWithVertexGeminiImage({
                   prompt: item.prompt,
                   aspectRatio: effectiveAspectRatio,
-                  references: preparedReferences,
+                  references: activeReferences,
                   seed: createVertexSeed(albumSeed, item.prompt, index),
-                })
-              : await generateWithOpenAi({
+                  hasAlbumAnchor: Boolean(albumAnchorReference),
+                });
+
+                if (!albumAnchorReference) {
+                  albumAnchorReference = dataUrlToReference(
+                    generatedDataUrl,
+                    "album-anchor"
+                  );
+                }
+
+                const uploaded = await uploadGeneratedImageToCloudinary({
+                  file: generatedDataUrl,
+                  filename: `shot-${index + 1}-${Date.now()}-${Math.random()
+                    .toString(36)
+                    .slice(2, 8)}`,
+                  folderOverride: albumFolder,
+                });
+
+                completed += 1;
+                const result = {
+                  index,
+                  imageUrl: uploaded.secureUrl,
+                  cloudinaryPublicId: uploaded.publicId,
+                  cloudinaryFolder: uploaded.folder,
+                  prompt: item.prompt,
+                };
+
+                sequentialResults.push(result);
+                send({
+                  type: "image",
+                  index: result.index,
+                  imageUrl: result.imageUrl,
+                  cloudinaryPublicId: result.cloudinaryPublicId,
+                  cloudinaryFolder: result.cloudinaryFolder,
+                  prompt: result.prompt,
+                  completed,
+                  total: albumSize,
+                  stage: `Foto ${completed} de ${albumSize} lista.`,
+                });
+              }
+
+              return sequentialResults;
+            })()
+          : await runWithConcurrency(
+              prompts.map((item, index) => async () => {
+                const generatedDataUrl = await generateWithOpenAi({
                   prompt: item.prompt,
                   aspectRatio: effectiveAspectRatio,
                   references: preparedReferences,
                 });
-          const uploaded = await uploadGeneratedImageToCloudinary({
-            file: generatedDataUrl,
-            filename: `shot-${index + 1}-${Date.now()}-${Math.random()
-              .toString(36)
-              .slice(2, 8)}`,
-            folderOverride: albumFolder,
-          });
+                const uploaded = await uploadGeneratedImageToCloudinary({
+                  file: generatedDataUrl,
+                  filename: `shot-${index + 1}-${Date.now()}-${Math.random()
+                    .toString(36)
+                    .slice(2, 8)}`,
+                  folderOverride: albumFolder,
+                });
 
-          return {
-            index,
-            imageUrl: uploaded.secureUrl,
-            cloudinaryPublicId: uploaded.publicId,
-            cloudinaryFolder: uploaded.folder,
-            prompt: item.prompt,
-          };
-        }),
-        requestedProvider === "openai" ? 3 : 2,
-        (result) => {
-          completed += 1;
-          send({
-            type: "image",
-            index: result.index,
-            imageUrl: result.imageUrl,
-            cloudinaryPublicId: result.cloudinaryPublicId,
-            cloudinaryFolder: result.cloudinaryFolder,
-            prompt: result.prompt,
-            completed,
-            total: albumSize,
-            stage: `Foto ${completed} de ${albumSize} lista.`,
-          });
-        }
-      );
+                return {
+                  index,
+                  imageUrl: uploaded.secureUrl,
+                  cloudinaryPublicId: uploaded.publicId,
+                  cloudinaryFolder: uploaded.folder,
+                  prompt: item.prompt,
+                };
+              }),
+              3,
+              (result) => {
+                completed += 1;
+                send({
+                  type: "image",
+                  index: result.index,
+                  imageUrl: result.imageUrl,
+                  cloudinaryPublicId: result.cloudinaryPublicId,
+                  cloudinaryFolder: result.cloudinaryFolder,
+                  prompt: result.prompt,
+                  completed,
+                  total: albumSize,
+                  stage: `Foto ${completed} de ${albumSize} lista.`,
+                });
+              }
+            );
 
       if (!images.length) {
         throw new Error("No pude completar el álbum en esta generación.");
