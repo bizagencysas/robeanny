@@ -448,8 +448,12 @@ async function generateWithVertexGeminiImage({
   const { projectId } = getVertexSession();
   const token = await getVertexAccessToken();
   const location = VERTEX_GOOGLE_IMAGE_LOCATION;
+  const endpointHost =
+    location === "global"
+      ? "https://aiplatform.googleapis.com"
+      : `https://${location}-aiplatform.googleapis.com`;
   const response = await fetch(
-    `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/${VERTEX_GOOGLE_IMAGE_MODEL}:generateContent`,
+    `${endpointHost}/v1/projects/${projectId}/locations/${location}/publishers/google/models/${VERTEX_GOOGLE_IMAGE_MODEL}:generateContent`,
     {
       method: "POST",
       headers: {
