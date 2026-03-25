@@ -34,36 +34,36 @@ const disallowedPromptTerms = [
 ];
 
 const creativeDirections = [
-  "ultra-premium luxury studio campaign",
-  "luxury campaign portrait",
-  "clean beauty editorial",
+  "grounded studio fashion portrait",
+  "clean commercial studio editorial",
+  "real beauty portrait session",
   "minimal studio fashion story",
-  "modern catalogue campaign",
-  "sunlit resort editorial",
-  "cinematic rooftop fashion frame",
-  "soft neutral lookbook",
-  "high-end social campaign",
+  "modern catalogue portrait",
+  "neutral daylight studio editorial",
+  "soft contemporary studio frame",
+  "refined lookbook realism",
+  "commercial portrait session",
 ];
 
 const wardrobeIdeas = [
   "a structured ivory blazer over a silk camisole with tailored wide-leg trousers",
   "a monochrome black fashion set with a fitted turtleneck bodysuit and sharp heels",
   "a soft champagne slip dress with minimalist gold jewelry and elegant sandals",
-  "a crisp white tank with premium denim, a polished belt, and pointed heels",
+  "a crisp white tank with clean denim, a polished belt, and pointed heels",
   "a fitted espresso knit dress with clean modern accessories",
   "a chic oversized shirt with sculpted shorts and refined knee-high boots",
   "a minimalist cream set with a ribbed top and fluid trousers",
   "a sleek after-dark look with a satin blazer and refined fashion styling",
   "a velvet evening set with tailored structure, luxe heels, and restrained jewelry",
   "a polished leather editorial look with a sharp blazer and sleek studio styling",
-  "a silk shirt with premium tailored trousers and elegant pointed heels",
-  "a power suit with sculpted tailoring, refined accessories, and campaign-ready polish",
+  "a silk shirt with tailored trousers and elegant pointed heels",
+  "a power suit with sculpted tailoring, refined accessories, and clean polish",
 ];
 
 const poseIdeas = [
   "standing with one shoulder angled toward camera, confident posture, subtle movement in the hips",
   "seated on a clean studio cube with elegant posture and relaxed hands",
-  "walking mid-step as if captured during a fashion campaign",
+  "walking mid-step as if captured during a real studio session",
   "close beauty crop with a soft head tilt and direct gaze",
   "leaning lightly against a textured wall with effortless confidence",
   "three-quarter pose emphasizing long lines and graceful posture",
@@ -83,35 +83,35 @@ const hairIdeas = [
 ];
 
 const lightingIdeas = [
-  "ultra-refined studio softbox lighting with perfect highlight rolloff and luxury skin rendering",
-  "soft diffused studio lighting with elegant skin highlights",
+  "controlled studio softbox lighting with natural highlight rolloff and believable skin texture",
+  "soft diffused studio lighting with clean facial highlights and realistic shadow falloff",
   "bright editorial daylight entering from one side",
   "cinematic golden-hour light with gentle contrast",
-  "clean white seamless studio lighting with subtle shadow definition",
-  "warm luxury interior lighting with polished specular highlights",
-  "beauty-dish lighting with premium magazine finish",
-  "moody but refined side lighting with accurate skin tones",
+  "clean white seamless studio lighting with subtle but believable shadow definition",
+  "warm interior studio lighting with restrained specular highlights",
+  "beauty-dish lighting with realistic skin texture and precise facial definition",
+  "moody but refined side lighting with accurate skin tones and natural contrast",
   "sunset rim light with balanced facial exposure",
 ];
 
 const locationIdeas = [
-  "a pristine luxury white seamless studio with subtle sculpted shadows",
-  "a premium white cyc studio",
+  "a clean white seamless studio with subtle sculpted shadows",
+  "a clean white cyc studio",
   "a refined beige editorial set with textured walls",
   "a bright contemporary penthouse interior",
-  "a luxury hotel suite with restrained styling",
+  "a refined hotel-style interior with restrained styling",
   "a minimal concrete rooftop at blue hour",
-  "a softly lit dressing room with fashion campaign styling",
+  "a softly lit dressing room with restrained styling",
   "a sunlit Mediterranean-inspired terrace",
   "a polished neutral backdrop with subtle shadows",
 ];
 
 const lensIdeas = [
-  "captured on a top-tier medium-format studio setup with ultra-premium optics, immaculate dynamic range, and luxury campaign detail",
+  "captured like a real professional studio photograph with natural depth of field, crisp focus on the eyes, and believable lens behavior",
   "captured on an 85mm portrait lens with realistic depth of field",
   "captured on a 50mm fashion lens with crisp eyes and natural perspective",
-  "captured on a 70mm editorial lens with premium magazine sharpness",
-  "captured on a medium-format style portrait setup with luxurious detail",
+  "captured on a 70mm editorial lens with restrained commercial sharpness",
+  "captured like a high-end portrait session with detailed skin texture and believable optics",
 ];
 
 const framingIdeas = [
@@ -122,7 +122,7 @@ const framingIdeas = [
   "seated composition with full outfit clearly visible",
   "walking fashion frame with movement in fabric and hair",
   "side profile editorial crop with strong jawline and posture",
-  "over-the-shoulder portrait with luxury campaign energy",
+  "over-the-shoulder portrait with grounded studio energy",
 ];
 
 const expressionIdeas = [
@@ -132,13 +132,13 @@ const expressionIdeas = [
   "fresh luminous beauty expression",
   "playful but refined attitude",
   "calm poised confidence",
-  "elevated campaign energy",
+  "quiet confident energy",
   "magazine-cover presence",
 ];
 
 const polishRules = [
   "photorealistic",
-  "premium retouching while keeping natural skin texture",
+  "light professional retouching while keeping natural skin texture",
   "accurate anatomy",
   "realistic hands and fingers",
   "tasteful editorial styling",
@@ -149,16 +149,21 @@ const polishRules = [
   "no duplicated limbs",
   "no uncanny eyes",
   "no plastic skin",
+  "no CGI look",
+  "no doll-like facial symmetry",
+  "no mannequin pose",
+  "no overly smooth gradient background",
+  "keep natural fabric folds and believable garment wrinkles",
 ];
 
 const stylingNotesIdeas = [
-  "seamless studio set, luxury beauty retouching, elite commercial polish, expensive campaign finish",
-  "premium gold jewelry, refined manicure, polished campaign finish",
-  "minimalist styling, clean silhouette, luxury catalogue energy",
-  "soft glam makeup, elevated accessories, modern editorial polish",
-  "sleek fashion styling, restrained palette, premium beauty detail",
-  "high-end commercial styling, wearable luxury, crisp finish",
-  "editorial sophistication, elegant textures, confident campaign energy",
+  "clean studio set, restrained retouching, believable beauty finish, polished but real commercial result",
+  "refined jewelry, clean manicure, polished studio realism",
+  "minimalist styling, clean silhouette, grounded catalogue energy",
+  "soft glam makeup, restrained accessories, modern editorial realism",
+  "sleek fashion styling, restrained palette, believable beauty detail",
+  "high-end commercial styling with real fabric texture and crisp finish",
+  "editorial sophistication, elegant textures, and believable studio realism",
 ];
 
 const openAiSizeByAspectRatio: Record<StudioAspectRatio, "1024x1024" | "1024x1536" | "1536x1024"> = {
@@ -410,11 +415,11 @@ export function buildSecretStudioPrompt({
       : "";
 
   const prompt = [
-    "Create a premium professional fashion photo of the same adult woman shown in the reference images.",
+    "Create a believable professional studio fashion photo of the same adult woman shown in the reference images.",
     "Preserve her exact identity, facial structure, skin tone, body proportions, smile, and beauty details so she remains unmistakably the same person.",
     identityLockInstructions,
     openAiIdentityLock,
-    "Visual target: an ultra-professional studio photoshoot with elite commercial polish, as if captured on an extraordinary world-class medium-format fashion setup.",
+    "Visual target: a real studio photograph by a top commercial photographer, not CGI, not synthetic, not beauty-filtered, and not overly airbrushed.",
     `Creative direction: ${creativeDirection}.`,
     `Wardrobe: ${wardrobe}.`,
     `Album continuity rule: keep the exact same wardrobe, same outfit pieces, same accessories, same makeup direction, and same hairstyle across every image in this album.`,
@@ -429,10 +434,13 @@ export function buildSecretStudioPrompt({
     `Expression: ${expression}.`,
     `Aspect ratio target: ${aspectRatio}.`,
     "Eye color must be dark brown.",
+    "Use grounded realism over stylized glamour.",
+    "Keep facial proportions natural, skin pores visible, studio shadows believable, and clothing construction realistic.",
+    "Avoid generic AI fashion look, waxy skin, over-designed wardrobe, fake facial symmetry, and synthetic background gradients.",
     "Only the pose, framing, expression, and camera crop may change from shot to shot. Do not change haircut, hair styling, wardrobe, set concept, or beauty styling within the album.",
-    "Prefer a polished studio environment, seamless premium backdrop, controlled shadows, elegant contrast, crisp facial detail, and expensive commercial beauty finish.",
-    "The final image must look like a real luxury editorial photoshoot, fully clothed, tasteful, elegant, and commercially usable.",
-    "Keep the styling elevated, photorealistic, and current. Add natural micro-details in skin, hair, fabric texture, and lighting falloff.",
+    "Prefer a polished studio environment, clean seamless backdrop, controlled shadows, restrained contrast, crisp facial detail, and realistic beauty finish.",
+    "The final image must look like a real contemporary editorial photoshoot, fully clothed, tasteful, elegant, and commercially usable.",
+    "Keep the styling elevated but believable. Add natural micro-details in skin, hair, fabric texture, seams, folds, and lighting falloff.",
     `Follow these quality rules: ${polishRules.join(", ")}.`,
     notes ? `Extra creative notes from the user: ${notes.trim()}.` : "",
   ]

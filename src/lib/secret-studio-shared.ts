@@ -45,18 +45,18 @@ export const STUDIO_PRESETS: StudioPreset[] = [
   {
     id: "white_seamless",
     label: "White Seamless",
-    description: "Estudio blanco limpio, lujo comercial, sombras suaves.",
+    description: "Estudio blanco limpio, sombras suaves, look editorial real.",
     notes:
-      "Pristine white seamless studio, premium commercial lighting, elegant beauty finish, dark-brown eyes, clean luxury atmosphere.",
+      "Clean white seamless studio, controlled commercial lighting, elegant beauty finish, dark-brown eyes, grounded studio atmosphere.",
     plan: {
-      creativeDirection: "pristine white seamless luxury studio campaign",
-      location: "a pristine luxury white seamless studio with subtle sculpted shadows",
+      creativeDirection: "clean white seamless studio portrait",
+      location: "a clean white seamless studio with subtle sculpted shadows",
       lighting:
-        "ultra-refined studio softbox lighting with perfect highlight rolloff and luxury skin rendering",
+        "controlled studio softbox lighting with natural highlight rolloff and believable skin texture",
       lens:
-        "captured on a top-tier medium-format studio setup with ultra-premium optics, immaculate dynamic range, and luxury campaign detail",
+        "captured like a real professional studio photograph with natural depth of field and believable lens behavior",
       stylingNotes:
-        "clean luxury, seamless studio atmosphere, polished commercial beauty finish",
+        "clean studio atmosphere, polished beauty finish, restrained retouching",
     },
   },
   {
@@ -64,12 +64,12 @@ export const STUDIO_PRESETS: StudioPreset[] = [
     label: "Warm Beige Studio",
     description: "Fondo beige cálido, editorial limpio, piel luminosa.",
     notes:
-      "Warm beige studio, refined editorial portraiture, luminous skin, premium campaign feel, dark-brown eyes.",
+      "Warm beige studio, refined editorial portraiture, luminous skin, dark-brown eyes.",
     plan: {
-      creativeDirection: "warm beige editorial campaign",
+      creativeDirection: "warm beige editorial portrait",
       location: "a refined beige editorial set with textured walls",
       lighting:
-        "soft diffused studio lighting with elegant skin highlights",
+        "soft diffused studio lighting with elegant skin highlights and believable shadow falloff",
       stylingNotes:
         "warm neutral palette, polished beauty finish, editorial softness",
     },
@@ -79,16 +79,16 @@ export const STUDIO_PRESETS: StudioPreset[] = [
     label: "Beauty Close Crop",
     description: "Close-up potente de rostro, piel, ojos y pelo.",
     notes:
-      "Beauty close crop, premium skin detail, expensive close-up portraiture, dark-brown eyes, controlled studio light.",
+      "Beauty close crop, detailed skin texture, close-up portraiture, dark-brown eyes, controlled studio light.",
     plan: {
-      creativeDirection: "high-end beauty editorial",
+      creativeDirection: "beauty editorial portrait",
       albumPose: "close beauty crop with a soft head tilt and direct gaze",
       lighting:
-        "beauty-dish lighting with premium magazine finish",
+        "beauty-dish lighting with realistic skin texture and precise facial definition",
       lens:
-        "captured on a medium-format style portrait setup with luxurious detail",
+        "captured like a high-end portrait session with detailed skin texture and believable optics",
       stylingNotes:
-        "expensive beauty crop, skin detail, elegant facial presence",
+        "close beauty crop, skin detail, elegant facial presence",
     },
   },
   {
@@ -96,12 +96,12 @@ export const STUDIO_PRESETS: StudioPreset[] = [
     label: "Full-Body Catalogue",
     description: "Fotos de cuerpo completo, claras, útiles y comerciales.",
     notes:
-      "Full-body catalogue clarity, clean commercial posing, premium fashion presentation, dark-brown eyes.",
+      "Full-body catalogue clarity, clean commercial posing, dark-brown eyes.",
     plan: {
-      creativeDirection: "modern catalogue campaign",
+      creativeDirection: "modern catalogue portrait",
       albumPose: "standing with one shoulder angled toward camera, confident posture, subtle movement in the hips",
       lighting:
-        "clean white seamless studio lighting with subtle shadow definition",
+        "clean white seamless studio lighting with subtle but believable shadow definition",
       stylingNotes:
         "commercial catalogue clarity, full look visibility, clean structure",
     },
@@ -109,15 +109,15 @@ export const STUDIO_PRESETS: StudioPreset[] = [
   {
     id: "seated_studio",
     label: "Seated Studio",
-    description: "Retratos sentados, elegantes, controlados y premium.",
+    description: "Retratos sentados, elegantes y controlados.",
     notes:
-      "Seated studio portraits, refined posture, premium commercial elegance, dark-brown eyes.",
+      "Seated studio portraits, refined posture, dark-brown eyes.",
     plan: {
       creativeDirection: "minimal studio fashion story",
       albumPose: "seated on a clean studio cube with elegant posture and relaxed hands",
-      location: "a premium white cyc studio",
+      location: "a clean white cyc studio",
       stylingNotes:
-        "elegant seated portrait series, polished luxury posture, campaign restraint",
+        "elegant seated portrait series, polished posture, restrained studio styling",
     },
   },
   {
@@ -125,16 +125,16 @@ export const STUDIO_PRESETS: StudioPreset[] = [
     label: "Commercial Denim",
     description: "Tanque blanco y denim limpio, look comercial poderoso.",
     notes:
-      "Commercial denim session, premium white tank, polished jeans styling, studio realism, dark-brown eyes.",
+      "Commercial denim session, white tank, polished jeans styling, studio realism, dark-brown eyes.",
     plan: {
-      creativeDirection: "high-end social campaign",
+      creativeDirection: "commercial denim portrait",
       wardrobe:
-        "a crisp white tank with premium denim, a polished belt, and pointed heels",
-      location: "a pristine luxury white seamless studio with subtle sculpted shadows",
+        "a crisp white tank with clean denim, a polished belt, and pointed heels",
+      location: "a clean white seamless studio with subtle sculpted shadows",
       lighting:
-        "soft diffused studio lighting with elegant skin highlights",
+        "soft diffused studio lighting with elegant skin highlights and believable shadow falloff",
       stylingNotes:
-        "premium denim commercial shoot, polished basics, clean campaign finish",
+        "clean denim studio shoot, polished basics, restrained finish",
     },
   },
 ];
@@ -184,9 +184,7 @@ export function getStudioEstimatedCost({
     amountUsd,
     label: `~US$${amountUsd.toFixed(2)}`,
     providerNote:
-      googleQualityMode === "premium"
-        ? "Estimado usando Google Premium en imagen nativa. Es el modo más caro, pero el más fuerte para identidad."
-        : "Estimado usando Google Economy. Lo dejé barato, pero sigue siendo mucho más flojo que Premium.",
+      "Estimado provisional para la generación de Google en modo Pro Image dentro de Vertex. La prioridad aquí es calidad, no ahorro.",
   };
 }
 

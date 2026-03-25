@@ -198,14 +198,12 @@ export default function SecretStudioClient({
         googleQualityMode,
       })
     : null;
-  const effectiveReferenceLimit = provider === "google" ? 2 : 4;
+  const effectiveReferenceLimit = provider === "google" ? 6 : 4;
   const effectiveReferences = references.slice(0, effectiveReferenceLimit);
 
   const providerDescription = useMemo(() => {
     if (provider === "google") {
-      return googleQualityMode === "premium"
-        ? "Google Premium es el modo fuerte: más fiel con rostro, más serio para estudio y bastante más caro. En 3:4 Vertex solo admite 2 referencias por álbum."
-        : "Google Economy usa Flash para ahorrar, pero cae en calidad y consistencia facial. En 3:4 Vertex solo admite 2 referencias por álbum.";
+      return "Google ahora corre en Pro Image por Vertex: prioriza realismo, anatomía y piel creíble usando varias referencias faciales. Aquí el costo ya no es la prioridad.";
     }
 
     if (provider === "openai") {
@@ -213,7 +211,7 @@ export default function SecretStudioClient({
     }
 
     return "";
-  }, [provider, googleQualityMode]);
+  }, [provider]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -569,7 +567,7 @@ export default function SecretStudioClient({
 
       if (message.includes("504") || message.toLowerCase().includes("timeout")) {
         setError(
-          "El álbum tardó demasiado. Prueba 6 fotos o usa Google Premium para una entrega más estable."
+          "El álbum tardó demasiado. Prueba 6 fotos o vuelve a intentar con Google Pro Image para una entrega más estable."
         );
       } else {
         setError(message);
@@ -802,37 +800,13 @@ export default function SecretStudioClient({
               </div>
 
               {provider === "google" ? (
-                <div className="mt-3 grid grid-cols-2 gap-3">
-                  {([
-                    {
-                      id: "premium",
-                      title: "Google Premium",
-                      description: "Identidad mejor, look más serio, más caro.",
-                    },
-                    {
-                      id: "economy",
-                      title: "Google Economy",
-                      description: "Más barato, pero claramente más flojo.",
-                    },
-                  ] as const).map((item) => (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => setGoogleQualityMode(item.id)}
-                      className={`rounded-[1.2rem] border px-4 py-4 text-left transition ${
-                        googleQualityMode === item.id
-                          ? "border-[#d8bb8e] bg-[rgba(216,187,142,0.14)]"
-                          : "border-white/10 bg-white/4"
-                      }`}
-                    >
-                      <p className="text-[0.66rem] uppercase tracking-[0.24em] text-[#d8bb8e]">
-                        {item.title}
-                      </p>
-                      <p className="mt-2 text-sm leading-6 text-[#f7efe4]/68">
-                        {item.description}
-                      </p>
-                    </button>
-                  ))}
+                <div className="mt-3 rounded-[1.2rem] border border-[#d8bb8e]/22 bg-[rgba(216,187,142,0.08)] px-4 py-4">
+                  <p className="text-[0.66rem] uppercase tracking-[0.24em] text-[#d8bb8e]">
+                    Google Pro Image
+                  </p>
+                  <p className="mt-2 text-sm leading-6 text-[#f7efe4]/68">
+                    El backend ya no usa modo económico. Google genera con el modelo Pro de imagen en Vertex para priorizar piel, anatomía y realismo.
+                  </p>
                 </div>
               ) : null}
 
@@ -914,7 +888,7 @@ export default function SecretStudioClient({
 
               {provider === "google" ? (
                 <p className="mt-3 text-sm leading-6 text-[#f7efe4]/56">
-                  En Vertex AI dejo la generación real fijada a `3:4` para Imagen 3 con referencia facial, aunque aquí sigas viendo el selector.
+                  En Google Pro Image dejo la generación real fijada a `3:4` para retrato vertical consistente.
                 </p>
               ) : null}
 
@@ -984,7 +958,7 @@ export default function SecretStudioClient({
                   </p>
                   <p className="mt-2 text-sm leading-6 text-[#f7efe4]/62">
                     {provider === "google"
-                      ? "Con Google Vertex en 3:4 se usan máximo 2 referencias por álbum para mantener identidad estable."
+                      ? "Con Google Pro Image puedes usar varias referencias limpias del rostro y cuerpo para fijar mejor la identidad."
                       : "Con OpenAI puedes usar hasta 4 referencias limpias del rostro y cuerpo para mantener la identidad estable."}
                   </p>
                   {references.length > effectiveReferenceLimit ? (

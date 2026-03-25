@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createHash } from "crypto";
 import { GoogleAuth } from "google-auth-library";
 import {
   GoogleQualityMode,
@@ -102,16 +103,20 @@ type StreamEvent =
     };
 
 const maxReferencesByProvider: Record<StudioProvider, number> = {
-  google: 2,
+  google: 6,
   openai: 4,
 };
 
 const VERTEX_GEMINI_MODEL =
   process.env.VERTEX_GEMINI_MODEL || "gemini-2.5-flash";
-const VERTEX_IMAGEN_MODEL =
-  process.env.VERTEX_IMAGEN_MODEL || "imagen-3.0-capability-001";
-const VERTEX_IMAGEN_ASPECT_RATIO = "3:4";
-const VERTEX_IMAGEN_GUIDANCE_SCALE = 60;
+const VERTEX_GOOGLE_IMAGE_MODEL =
+  process.env.VERTEX_GOOGLE_IMAGE_MODEL ||
+  process.env.VERTEX_IMAGEN_MODEL ||
+  "gemini-3-pro-image-preview";
+const VERTEX_GOOGLE_IMAGE_LOCATION =
+  process.env.VERTEX_GOOGLE_IMAGE_LOCATION || "global";
+const VERTEX_GOOGLE_IMAGE_ASPECT_RATIO = "3:4";
+const VERTEX_GOOGLE_IMAGE_SIZE = "4K";
 const DEFAULT_CLOUDINARY_CLOUD_NAME = "dwpbbjp1d";
 const DEFAULT_CLOUDINARY_UPLOAD_PRESET = "robeanny_unsigned";
 const DEFAULT_CLOUDINARY_FOLDER = "robeanny";
@@ -234,6 +239,11 @@ function toVertexCompatibleReferenceUrl(url: string) {
   }
 
   return url.replace("/image/upload/", "/image/upload/f_jpg,q_auto/");
+}
+
+function createVertexSeed(...parts: Array<string | number>) {
+  const hash = createHash("sha1").update(parts.join("|")).digest("hex");
+  return Number.parseInt(hash.slice(0, 8), 16);
 }
 
 async function getVertexAccessToken() {
@@ -424,23 +434,22 @@ async function generateWithOpenAi({
   throw new Error("OpenAI respondió sin imagen utilizable.");
 }
 
-async function generateWithVertexImagen({
+async function generateWithVertexGeminiImage({
   prompt,
   aspectRatio,
-  googleQualityMode,
   references,
+  seed,
 }: {
   prompt: string;
   aspectRatio: StudioAspectRatio;
-  googleQualityMode: GoogleQualityMode;
   references: PreparedReference[];
+  seed: number;
 }) {
-  const { projectId, location } = getVertexSession();
+  const { projectId } = getVertexSession();
   const token = await getVertexAccessToken();
-  const subjectDescription =
-    "the exact adult woman from the provided references, dark-brown eyes, refined facial structure, premium studio beauty";
+  const location = VERTEX_GOOGLE_IMAGE_LOCATION;
   const response = await fetch(
-    `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/${VERTEX_IMAGEN_MODEL}:predict`,
+    `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/${VERTEX_GOOGLE_IMAGE_MODEL}:generateContent`,
     {
       method: "POST",
       headers: {
@@ -448,38 +457,64 @@ async function generateWithVertexImagen({
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
-        instances: [
+        systemInstruction: {
+          parts: [
+            {
+              text: [
+                "Generate a realistic studio fashion photograph.",
+                "Treat facial identity preservation as a hard constraint.",
+                "The woman must remain the exact same real adult woman shown in the references.",
+                "Keep dark-brown eyes, real skin texture, believable pores, natural asymmetry, and non-waxy skin.",
+                "Avoid CGI look, waxy skin, mannequin posture, distorted anatomy, extra fingers, extra limbs, generic beauty-face, and fake gradient backgrounds.",
+                "Prefer grounded studio realism over stylized glamour.",
+              ].join(" "),
+            },
+          ],
+        },
+        contents: [
           {
-            prompt: [
-              prompt,
-              "Use subject reference [1] as the exact facial identity anchor.",
-              "Keep the same adult woman recognizable across every shot.",
-              "Prioritize studio-grade photorealism, premium skin detail, and dark-brown eyes.",
-            ].join(" "),
-            referenceImages: references.map((reference, index) => ({
-              referenceType: "REFERENCE_TYPE_SUBJECT",
-              referenceId: index + 1,
-              referenceImage: {
-                bytesBase64Encoded: reference.base64,
-                mimeType: reference.mimeType,
+            role: "user",
+            parts: [
+              ...references.map((reference) => ({
+                inlineData: {
+                  mimeType: reference.mimeType,
+                  data: reference.base64,
+                },
+              })),
+              {
+                text: [
+                  prompt,
+                  "Use all attached reference photos as the same real woman.",
+                  "Preserve her exact face, skin tone, hairline, jawline, nose, lips, and dark-brown eyes.",
+                  "Create one single highly realistic studio photo with believable lighting, believable clothing construction, and natural human anatomy.",
+                ].join(" "),
               },
-              subjectImageConfig: {
-                subjectDescription,
-                subjectType: "SUBJECT_TYPE_PERSON",
-              },
-            })),
+            ],
           },
         ],
-        parameters: {
-          sampleCount: 1,
-          aspectRatio:
-            aspectRatio === "3:4" ? aspectRatio : VERTEX_IMAGEN_ASPECT_RATIO,
-          personGeneration: "allow_all",
-          guidanceScale: VERTEX_IMAGEN_GUIDANCE_SCALE,
-          language: "en",
-          safetySetting: "block_only_high",
-          addWatermark: false,
+        generationConfig: {
+          responseModalities: ["TEXT", "IMAGE"],
+          candidateCount: 1,
+          temperature: 0.2,
+          topP: 0.9,
+          seed,
+          imageConfig: {
+            aspectRatio:
+              aspectRatio === "3:4" ? aspectRatio : VERTEX_GOOGLE_IMAGE_ASPECT_RATIO,
+            imageSize: VERTEX_GOOGLE_IMAGE_SIZE,
+            personGeneration: "allow_all",
+            imageOutputOptions: {
+              mimeType: "image/jpeg",
+            },
+          },
         },
+        safetySettings: [
+          {
+            method: "PROBABILITY",
+            category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+            threshold: "BLOCK_ONLY_HIGH",
+          },
+        ],
       }),
     }
   );
@@ -493,17 +528,28 @@ async function generateWithVertexImagen({
     throw new Error(message);
   }
 
-  const prediction = payload?.predictions?.[0];
-  const base64 =
-    prediction?.bytesBase64Encoded ||
-    prediction?.image?.bytesBase64Encoded ||
-    prediction?.bytesBase64;
+  const candidateParts = payload?.candidates?.[0]?.content?.parts;
+  const imagePart = Array.isArray(candidateParts)
+    ? candidateParts.find(
+        (part: Record<string, unknown>) =>
+          typeof part?.inlineData === "object" &&
+          !!(part.inlineData as Record<string, unknown>)?.data
+      )
+    : null;
+  const inlineData =
+    (imagePart as { inlineData?: { data?: string; mimeType?: string } } | null)
+      ?.inlineData || null;
+  const base64 = inlineData?.data;
+  const mimeType = inlineData?.mimeType || "image/jpeg";
 
   if (!base64) {
+    const messagePart = Array.isArray(candidateParts)
+      ? candidateParts.find(
+          (part: Record<string, unknown>) => typeof part?.text === "string"
+        )
+      : null;
     const raiReason =
-      prediction?.raiFilteredReason ||
-      prediction?.raiFilterReason ||
-      payload?.error?.message;
+      (messagePart as { text?: string } | null)?.text || payload?.error?.message;
 
     throw new Error(
       raiReason ||
@@ -511,7 +557,7 @@ async function generateWithVertexImagen({
     );
   }
 
-  return `data:image/png;base64,${base64}`;
+  return `data:${mimeType};base64,${base64}`;
 }
 
 function extractJsonObject(text: string) {
@@ -604,9 +650,9 @@ async function generateCreativePlan({
     "Create a distinct fashion album recipe for a real adult female model based on photo references.",
     "Return JSON only with these keys: creativeDirection, wardrobe, albumPose, hair, lighting, location, lens, stylingNotes.",
     "Make the album feel meaningfully different from the recent recipes while staying inside the preset direction.",
-    "Keep it premium, commercial, elegant, wearable, and fully clothed.",
+    "Keep it grounded, commercial, elegant, wearable, and fully clothed.",
     "The same woman must remain recognizable, with dark-brown eyes.",
-    "Strong preference: polished professional studio imagery, seamless clean backdrop, luxury campaign lighting, expensive commercial beauty finish, world-class medium-format feel.",
+    "Strong preference: polished studio imagery, clean backdrop, believable lighting, real skin texture, and natural human anatomy.",
     `Freshness token: ${albumSeed}-${attempt}.`,
     `Requested preset direction: ${direction}.`,
     `Preset description: ${presetDescription}.`,
@@ -912,10 +958,8 @@ export async function POST(request: NextRequest) {
           requestedProvider === "google" ? googleQualityMode : null,
         note:
           requestedProvider === "google"
-            ? googleQualityMode === "premium"
-              ? "Google Vertex Premium usa Imagen 3 capability en 2K con referencias faciales, guidance alto y autenticación por Vertex AI."
-              : "Google Vertex Economy usa el mismo flujo de Vertex AI pero en 1K para ahorrar costo."
-            : "OpenAI queda marcado como experimental: tarda más y aquí sigue siendo menos fiel para realismo que Google Premium.",
+            ? "Google Vertex usa Gemini 3 Pro Image con referencias múltiples, salida máxima y foco total en realismo facial."
+            : "OpenAI queda marcado como experimental: tarda más y aquí sigue siendo menos fiel para realismo que Google Pro Image.",
         presetId,
       });
 
@@ -932,11 +976,11 @@ export async function POST(request: NextRequest) {
         prompts.map((item, index) => async () => {
           const generatedDataUrl =
             requestedProvider === "google"
-              ? await generateWithVertexImagen({
+              ? await generateWithVertexGeminiImage({
                   prompt: item.prompt,
                   aspectRatio: effectiveAspectRatio,
-                  googleQualityMode,
                   references: preparedReferences,
+                  seed: createVertexSeed(albumSeed, item.prompt, index),
                 })
               : await generateWithOpenAi({
                   prompt: item.prompt,
