@@ -104,7 +104,7 @@ type StreamEvent =
 
 const maxReferencesByProvider: Record<StudioProvider, number> = {
   google: 6,
-  openai: 4,
+  openai: 3,
 };
 
 const VERTEX_GEMINI_MODEL =
@@ -381,10 +381,12 @@ async function generateWithOpenAi({
   prompt,
   aspectRatio,
   references,
+  hasAlbumAnchor = false,
 }: {
   prompt: string;
   aspectRatio: StudioAspectRatio;
   references: PreparedReference[];
+  hasAlbumAnchor?: boolean;
 }) {
   const response = await fetch("https://api.openai.com/v1/images/edits", {
     method: "POST",
@@ -394,10 +396,17 @@ async function generateWithOpenAi({
     },
     body: JSON.stringify({
       model: "gpt-image-1.5",
-      prompt,
+      prompt: [
+        prompt,
+        hasAlbumAnchor
+          ? "Use the first reference as the album anchor and preserve its exact same woman, same styling, same face, and same set continuity."
+          : "Use the first reference as the primary face anchor with the highest fidelity.",
+      ].join(" "),
       size: getOpenAiImageSize(aspectRatio),
       quality: "high",
       input_fidelity: "high",
+      output_format: "jpeg",
+      output_compression: 90,
       images: references.map((reference) => ({
         image_url: `data:${reference.mimeType};base64,${reference.base64}`,
       })),
@@ -1111,45 +1120,101 @@ export async function POST(request: NextRequest) {
                 (left, right) => left.index - right.index
               );
             })()
-          : await runWithConcurrency(
-              prompts.map((item, index) => async () => {
-                const generatedDataUrl = await generateWithOpenAi({
-                  prompt: item.prompt,
-                  aspectRatio: effectiveAspectRatio,
-                  references: preparedReferences,
-                });
-                const uploaded = await uploadGeneratedImageToCloudinary({
-                  file: generatedDataUrl,
-                  filename: `shot-${index + 1}-${Date.now()}-${Math.random()
-                    .toString(36)
-                    .slice(2, 8)}`,
-                  folderOverride: albumFolder,
-                });
+          : await (async () => {
+              const openAiBaseReferences = preparedReferences.slice(
+                0,
+                Math.min(preparedReferences.length, 3)
+              );
+              const firstPrompt = prompts[0];
+              const firstDataUrl = await generateWithOpenAi({
+                prompt: firstPrompt.prompt,
+                aspectRatio: effectiveAspectRatio,
+                references: openAiBaseReferences,
+                hasAlbumAnchor: false,
+              });
+              const albumAnchorReference = dataUrlToReference(
+                firstDataUrl,
+                "openai-album-anchor"
+              );
+              const firstUploaded = await uploadGeneratedImageToCloudinary({
+                file: firstDataUrl,
+                filename: `shot-1-${Date.now()}-${Math.random()
+                  .toString(36)
+                  .slice(2, 8)}`,
+                folderOverride: albumFolder,
+              });
 
-                return {
-                  index,
-                  imageUrl: uploaded.secureUrl,
-                  cloudinaryPublicId: uploaded.publicId,
-                  cloudinaryFolder: uploaded.folder,
-                  prompt: item.prompt,
-                };
-              }),
-              3,
-              (result) => {
-                completed += 1;
-                send({
-                  type: "image",
-                  index: result.index,
-                  imageUrl: result.imageUrl,
-                  cloudinaryPublicId: result.cloudinaryPublicId,
-                  cloudinaryFolder: result.cloudinaryFolder,
-                  prompt: result.prompt,
-                  completed,
-                  total: albumSize,
-                  stage: `Foto ${completed} de ${albumSize} lista.`,
-                });
-              }
-            );
+              completed += 1;
+              const firstResult = {
+                index: 0,
+                imageUrl: firstUploaded.secureUrl,
+                cloudinaryPublicId: firstUploaded.publicId,
+                cloudinaryFolder: firstUploaded.folder,
+                prompt: firstPrompt.prompt,
+              };
+
+              send({
+                type: "image",
+                index: firstResult.index,
+                imageUrl: firstResult.imageUrl,
+                cloudinaryPublicId: firstResult.cloudinaryPublicId,
+                cloudinaryFolder: firstResult.cloudinaryFolder,
+                prompt: firstResult.prompt,
+                completed,
+                total: albumSize,
+                stage: `Foto ${completed} de ${albumSize} lista.`,
+              });
+
+              const remainingResults = await runWithConcurrency(
+                prompts.slice(1).map((item, offset) => async () => {
+                  const index = offset + 1;
+                  const activeReferences = [albumAnchorReference, ...openAiBaseReferences].slice(
+                    0,
+                    4
+                  );
+                  const generatedDataUrl = await generateWithOpenAi({
+                    prompt: item.prompt,
+                    aspectRatio: effectiveAspectRatio,
+                    references: activeReferences,
+                    hasAlbumAnchor: true,
+                  });
+                  const uploaded = await uploadGeneratedImageToCloudinary({
+                    file: generatedDataUrl,
+                    filename: `shot-${index + 1}-${Date.now()}-${Math.random()
+                      .toString(36)
+                      .slice(2, 8)}`,
+                    folderOverride: albumFolder,
+                  });
+
+                  return {
+                    index,
+                    imageUrl: uploaded.secureUrl,
+                    cloudinaryPublicId: uploaded.publicId,
+                    cloudinaryFolder: uploaded.folder,
+                    prompt: item.prompt,
+                  };
+                }),
+                2,
+                (result) => {
+                  completed += 1;
+                  send({
+                    type: "image",
+                    index: result.index,
+                    imageUrl: result.imageUrl,
+                    cloudinaryPublicId: result.cloudinaryPublicId,
+                    cloudinaryFolder: result.cloudinaryFolder,
+                    prompt: result.prompt,
+                    completed,
+                    total: albumSize,
+                    stage: `Foto ${completed} de ${albumSize} lista.`,
+                  });
+                }
+              );
+
+              return [firstResult, ...remainingResults].sort(
+                (left, right) => left.index - right.index
+              );
+            })();
 
       if (!images.length) {
         throw new Error("No pude completar el álbum en esta generación.");

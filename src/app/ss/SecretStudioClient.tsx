@@ -227,7 +227,7 @@ export default function SecretStudioClient({
     }
 
     if (provider === "openai") {
-      return "OpenAI queda como experimental: tarda más, puede verse más fake y no lo pondría como motor principal aquí.";
+      return "OpenAI ahora usa una foto ancla para el álbum y menos referencias faciales para evitar drift. Suele arrancar más lento que Google, pero ya no está como simple relleno.";
     }
 
     return "";
