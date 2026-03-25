@@ -52,6 +52,12 @@ type VertexSession = {
   auth: GoogleAuth;
 };
 
+type CloudinaryUploadResult = {
+  secureUrl: string;
+  publicId: string;
+  folder: string;
+};
+
 type StreamEvent =
   | {
       type: "meta";
@@ -78,6 +84,8 @@ type StreamEvent =
       type: "image";
       index: number;
       imageUrl: string;
+      cloudinaryPublicId?: string;
+      cloudinaryFolder?: string;
       prompt: string;
       completed: number;
       total: number;
@@ -104,9 +112,13 @@ const VERTEX_IMAGEN_MODEL =
   process.env.VERTEX_IMAGEN_MODEL || "imagen-3.0-capability-001";
 const VERTEX_IMAGEN_ASPECT_RATIO = "3:4";
 const VERTEX_IMAGEN_GUIDANCE_SCALE = 60;
+const DEFAULT_CLOUDINARY_CLOUD_NAME = "dwpbbjp1d";
+const DEFAULT_CLOUDINARY_UPLOAD_PRESET = "robeanny_unsigned";
+const DEFAULT_CLOUDINARY_FOLDER = "robeanny";
 
 let cachedVertexSession: VertexSession | null = null;
 let cachedVertexSessionKey = "";
+let cloudinaryPresetEnsured = false;
 
 function isAspectRatio(value: string): value is StudioAspectRatio {
   return ["1:1", "3:4", "4:5", "9:16", "16:9"].includes(value);
@@ -213,6 +225,117 @@ async function getVertexAccessToken() {
   }
 
   return token;
+}
+
+function getCloudinaryConfig() {
+  return {
+    cloudName:
+      process.env.CLOUDINARY_CLOUD_NAME || DEFAULT_CLOUDINARY_CLOUD_NAME,
+    uploadPreset:
+      process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET ||
+      DEFAULT_CLOUDINARY_UPLOAD_PRESET,
+    folder:
+      process.env.NEXT_PUBLIC_CLOUDINARY_FOLDER || DEFAULT_CLOUDINARY_FOLDER,
+    apiKey: process.env.CLOUDINARY_API_KEY || "",
+    apiSecret: process.env.CLOUDINARY_API_SECRET || "",
+  };
+}
+
+async function ensureCloudinaryPresetServer() {
+  if (cloudinaryPresetEnsured) return;
+
+  const { cloudName, uploadPreset, folder, apiKey, apiSecret } =
+    getCloudinaryConfig();
+
+  if (!apiKey || !apiSecret) {
+    cloudinaryPresetEnsured = true;
+    return;
+  }
+
+  const auth = Buffer.from(`${apiKey}:${apiSecret}`).toString("base64");
+  const body = new URLSearchParams({
+    name: uploadPreset,
+    unsigned: "true",
+    folder,
+    asset_folder: folder,
+    use_filename: "true",
+    unique_filename: "true",
+    overwrite: "false",
+    disallow_public_id: "false",
+    tags: "robeanny,secret-studio",
+    allowed_formats: "png,jpg,jpeg,webp,avif",
+  });
+
+  const response = await fetch(
+    `https://api.cloudinary.com/v1_1/${cloudName}/upload_presets`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Basic ${auth}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body,
+    }
+  );
+
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null);
+    const message = payload?.error?.message || payload?.message || "";
+
+    if (
+      !message.toLowerCase().includes("already exists") &&
+      !message.toLowerCase().includes("existing")
+    ) {
+      throw new Error(
+        message ||
+          "Cloudinary no permitió preparar el upload preset unsigned."
+      );
+    }
+  }
+
+  cloudinaryPresetEnsured = true;
+}
+
+async function uploadGeneratedImageToCloudinary({
+  file,
+  filename,
+  tags = "robeanny,secret-studio,generated",
+}: {
+  file: string;
+  filename: string;
+  tags?: string;
+}): Promise<CloudinaryUploadResult> {
+  const { cloudName, uploadPreset, folder } = getCloudinaryConfig();
+  const formData = new FormData();
+
+  formData.append("file", file);
+  formData.append("upload_preset", uploadPreset);
+  formData.append("folder", folder);
+  formData.append("tags", tags);
+  formData.append("public_id", filename);
+
+  const response = await fetch(
+    `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+    {
+      method: "POST",
+      body: formData,
+    }
+  );
+
+  const payload = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(
+      payload?.error?.message ||
+        "Cloudinary no aceptó la imagen generada del Secret Studio."
+    );
+  }
+
+  return {
+    secureUrl: payload.secure_url,
+    publicId: payload.public_id,
+    folder: payload.folder || folder,
+  };
 }
 
 async function generateWithOpenAi({
@@ -742,6 +865,8 @@ export async function POST(request: NextRequest) {
     }
 
     return createStreamResponse(async (send) => {
+      await ensureCloudinaryPresetServer();
+
       send({
         type: "meta",
         provider: requestedProvider,
@@ -775,7 +900,7 @@ export async function POST(request: NextRequest) {
 
       const images = await runWithConcurrency(
         prompts.map((item, index) => async () => {
-          const imageUrl =
+          const generatedDataUrl =
             requestedProvider === "google"
               ? await generateWithVertexImagen({
                   prompt: item.prompt,
@@ -788,10 +913,18 @@ export async function POST(request: NextRequest) {
                   aspectRatio: effectiveAspectRatio,
                   references: preparedReferences,
                 });
+          const uploaded = await uploadGeneratedImageToCloudinary({
+            file: generatedDataUrl,
+            filename: `robeanny-generated-${Date.now()}-${index + 1}-${Math.random()
+              .toString(36)
+              .slice(2, 8)}`,
+          });
 
           return {
             index,
-            imageUrl,
+            imageUrl: uploaded.secureUrl,
+            cloudinaryPublicId: uploaded.publicId,
+            cloudinaryFolder: uploaded.folder,
             prompt: item.prompt,
           };
         }),
@@ -802,6 +935,8 @@ export async function POST(request: NextRequest) {
             type: "image",
             index: result.index,
             imageUrl: result.imageUrl,
+            cloudinaryPublicId: result.cloudinaryPublicId,
+            cloudinaryFolder: result.cloudinaryFolder,
             prompt: result.prompt,
             completed,
             total: albumSize,

@@ -34,7 +34,7 @@ La ruta `/ss` es una experiencia privada para crear sesiones de fotos artificial
 - Cada clic en `Generar nuevo álbum` crea un álbum completo.
 - Dentro del álbum se mantiene continuidad de ropa, peinado, maquillaje y look.
 - Entre álbumes se intenta evitar repetición de receta creativa.
-- Las imágenes pueden guardarse localmente en el navegador.
+- Las referencias y resultados viven en Cloudinary, y localmente solo se guarda metadata ligera.
 
 ## Flujo funcional
 
@@ -87,11 +87,13 @@ Cuando el usuario genera un álbum:
 5. Se generan 6 u 8 imágenes.
 6. Se devuelve el álbum a la UI.
 
-### 4. Guardado
+### 4. Cloudinary y guardado
 
-Las imágenes guardadas no van a un storage público.
+Las referencias subidas por el usuario se mandan a Cloudinary.
 
-Se guardan localmente en IndexedDB del navegador.
+Las imágenes generadas también se suben a Cloudinary antes de llegar a la UI.
+
+En IndexedDB del navegador solo queda metadata ligera con URLs remotas, prompts y receta.
 
 Archivo:
 
@@ -179,8 +181,20 @@ Responsabilidades:
 
 - abrir IndexedDB
 - listar fotos guardadas
-- guardar foto
+- guardar metadata de la foto
 - borrar foto
+
+### Cloudinary
+
+- `src/lib/secret-studio-cloudinary.ts`
+- `src/app/api/ss/cloudinary-bootstrap/route.ts`
+
+Responsabilidades:
+
+- preparar el preset unsigned
+- subir referencias del usuario
+- subir resultados generados
+- devolver URLs remotas para que la UI no cargue base64 gigantes
 
 ### Privacidad / SEO
 

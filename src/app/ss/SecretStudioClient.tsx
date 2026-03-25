@@ -26,6 +26,8 @@ import {
 type GeneratedShot = {
   id: string;
   imageUrl?: string;
+  cloudinaryPublicId?: string;
+  cloudinaryFolder?: string;
   prompt: string;
   provider: StudioProvider;
   providerLabel: string;
@@ -55,6 +57,8 @@ type ReferenceItem = {
   name: string;
   preview: string;
   value: string;
+  cloudinaryPublicId?: string;
+  cloudinaryFolder?: string;
   source: "fallback" | "upload";
 };
 
@@ -84,6 +88,8 @@ type GenerateStreamEvent =
       type: "image";
       index: number;
       imageUrl: string;
+      cloudinaryPublicId?: string;
+      cloudinaryFolder?: string;
       prompt: string;
       completed: number;
       total: number;
@@ -111,15 +117,6 @@ const SETTINGS_STORAGE_KEY = "robeanny-secret-studio-settings";
 
 function createId(prefix: string) {
   return `${prefix}-${Math.random().toString(36).slice(2, 10)}`;
-}
-
-function fileToDataUrl(file: File) {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result || ""));
-    reader.onerror = () => reject(new Error("No se pudo leer una de las fotos."));
-    reader.readAsDataURL(file);
-  });
 }
 
 function downloadImage(url: string, filename: string) {
@@ -340,15 +337,24 @@ export default function SecretStudioClient({
     if (!files.length) return;
 
     try {
+      await ensureSecretStudioCloudinaryPreset();
       const uploaded = await Promise.all(
         files.map(async (file) => {
-          const dataUrl = await fileToDataUrl(file);
+          const cloudinary = await uploadStudioImageToCloudinary({
+            file,
+            filename: `robeanny-reference-${Date.now()}-${Math.random()
+              .toString(36)
+              .slice(2, 8)}`,
+            tags: "robeanny,secret-studio,reference",
+          });
 
           return {
             id: createId("upload"),
             name: file.name,
-            preview: dataUrl,
-            value: dataUrl,
+            preview: cloudinary.secureUrl,
+            value: cloudinary.secureUrl,
+            cloudinaryPublicId: cloudinary.publicId,
+            cloudinaryFolder: cloudinary.folder,
             source: "upload" as const,
           };
         })
@@ -385,6 +391,7 @@ export default function SecretStudioClient({
       setProviderNote("");
       setShowFullPrompt(false);
       setLiveAlbum(null);
+      await ensureSecretStudioCloudinaryPreset();
 
       const albumSeed = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
       const excludedRecipeSignatures = sessionAlbums
@@ -500,6 +507,8 @@ export default function SecretStudioClient({
                   ...shot,
                   prompt: event.prompt,
                   imageUrl: event.imageUrl,
+                  cloudinaryPublicId: event.cloudinaryPublicId,
+                  cloudinaryFolder: event.cloudinaryFolder,
                   status: "ready",
                 };
                 streamedAlbum.completedCount = event.completed;
@@ -568,14 +577,6 @@ export default function SecretStudioClient({
     if (!shot.imageUrl) return;
 
     try {
-      await ensureSecretStudioCloudinaryPreset();
-      const uploaded = await uploadStudioImageToCloudinary({
-        imageUrl: shot.imageUrl,
-        filename: `robeanny-${Date.now()}-${Math.random()
-          .toString(36)
-          .slice(2, 8)}`,
-      });
-
       await saveStudioShot({
         id: shot.id,
         createdAt: new Date().toISOString(),
@@ -584,10 +585,10 @@ export default function SecretStudioClient({
         prompt: shot.prompt,
         notes: shot.notes,
         aspectRatio: shot.aspectRatio,
-        imageUrl: uploaded.secureUrl,
+        imageUrl: shot.imageUrl,
         storage: "cloudinary",
-        cloudinaryPublicId: uploaded.publicId,
-        cloudinaryFolder: uploaded.folder,
+        cloudinaryPublicId: shot.cloudinaryPublicId,
+        cloudinaryFolder: shot.cloudinaryFolder,
         recipe: shot.recipe,
       });
 
@@ -603,17 +604,8 @@ export default function SecretStudioClient({
 
   async function handleSaveAlbum(album: GeneratedAlbum) {
     try {
-      await ensureSecretStudioCloudinaryPreset();
-
       for (const shot of album.shots) {
         if (!shot.imageUrl) continue;
-
-        const uploaded = await uploadStudioImageToCloudinary({
-          imageUrl: shot.imageUrl,
-          filename: `robeanny-${Date.now()}-${Math.random()
-            .toString(36)
-            .slice(2, 8)}`,
-        });
 
         await saveStudioShot({
           id: `${album.id}-${shot.id}`,
@@ -623,10 +615,10 @@ export default function SecretStudioClient({
           prompt: shot.prompt,
           notes: shot.notes,
           aspectRatio: shot.aspectRatio,
-          imageUrl: uploaded.secureUrl,
+          imageUrl: shot.imageUrl,
           storage: "cloudinary",
-          cloudinaryPublicId: uploaded.publicId,
-          cloudinaryFolder: uploaded.folder,
+          cloudinaryPublicId: shot.cloudinaryPublicId,
+          cloudinaryFolder: shot.cloudinaryFolder,
           recipe: shot.recipe,
         });
       }

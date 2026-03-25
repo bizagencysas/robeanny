@@ -39,19 +39,21 @@ export async function ensureSecretStudioCloudinaryPreset() {
 }
 
 export async function uploadStudioImageToCloudinary({
-  imageUrl,
+  file,
   filename,
+  tags = "robeanny,secret-studio",
 }: {
-  imageUrl: string;
+  file: string | File;
   filename: string;
+  tags?: string;
 }): Promise<CloudinaryUploadResult> {
   const { cloudName, uploadPreset, folder } = getSecretStudioCloudinaryConfig();
   const formData = new FormData();
 
-  formData.append("file", imageUrl);
+  formData.append("file", file);
   formData.append("upload_preset", uploadPreset);
   formData.append("folder", folder);
-  formData.append("tags", "robeanny,secret-studio");
+  formData.append("tags", tags);
   formData.append("public_id", filename);
 
   const response = await fetch(
