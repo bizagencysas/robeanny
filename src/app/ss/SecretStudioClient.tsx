@@ -114,9 +114,29 @@ const aspectRatioOptions: StudioAspectRatio[] = [
 ];
 
 const SETTINGS_STORAGE_KEY = "robeanny-secret-studio-settings";
+const LEGACY_NOTES_PATTERNS = [
+  "ultra-professional studio shoot",
+  "seamless luxury backdrop",
+  "expensive commercial beauty finish",
+  "premium styling",
+  "clean luxury atmosphere",
+];
 
 function createId(prefix: string) {
   return `${prefix}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function sanitizeLegacyStudioNotes(value: string) {
+  const normalized = value.trim();
+
+  if (!normalized) return "";
+
+  const lowered = normalized.toLowerCase();
+  const hasLegacyPhrase = LEGACY_NOTES_PATTERNS.some((pattern) =>
+    lowered.includes(pattern)
+  );
+
+  return hasLegacyPhrase ? "" : normalized;
 }
 
 function downloadImage(url: string, filename: string) {
@@ -247,7 +267,9 @@ export default function SecretStudioClient({
       ) {
         setGoogleQualityMode(saved.googleQualityMode);
       }
-      if (saved.notes) setNotes(saved.notes);
+      if (typeof saved.notes === "string") {
+        setNotes(sanitizeLegacyStudioNotes(saved.notes));
+      }
     } catch {
       return;
     }

@@ -519,12 +519,23 @@ async function generateWithVertexGeminiImage({
     }
   );
 
-  const payload = await response.json().catch(() => null);
+  const raw = await response.text();
+  let payload: Record<string, unknown> | null = null;
+
+  if (raw) {
+    try {
+      payload = JSON.parse(raw) as Record<string, unknown>;
+    } catch {
+      payload = null;
+    }
+  }
 
   if (!response.ok) {
     const message =
-      payload?.error?.message ||
-      "Vertex AI no pudo generar la imagen en este momento.";
+      (payload?.error as { message?: string } | undefined)?.message ||
+      (payload?.message as string | undefined) ||
+      raw ||
+      `Vertex AI devolvió ${response.status}.`;
     throw new Error(message);
   }
 
@@ -958,7 +969,7 @@ export async function POST(request: NextRequest) {
           requestedProvider === "google" ? googleQualityMode : null,
         note:
           requestedProvider === "google"
-            ? "Google Vertex usa Gemini 3 Pro Image con referencias múltiples, salida máxima y foco total en realismo facial."
+            ? "Google Vertex usa Gemini 3 Pro Image con referencias múltiples y foco total en realismo facial."
             : "OpenAI queda marcado como experimental: tarda más y aquí sigue siendo menos fiel para realismo que Google Pro Image.",
         presetId,
       });
