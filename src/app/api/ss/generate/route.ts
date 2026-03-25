@@ -243,7 +243,8 @@ function toVertexCompatibleReferenceUrl(url: string) {
 
 function createVertexSeed(...parts: Array<string | number>) {
   const hash = createHash("sha1").update(parts.join("|")).digest("hex");
-  return Number.parseInt(hash.slice(0, 8), 16);
+  const raw = Number.parseInt(hash.slice(0, 8), 16);
+  return raw % 2147483647;
 }
 
 async function getVertexAccessToken() {
