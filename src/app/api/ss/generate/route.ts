@@ -862,8 +862,8 @@ export async function POST(request: NextRequest) {
   const iteration = Number.isFinite(body.iteration) ? Number(body.iteration) : 0;
   const requestedAlbumSize = Number.isFinite(body.albumSize)
     ? Number(body.albumSize)
-    : 6;
-  const albumSize = Math.min(Math.max(requestedAlbumSize, 6), 8);
+    : 4;
+  const albumSize = 4;
   const faceLockStrong = body.faceLockStrong !== false;
   const googleQualityMode =
     body.googleQualityMode === "economy" ? "economy" : "premium";

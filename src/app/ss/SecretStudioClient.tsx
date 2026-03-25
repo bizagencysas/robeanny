@@ -174,7 +174,7 @@ export default function SecretStudioClient({
   );
   const [presetId, setPresetId] = useState<StudioPresetId>("white_seamless");
   const [aspectRatio, setAspectRatio] = useState<StudioAspectRatio>("4:5");
-  const [albumSize, setAlbumSize] = useState<6 | 8>(6);
+  const [albumSize] = useState<4>(4);
   const [faceLockStrong, setFaceLockStrong] = useState(true);
   const [googleQualityMode, setGoogleQualityMode] =
     useState<GoogleQualityMode>("premium");
@@ -244,7 +244,7 @@ export default function SecretStudioClient({
         provider: StudioProvider;
         presetId: StudioPresetId;
         aspectRatio: StudioAspectRatio;
-        albumSize: 6 | 8;
+        albumSize: 4;
         faceLockStrong: boolean;
         googleQualityMode: GoogleQualityMode;
         notes: string;
@@ -255,9 +255,6 @@ export default function SecretStudioClient({
       }
       if (saved.presetId) setPresetId(saved.presetId);
       if (saved.aspectRatio) setAspectRatio(saved.aspectRatio);
-      if (saved.albumSize === 6 || saved.albumSize === 8) {
-        setAlbumSize(saved.albumSize);
-      }
       if (typeof saved.faceLockStrong === "boolean") {
         setFaceLockStrong(saved.faceLockStrong);
       }
@@ -589,7 +586,7 @@ export default function SecretStudioClient({
 
       if (message.includes("504") || message.toLowerCase().includes("timeout")) {
         setError(
-          "El álbum tardó demasiado. Prueba 6 fotos o vuelve a intentar con Google Pro Image para una entrega más estable."
+          "El álbum tardó demasiado. Ahora lo dejé en 4 fotos para hacerlo más estable; vuelve a intentar."
         );
       } else {
         setError(message);
@@ -914,21 +911,8 @@ export default function SecretStudioClient({
                 </p>
               ) : null}
 
-              <div className="mt-3 grid grid-cols-2 gap-2">
-                {[6, 8].map((item) => (
-                  <button
-                    key={item}
-                    type="button"
-                    onClick={() => setAlbumSize(item as 6 | 8)}
-                    className={`rounded-full border px-3 py-2 text-[0.7rem] uppercase tracking-[0.22em] transition ${
-                      albumSize === item
-                        ? "border-[#d8bb8e] bg-[rgba(216,187,142,0.14)] text-[#fff2db]"
-                        : "border-white/10 text-[#f7efe4]/58"
-                    }`}
-                  >
-                    {item} fotos
-                  </button>
-                ))}
+              <div className="mt-3 rounded-full border border-[#d8bb8e] bg-[rgba(216,187,142,0.14)] px-4 py-3 text-center text-[0.72rem] uppercase tracking-[0.24em] text-[#fff2db]">
+                4 fotos por álbum
               </div>
 
               <button
