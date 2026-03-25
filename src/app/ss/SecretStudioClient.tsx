@@ -33,6 +33,7 @@ type GeneratedAlbum = {
   aspectRatio: string;
   notes: string;
   recipe: Record<string, string>;
+  recipeSignature: string;
   shots: GeneratedShot[];
 };
 
@@ -51,6 +52,7 @@ type GenerateResponse = {
   prompt: string;
   prompts: string[];
   recipe: Record<string, string>;
+  recipeSignature: string;
   aspectRatio: string;
   iteration: number;
   albumSize: number;
@@ -256,6 +258,11 @@ export default function SecretStudioClient({
       setIsGenerating(true);
       setError("");
       setProviderNote("");
+      const albumSeed = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+      const excludedRecipeSignatures = sessionAlbums
+        .slice(0, 4)
+        .map((album) => album.recipeSignature);
+      const recentRecipes = sessionAlbums.slice(0, 3).map((album) => album.recipe);
 
       const response = await fetch("/api/ss/generate", {
         method: "POST",
@@ -270,6 +277,9 @@ export default function SecretStudioClient({
           faceLockStrong,
           notes,
           iteration,
+          albumSeed,
+          excludedRecipeSignatures,
+          recentRecipes,
           references: references.map((item) => item.value),
         }),
       });
@@ -303,6 +313,7 @@ export default function SecretStudioClient({
         aspectRatio: payload.aspectRatio,
         notes,
         recipe: payload.recipe,
+        recipeSignature: payload.recipeSignature,
         shots,
       };
 
@@ -715,12 +726,12 @@ export default function SecretStudioClient({
 
               <div className="mt-6">
                 {currentAlbum ? (
-                  <div className="grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_360px]">
-                    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.25fr)_360px]">
+                    <div className="grid items-start gap-4 sm:grid-cols-2 xl:grid-cols-3">
                       {currentAlbum.shots.map((shot, index) => (
                         <article
                           key={shot.id}
-                          className="overflow-hidden rounded-[1.5rem] border border-white/10 bg-white/4"
+                          className="h-fit self-start overflow-hidden rounded-[1.5rem] border border-white/10 bg-white/4"
                         >
                           <div className="relative aspect-[4/5]">
                             <Image
@@ -827,11 +838,11 @@ export default function SecretStudioClient({
                 </span>
               </div>
 
-              <div className="mt-5 grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">
+              <div className="mt-5 grid items-start gap-4 sm:grid-cols-2 2xl:grid-cols-3">
                 {sessionAlbums.map((album) => (
                   <article
                     key={album.id}
-                    className="overflow-hidden rounded-[1.5rem] border border-white/10 bg-white/4"
+                    className="h-fit self-start overflow-hidden rounded-[1.5rem] border border-white/10 bg-white/4"
                   >
                     <div className="relative aspect-[4/5]">
                       <Image
@@ -898,11 +909,11 @@ export default function SecretStudioClient({
                   Cargando fotos guardadas...
                 </div>
               ) : savedShots.length ? (
-                <div className="mt-5 grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">
+                <div className="mt-5 grid items-start gap-4 sm:grid-cols-2 2xl:grid-cols-3">
                   {savedShots.map((shot) => (
                     <article
                       key={shot.id}
-                      className="overflow-hidden rounded-[1.5rem] border border-white/10 bg-white/4"
+                      className="h-fit self-start overflow-hidden rounded-[1.5rem] border border-white/10 bg-white/4"
                     >
                       <div className="relative aspect-[4/5]">
                         <Image

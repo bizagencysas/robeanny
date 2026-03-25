@@ -2,10 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   SECRET_STUDIO_COOKIE,
   SECRET_STUDIO_FALLBACK_REFERENCES,
+  SecretStudioCreativePlan,
   StudioAspectRatio,
   StudioProvider,
   assertSafeCreativeNotes,
   buildSecretStudioPrompt,
+  createRecipeSignature,
   getAvailableStudioProviders,
   getGoogleApiKey,
   getOpenAiImageSize,
@@ -23,6 +25,9 @@ type GenerateBody = {
   iteration?: number;
   albumSize?: number;
   faceLockStrong?: boolean;
+  albumSeed?: string;
+  excludedRecipeSignatures?: string[];
+  recentRecipes?: Array<Record<string, string>>;
   references?: string[];
 };
 
@@ -244,6 +249,146 @@ async function generateWithGoogle({
   };
 }
 
+function extractJsonObject(text: string) {
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
+
+  if (start === -1 || end === -1 || end <= start) {
+    throw new Error("El planner no devolvió JSON válido.");
+  }
+
+  return JSON.parse(text.slice(start, end + 1));
+}
+
+function normalizeCreativePlan(
+  value: unknown
+): Partial<SecretStudioCreativePlan> | null {
+  if (!value || typeof value !== "object") return null;
+
+  const candidate = value as Record<string, unknown>;
+
+  return {
+    creativeDirection:
+      typeof candidate.creativeDirection === "string"
+        ? candidate.creativeDirection
+        : undefined,
+    wardrobe:
+      typeof candidate.wardrobe === "string" ? candidate.wardrobe : undefined,
+    albumPose:
+      typeof candidate.albumPose === "string" ? candidate.albumPose : undefined,
+    hair: typeof candidate.hair === "string" ? candidate.hair : undefined,
+    lighting:
+      typeof candidate.lighting === "string" ? candidate.lighting : undefined,
+    location:
+      typeof candidate.location === "string" ? candidate.location : undefined,
+    lens: typeof candidate.lens === "string" ? candidate.lens : undefined,
+    stylingNotes:
+      typeof candidate.stylingNotes === "string"
+        ? candidate.stylingNotes
+        : undefined,
+  };
+}
+
+async function generateCreativePlan({
+  provider,
+  direction,
+  notes,
+  aspectRatio,
+  faceLockStrong,
+  albumSeed,
+  attempt,
+  recentRecipes,
+}: {
+  provider: StudioProvider;
+  direction: string;
+  notes: string;
+  aspectRatio: StudioAspectRatio;
+  faceLockStrong: boolean;
+  albumSeed: string;
+  attempt: number;
+  recentRecipes: Array<Record<string, string>>;
+}) {
+  const plannerPrompt = [
+    "Create a distinct fashion album recipe for a real adult female model based on photo references.",
+    "Return JSON only with these keys: creativeDirection, wardrobe, albumPose, hair, lighting, location, lens, stylingNotes.",
+    "Make the album feel meaningfully different from the recent recipes.",
+    "Keep it premium, commercial, elegant, wearable, and fully clothed.",
+    "The same woman must remain recognizable, with dark-brown eyes.",
+    `Freshness token: ${albumSeed}-${attempt}.`,
+    `Requested direction: ${direction}.`,
+    `Aspect ratio: ${aspectRatio}.`,
+    `Face lock strong: ${faceLockStrong ? "yes" : "no"}.`,
+    notes ? `User notes: ${notes}.` : "",
+    recentRecipes.length
+      ? `Avoid repeating these recent album recipes: ${JSON.stringify(
+          recentRecipes
+        )}.`
+      : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  try {
+    if (provider === "openai" && process.env.OPENAI_API_KEY) {
+      const response = await fetch("https://api.openai.com/v1/responses", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: process.env.SS_OPENAI_PROMPT_MODEL || "gpt-4.1-mini",
+          input: plannerPrompt,
+        }),
+      });
+
+      const payload = await response.json().catch(() => null);
+      const text =
+        payload?.output_text ||
+        payload?.output?.flatMap(
+          (item: { content?: Array<{ text?: string }> }) => item.content || []
+        )
+          ?.map((item: { text?: string }) => item.text || "")
+          .join("") ||
+        "";
+
+      if (response.ok && text) {
+        return normalizeCreativePlan(extractJsonObject(text));
+      }
+    }
+
+    if (provider === "google" && getGoogleApiKey()) {
+      const response = await fetch(
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-goog-api-key": getGoogleApiKey(),
+          },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: plannerPrompt }] }],
+          }),
+        }
+      );
+
+      const payload = await response.json().catch(() => null);
+      const text =
+        payload?.candidates?.[0]?.content?.parts
+          ?.map((part: { text?: string }) => part.text || "")
+          .join("") || "";
+
+      if (response.ok && text) {
+        return normalizeCreativePlan(extractJsonObject(text));
+      }
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
 export async function POST(request: NextRequest) {
   const session = request.cookies.get(SECRET_STUDIO_COOKIE)?.value;
 
@@ -287,6 +432,21 @@ export async function POST(request: NextRequest) {
     : 6;
   const albumSize = Math.min(Math.max(requestedAlbumSize, 6), 8);
   const faceLockStrong = body.faceLockStrong !== false;
+  const albumSeed =
+    typeof body.albumSeed === "string" && body.albumSeed.trim()
+      ? body.albumSeed.trim()
+      : `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  const excludedRecipeSignatures = Array.isArray(body.excludedRecipeSignatures)
+    ? body.excludedRecipeSignatures.filter(
+        (item): item is string => typeof item === "string" && item.length > 0
+      )
+    : [];
+  const recentRecipes = Array.isArray(body.recentRecipes)
+    ? body.recentRecipes.filter(
+        (item): item is Record<string, string> =>
+          !!item && typeof item === "object" && !Array.isArray(item)
+      )
+    : [];
   const incomingReferences = Array.isArray(body.references)
     ? body.references.filter((item): item is string => typeof item === "string")
     : [];
@@ -324,17 +484,47 @@ export async function POST(request: NextRequest) {
       references.map((reference, index) => prepareReference(reference, index))
     );
 
-    const prompts = Array.from({ length: albumSize }, (_, shotIndex) =>
-      buildSecretStudioPrompt({
+    let prompts: Array<ReturnType<typeof buildSecretStudioPrompt>> = [];
+    let recipeSignature = "";
+
+    for (let attempt = 0; attempt < 8; attempt += 1) {
+      const creativePlan = await generateCreativePlan({
         provider: requestedProvider,
-        faceLockStrong,
-        notes,
         direction,
+        notes,
         aspectRatio,
-        iteration,
-        shotIndex,
-      })
-    );
+        faceLockStrong,
+        albumSeed,
+        attempt,
+        recentRecipes,
+      });
+
+      const candidatePrompts = Array.from({ length: albumSize }, (_, shotIndex) =>
+        buildSecretStudioPrompt({
+          provider: requestedProvider,
+          faceLockStrong,
+          plan: creativePlan || undefined,
+          notes,
+          direction,
+          aspectRatio,
+          iteration,
+          albumSeed,
+          variantOffset: attempt,
+          shotIndex,
+        })
+      );
+
+      const candidateSignature = createRecipeSignature(
+        candidatePrompts[0]?.recipe || {}
+      );
+
+      prompts = candidatePrompts;
+      recipeSignature = candidateSignature;
+
+      if (!excludedRecipeSignatures.includes(candidateSignature)) {
+        break;
+      }
+    }
 
     const images: string[] = [];
 
@@ -368,6 +558,7 @@ export async function POST(request: NextRequest) {
       prompt: prompts[0]?.prompt || "",
       prompts: prompts.map((item) => item.prompt),
       recipe: prompts[0]?.recipe || {},
+      recipeSignature,
       aspectRatio,
       iteration,
       albumSize,

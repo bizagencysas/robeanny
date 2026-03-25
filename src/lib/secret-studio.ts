@@ -11,6 +11,17 @@ export const SECRET_STUDIO_DEFAULT_CODE = "ROBEANNYBASTARDO";
 export { SECRET_STUDIO_FALLBACK_REFERENCES, getStudioProviderLabel };
 export type { StudioAspectRatio, StudioProvider };
 
+export type SecretStudioCreativePlan = {
+  creativeDirection: string;
+  wardrobe: string;
+  albumPose: string;
+  hair: string;
+  lighting: string;
+  location: string;
+  lens: string;
+  stylingNotes: string;
+};
+
 const disallowedPromptTerms = [
   "desnuda",
   "desnudo",
@@ -141,6 +152,15 @@ const polishRules = [
   "no plastic skin",
 ];
 
+const stylingNotesIdeas = [
+  "premium gold jewelry, refined manicure, polished campaign finish",
+  "minimalist styling, clean silhouette, luxury catalogue energy",
+  "soft glam makeup, elevated accessories, modern editorial polish",
+  "sleek fashion styling, restrained palette, premium beauty detail",
+  "high-end commercial styling, wearable luxury, crisp finish",
+  "editorial sophistication, elegant textures, confident campaign energy",
+];
+
 const openAiSizeByAspectRatio: Record<StudioAspectRatio, "1024x1024" | "1024x1536" | "1536x1024"> = {
   "1:1": "1024x1024",
   "3:4": "1024x1536",
@@ -199,6 +219,12 @@ export function getOpenAiImageSize(aspectRatio: StudioAspectRatio) {
   return openAiSizeByAspectRatio[aspectRatio];
 }
 
+export function createRecipeSignature(recipe: Record<string, string>) {
+  return createHash("sha1")
+    .update(JSON.stringify(recipe))
+    .digest("hex");
+}
+
 export function assertSafeCreativeNotes(notes: string) {
   const normalized = notes.toLowerCase();
   const match = disallowedPromptTerms.find((term) => normalized.includes(term));
@@ -218,36 +244,79 @@ function hashText(text: string) {
   return Array.from(text).reduce((sum, char, index) => sum + char.charCodeAt(0) * (index + 1), 0);
 }
 
+function normalizePlanValue(value: string | undefined, fallback: string) {
+  const normalized = value?.trim();
+  return normalized ? normalized : fallback;
+}
+
 export function buildSecretStudioPrompt({
   provider,
   faceLockStrong = true,
+  plan,
   notes,
   direction,
   aspectRatio,
   iteration,
+  albumSeed = "",
+  variantOffset = 0,
   shotIndex = 0,
 }: {
   provider: StudioProvider;
   faceLockStrong?: boolean;
+  plan?: Partial<SecretStudioCreativePlan>;
   notes: string;
   direction: string;
   aspectRatio: StudioAspectRatio;
   iteration: number;
+  albumSeed?: string;
+  variantOffset?: number;
   shotIndex?: number;
 }) {
   assertSafeCreativeNotes(notes);
 
-  const baseOffset = hashText(`${direction}|${notes}`) + iteration * 7;
-  const creativeDirection = pickVariant(creativeDirections, baseOffset);
-  const wardrobe = pickVariant(wardrobeIdeas, baseOffset + 1);
-  const basePose = pickVariant(poseIdeas, baseOffset + 2);
-  const hair = pickVariant(hairIdeas, baseOffset + 3);
-  const lighting = pickVariant(lightingIdeas, baseOffset + 4);
-  const location = pickVariant(locationIdeas, baseOffset + 5);
+  const baseOffset =
+    hashText(`${provider}|${direction}|${notes}|${aspectRatio}|${albumSeed}`) +
+    iteration * 97 +
+    variantOffset * 211;
+  const creativeDirection = normalizePlanValue(
+    plan?.creativeDirection,
+    pickVariant(creativeDirections, baseOffset)
+  );
+  const wardrobe = normalizePlanValue(
+    plan?.wardrobe,
+    pickVariant(wardrobeIdeas, baseOffset + 1)
+  );
+  const basePose = normalizePlanValue(
+    plan?.albumPose,
+    pickVariant(poseIdeas, baseOffset + 2)
+  );
+  const hair = normalizePlanValue(
+    plan?.hair,
+    pickVariant(hairIdeas, baseOffset + 3)
+  );
+  const lighting = normalizePlanValue(
+    plan?.lighting,
+    pickVariant(lightingIdeas, baseOffset + 4)
+  );
+  const location = normalizePlanValue(
+    plan?.location,
+    pickVariant(locationIdeas, baseOffset + 5)
+  );
+  const baseLens = normalizePlanValue(
+    plan?.lens,
+    pickVariant(lensIdeas, baseOffset + 6)
+  );
+  const stylingNotes = normalizePlanValue(
+    plan?.stylingNotes,
+    pickVariant(stylingNotesIdeas, baseOffset + 7)
+  );
   const framing = pickVariant(framingIdeas, baseOffset + shotIndex);
   const expression = pickVariant(expressionIdeas, baseOffset + shotIndex + 2);
   const shotPose = pickVariant(poseIdeas, baseOffset + 2 + shotIndex);
-  const shotLens = pickVariant(lensIdeas, baseOffset + 6 + shotIndex);
+  const shotLens =
+    shotIndex % 2 === 0
+      ? baseLens
+      : pickVariant(lensIdeas, baseOffset + 6 + shotIndex);
   const identityLockInstructions = faceLockStrong
     ? [
         "Treat facial identity preservation as the top priority.",
@@ -283,6 +352,7 @@ export function buildSecretStudioPrompt({
     `Lighting: ${lighting}.`,
     `Location: ${location}.`,
     `Camera: ${shotLens}.`,
+    `Styling notes: ${stylingNotes}.`,
     `Framing: ${framing}.`,
     `Expression: ${expression}.`,
     `Aspect ratio target: ${aspectRatio}.`,
@@ -305,7 +375,8 @@ export function buildSecretStudioPrompt({
       hair,
       lighting,
       location,
-      lens: shotLens,
+      lens: baseLens,
+      stylingNotes,
       framing,
       expression,
       eyeColor: "dark brown",
