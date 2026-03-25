@@ -24,10 +24,10 @@ const heroImages = [
   "/he4.jpg",
 ];
 
-const featuredPortfolio = sessionPhotos.slice(0, 6).map((src, index) => ({
+const featuredPortfolio = portfolioPhotos.slice(0, 6).map((photo, index) => ({
   id: index + 1,
-  src,
-  alt: `Robeanny editorial ${index + 1}`,
+  src: photo.src,
+  alt: photo.alt,
 }));
 
 export default function HomePage() {
