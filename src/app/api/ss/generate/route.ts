@@ -160,14 +160,17 @@ function dataUrlToReference(dataUrl: string, filenameBase: string): PreparedRefe
 }
 
 async function urlToReference(url: string, filenameBase: string): Promise<PreparedReference> {
-  const response = await fetch(url);
+  const resolvedUrl = toVertexCompatibleReferenceUrl(url);
+  const response = await fetch(resolvedUrl);
 
   if (!response.ok) {
     throw new Error("No pude cargar una de las fotos de referencia.");
   }
 
   const arrayBuffer = await response.arrayBuffer();
-  const mimeType = response.headers.get("content-type") || "image/jpeg";
+  const mimeType = normalizeVertexReferenceMimeType(
+    response.headers.get("content-type") || "image/jpeg"
+  );
 
   return {
     mimeType,
@@ -214,6 +217,23 @@ function getVertexSession() {
   cachedVertexSessionKey = cacheKey;
 
   return cachedVertexSession;
+}
+
+function normalizeVertexReferenceMimeType(mimeType: string) {
+  if (mimeType.includes("png")) return "image/png";
+  return "image/jpeg";
+}
+
+function toVertexCompatibleReferenceUrl(url: string) {
+  if (!url.includes("res.cloudinary.com") || !url.includes("/image/upload/")) {
+    return url;
+  }
+
+  if (url.includes("/image/upload/f_jpg")) {
+    return url;
+  }
+
+  return url.replace("/image/upload/", "/image/upload/f_jpg,q_auto/");
 }
 
 async function getVertexAccessToken() {
@@ -304,17 +324,20 @@ async function uploadGeneratedImageToCloudinary({
   file,
   filename,
   tags = "robeanny,secret-studio,generated",
+  folderOverride,
 }: {
   file: string;
   filename: string;
   tags?: string;
+  folderOverride?: string;
 }): Promise<CloudinaryUploadResult> {
   const { cloudName, uploadPreset, folder } = getCloudinaryConfig();
+  const targetFolder = folderOverride || folder;
   const formData = new FormData();
 
   formData.append("file", file);
   formData.append("upload_preset", uploadPreset);
-  formData.append("folder", folder);
+  formData.append("folder", targetFolder);
   formData.append("tags", tags);
   formData.append("public_id", filename);
 
@@ -338,7 +361,7 @@ async function uploadGeneratedImageToCloudinary({
   return {
     secureUrl: payload.secure_url,
     publicId: payload.public_id,
-    folder: payload.folder || folder,
+    folder: payload.folder || targetFolder,
   };
 }
 
@@ -414,6 +437,8 @@ async function generateWithVertexImagen({
 }) {
   const { projectId, location } = getVertexSession();
   const token = await getVertexAccessToken();
+  const subjectDescription =
+    "the exact adult woman from the provided references, dark-brown eyes, refined facial structure, premium studio beauty";
   const response = await fetch(
     `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/${VERTEX_IMAGEN_MODEL}:predict`,
     {
@@ -431,27 +456,27 @@ async function generateWithVertexImagen({
               "Keep the same adult woman recognizable across every shot.",
               "Prioritize studio-grade photorealism, premium skin detail, and dark-brown eyes.",
             ].join(" "),
-            referenceImages: references.map((reference) => ({
+            referenceImages: references.map((reference, index) => ({
               referenceType: "REFERENCE_TYPE_SUBJECT",
-              referenceId: 1,
-              subjectDescription:
-                "the exact adult woman from the provided references with dark-brown eyes",
+              referenceId: index + 1,
               referenceImage: {
                 bytesBase64Encoded: reference.base64,
+                mimeType: reference.mimeType,
+              },
+              subjectImageConfig: {
+                subjectDescription,
+                subjectType: "SUBJECT_TYPE_PERSON",
               },
             })),
           },
         ],
         parameters: {
           sampleCount: 1,
-          sampleImageSize: googleQualityMode === "premium" ? "2K" : "1K",
           aspectRatio:
             aspectRatio === "3:4" ? aspectRatio : VERTEX_IMAGEN_ASPECT_RATIO,
           personGeneration: "allow_all",
           guidanceScale: VERTEX_IMAGEN_GUIDANCE_SCALE,
-          enhancePrompt: true,
-          includeRaiReason: true,
-          includeSafetyAttributes: true,
+          language: "en",
           safetySetting: "block_only_high",
           addWatermark: false,
         },
@@ -819,6 +844,7 @@ export async function POST(request: NextRequest) {
     const preparedReferences = await Promise.all(
       references.map((reference, index) => prepareReference(reference, index))
     );
+    const albumFolder = `${getCloudinaryConfig().folder}/albums/${albumSeed}`;
 
     let prompts: Array<ReturnType<typeof buildSecretStudioPrompt>> = [];
     let recipeSignature = "";
@@ -919,9 +945,10 @@ export async function POST(request: NextRequest) {
                 });
           const uploaded = await uploadGeneratedImageToCloudinary({
             file: generatedDataUrl,
-            filename: `robeanny-generated-${Date.now()}-${index + 1}-${Math.random()
+            filename: `shot-${index + 1}-${Date.now()}-${Math.random()
               .toString(36)
               .slice(2, 8)}`,
+            folderOverride: albumFolder,
           });
 
           return {

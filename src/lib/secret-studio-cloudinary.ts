@@ -42,17 +42,20 @@ export async function uploadStudioImageToCloudinary({
   file,
   filename,
   tags = "robeanny,secret-studio",
+  folderOverride,
 }: {
   file: string | File;
   filename: string;
   tags?: string;
+  folderOverride?: string;
 }): Promise<CloudinaryUploadResult> {
   const { cloudName, uploadPreset, folder } = getSecretStudioCloudinaryConfig();
+  const targetFolder = folderOverride || folder;
   const formData = new FormData();
 
   formData.append("file", file);
   formData.append("upload_preset", uploadPreset);
-  formData.append("folder", folder);
+  formData.append("folder", targetFolder);
   formData.append("tags", tags);
   formData.append("public_id", filename);
 
@@ -76,6 +79,6 @@ export async function uploadStudioImageToCloudinary({
   return {
     publicId: payload.public_id,
     secureUrl: payload.secure_url,
-    folder: payload.folder || folder,
+    folder: payload.folder || targetFolder,
   };
 }

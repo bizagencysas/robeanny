@@ -338,14 +338,18 @@ export default function SecretStudioClient({
 
     try {
       await ensureSecretStudioCloudinaryPreset();
+      const referenceBatchFolder = `robeanny/references/${Date.now()}-${Math.random()
+        .toString(36)
+        .slice(2, 8)}`;
       const uploaded = await Promise.all(
         files.map(async (file) => {
           const cloudinary = await uploadStudioImageToCloudinary({
             file,
-            filename: `robeanny-reference-${Date.now()}-${Math.random()
+            filename: `reference-${Date.now()}-${Math.random()
               .toString(36)
               .slice(2, 8)}`,
             tags: "robeanny,secret-studio,reference",
+            folderOverride: referenceBatchFolder,
           });
 
           return {
