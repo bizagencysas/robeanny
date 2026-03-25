@@ -104,6 +104,28 @@ const lensIdeas = [
   "captured on a medium-format style portrait setup with luxurious detail",
 ];
 
+const framingIdeas = [
+  "full-body frame with elegant posture and clean negative space",
+  "three-quarter portrait emphasizing silhouette and styling",
+  "waist-up fashion portrait with direct editorial presence",
+  "beauty close-up centered on face, hair, and makeup",
+  "seated composition with full outfit clearly visible",
+  "walking fashion frame with movement in fabric and hair",
+  "side profile editorial crop with strong jawline and posture",
+  "over-the-shoulder portrait with luxury campaign energy",
+];
+
+const expressionIdeas = [
+  "soft confident gaze",
+  "subtle half-smile",
+  "serious editorial expression",
+  "fresh luminous beauty expression",
+  "playful but refined attitude",
+  "calm poised confidence",
+  "elevated campaign energy",
+  "magazine-cover presence",
+];
+
 const polishRules = [
   "photorealistic",
   "premium retouching while keeping natural skin texture",
@@ -197,15 +219,21 @@ function hashText(text: string) {
 }
 
 export function buildSecretStudioPrompt({
+  provider,
+  faceLockStrong = true,
   notes,
   direction,
   aspectRatio,
   iteration,
+  shotIndex = 0,
 }: {
+  provider: StudioProvider;
+  faceLockStrong?: boolean;
   notes: string;
   direction: string;
   aspectRatio: StudioAspectRatio;
   iteration: number;
+  shotIndex?: number;
 }) {
   assertSafeCreativeNotes(notes);
 
@@ -217,18 +245,49 @@ export function buildSecretStudioPrompt({
   const lighting = pickVariant(lightingIdeas, baseOffset + 4);
   const location = pickVariant(locationIdeas, baseOffset + 5);
   const lens = pickVariant(lensIdeas, baseOffset + 6);
+  const framing = pickVariant(framingIdeas, baseOffset + shotIndex);
+  const expression = pickVariant(expressionIdeas, baseOffset + shotIndex + 2);
+  const pose = pickVariant(poseIdeas, baseOffset + 2 + shotIndex);
+  const shotLens = pickVariant(lensIdeas, baseOffset + 6 + shotIndex);
+  const identityLockInstructions = faceLockStrong
+    ? [
+        "Treat facial identity preservation as the top priority.",
+        "This must be the exact same real woman from the references, not a reinterpretation or inspired-by version.",
+        "Preserve her exact face shape, brow structure, eyelid shape, nose bridge, nose tip, lip shape, smile line, cheek volume, jawline, chin, hairline, and skin tone.",
+        "Preserve subtle asymmetries and recognizable beauty details visible in the references.",
+        "Do not beautify by changing ethnicity, age, eye shape, lip fullness, bone structure, or facial proportions.",
+        "Her eyes must remain dark brown, never hazel, green, blue, or gray.",
+        "Maintain dark-brown irises consistently across every image in the album.",
+      ].join(" ")
+    : "";
+  const openAiIdentityLock =
+    provider === "openai"
+      ? [
+          "Use the first reference image as the primary face identity anchor and treat the remaining references as support for angle and consistency.",
+          "Identity accuracy is more important than styling creativity.",
+          "This must be the exact same real woman from the references, not a lookalike, twin, or inspired-by version.",
+          "Do not change her face shape, eyes, nose, lips, smile line, brow structure, cheek volume, jawline, hairline, or skin tone.",
+          "Preserve recognizable beauty details and subtle asymmetries whenever visible in the references.",
+          "Keep the face highly faithful across all images in the album even when pose, framing, or camera angle changes.",
+        ].join(" ")
+      : "";
 
   const prompt = [
     "Create a premium professional fashion photo of the same adult woman shown in the reference images.",
     "Preserve her exact identity, facial structure, skin tone, body proportions, smile, and beauty details so she remains unmistakably the same person.",
+    identityLockInstructions,
+    openAiIdentityLock,
     `Creative direction: ${creativeDirection}.`,
     `Wardrobe: ${wardrobe}.`,
     `Pose: ${pose}.`,
     `Hair styling: ${hair}.`,
     `Lighting: ${lighting}.`,
     `Location: ${location}.`,
-    `Camera: ${lens}.`,
+    `Camera: ${shotLens}.`,
+    `Framing: ${framing}.`,
+    `Expression: ${expression}.`,
     `Aspect ratio target: ${aspectRatio}.`,
+    "Eye color must be dark brown.",
     "The final image must look like a real luxury editorial photoshoot, fully clothed, tasteful, elegant, and commercially usable.",
     "Keep the styling elevated, photorealistic, and current. Add natural micro-details in skin, hair, fabric texture, and lighting falloff.",
     `Follow these quality rules: ${polishRules.join(", ")}.`,
@@ -246,7 +305,11 @@ export function buildSecretStudioPrompt({
       hair,
       lighting,
       location,
-      lens,
+      lens: shotLens,
+      framing,
+      expression,
+      eyeColor: "dark brown",
+      faceLock: faceLockStrong ? "strong" : "standard",
     },
   };
 }

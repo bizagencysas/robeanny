@@ -25,6 +25,17 @@ type GeneratedShot = {
   recipe: Record<string, string>;
 };
 
+type GeneratedAlbum = {
+  id: string;
+  createdAt: string;
+  provider: StudioProvider;
+  providerLabel: string;
+  aspectRatio: string;
+  notes: string;
+  recipe: Record<string, string>;
+  shots: GeneratedShot[];
+};
+
 type ReferenceItem = {
   id: string;
   name: string;
@@ -38,9 +49,11 @@ type GenerateResponse = {
   provider: StudioProvider;
   providerLabel: string;
   prompt: string;
+  prompts: string[];
   recipe: Record<string, string>;
   aspectRatio: string;
   iteration: number;
+  albumSize: number;
   images: string[];
   note: string | null;
 };
@@ -106,8 +119,10 @@ export default function SecretStudioClient({
   );
   const [direction, setDirection] = useState(directionOptions[0]);
   const [aspectRatio, setAspectRatio] = useState<StudioAspectRatio>("4:5");
+  const [albumSize, setAlbumSize] = useState<6 | 8>(6);
+  const [faceLockStrong, setFaceLockStrong] = useState(true);
   const [notes, setNotes] = useState(
-    "High-end fashion, editorial polish, natural beauty, premium styling."
+    "High-end fashion, editorial polish, natural beauty, premium styling, dark-brown eyes."
   );
   const [iteration, setIteration] = useState(0);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -124,11 +139,11 @@ export default function SecretStudioClient({
     }))
   );
 
-  const [sessionShots, setSessionShots] = useState<GeneratedShot[]>([]);
+  const [sessionAlbums, setSessionAlbums] = useState<GeneratedAlbum[]>([]);
   const [savedShots, setSavedShots] = useState<SavedStudioShot[]>([]);
   const [savedLoading, setSavedLoading] = useState(true);
 
-  const currentShot = sessionShots[0] || null;
+  const currentAlbum = sessionAlbums[0] || null;
 
   const providerDescription = useMemo(() => {
     if (provider === "google") {
@@ -189,7 +204,7 @@ export default function SecretStudioClient({
   async function handleLogout() {
     await fetch("/api/ss/logout", { method: "POST" }).catch(() => null);
     setUnlocked(false);
-    setSessionShots([]);
+    setSessionAlbums([]);
     setError("");
     setProviderNote("");
   }
@@ -251,6 +266,8 @@ export default function SecretStudioClient({
           provider,
           direction,
           aspectRatio,
+          albumSize,
+          faceLockStrong,
           notes,
           iteration,
           references: references.map((item) => item.value),
@@ -267,23 +284,33 @@ export default function SecretStudioClient({
       }
 
       const createdAt = new Date().toISOString();
-      const newShots = payload.images.map((imageUrl) => ({
+      const shots = payload.images.map((imageUrl, index) => ({
         id: createId("shot"),
         imageUrl,
-        prompt: payload.prompt,
+        prompt: payload.prompts[index] || payload.prompt,
         provider: payload.provider,
         providerLabel: payload.providerLabel,
         aspectRatio: payload.aspectRatio,
         notes,
         recipe: payload.recipe,
-        createdAt,
       }));
 
-      setSessionShots((current) => [...newShots, ...current].slice(0, 12));
+      const album: GeneratedAlbum = {
+        id: createId("album"),
+        createdAt,
+        provider: payload.provider,
+        providerLabel: payload.providerLabel,
+        aspectRatio: payload.aspectRatio,
+        notes,
+        recipe: payload.recipe,
+        shots,
+      };
+
+      setSessionAlbums((current) => [album, ...current].slice(0, 6));
       setIteration((value) => value + 1);
       setProviderNote(payload.note || "");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "No pude generar la foto.");
+      setError(err instanceof Error ? err.message : "No pude generar el álbum.");
     } finally {
       setIsGenerating(false);
     }
@@ -309,8 +336,30 @@ export default function SecretStudioClient({
     }
   }
 
-  function removeSessionShot(id: string) {
-    setSessionShots((current) => current.filter((shot) => shot.id !== id));
+  async function handleSaveAlbum(album: GeneratedAlbum) {
+    try {
+      for (const shot of album.shots) {
+        await saveStudioShot({
+          id: `${album.id}-${shot.id}`,
+          createdAt: new Date().toISOString(),
+          provider: shot.provider,
+          providerLabel: shot.providerLabel,
+          prompt: shot.prompt,
+          notes: shot.notes,
+          aspectRatio: shot.aspectRatio,
+          imageUrl: shot.imageUrl,
+          recipe: shot.recipe,
+        });
+      }
+
+      await refreshSavedShots();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "No pude guardar el álbum.");
+    }
+  }
+
+  function removeSessionAlbum(id: string) {
+    setSessionAlbums((current) => current.filter((album) => album.id !== id));
   }
 
   async function handleDeleteSaved(id: string) {
@@ -404,7 +453,7 @@ export default function SecretStudioClient({
             </h1>
             <p className="mt-4 max-w-3xl text-[0.98rem] leading-7 text-[#f7efe4]/72">
               Genera nuevas sesiones editoriales a partir de referencias reales de Robeanny:
-              cambio progresivo de styling, poses, cabello, encuadres y dirección creativa.
+              álbumes completos con cambio progresivo de styling, poses, cabello, encuadres y dirección creativa.
               El flujo está limitado a moda, beauty y retrato profesional para adulto con consentimiento.
             </p>
           </div>
@@ -416,7 +465,7 @@ export default function SecretStudioClient({
               disabled={isGenerating || !availableProviders.length}
               className="luxury-button min-w-[220px] justify-center disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isGenerating ? "Generando..." : "Generar siguiente sesión"}
+              {isGenerating ? "Generando álbum..." : "Generar nuevo álbum"}
             </button>
             <button
               type="button"
@@ -511,6 +560,42 @@ export default function SecretStudioClient({
                   ))}
                 </div>
 
+                <div className="grid grid-cols-2 gap-2">
+                  {[6, 8].map((item) => (
+                    <button
+                      key={item}
+                      type="button"
+                      onClick={() => setAlbumSize(item as 6 | 8)}
+                      className={`rounded-full border px-3 py-2 text-[0.7rem] uppercase tracking-[0.22em] transition ${
+                        albumSize === item
+                          ? "border-[#d8bb8e] bg-[rgba(216,187,142,0.14)] text-[#fff2db]"
+                          : "border-white/10 text-[#f7efe4]/58"
+                      }`}
+                    >
+                      {item} fotos
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setFaceLockStrong((value) => !value)}
+                  className={`rounded-[1.2rem] border px-4 py-3 text-left transition ${
+                    faceLockStrong
+                      ? "border-[#d8bb8e] bg-[rgba(216,187,142,0.14)]"
+                      : "border-white/10 bg-white/4"
+                  }`}
+                >
+                  <p className="text-[0.66rem] uppercase tracking-[0.24em] text-[#d8bb8e]">
+                    Face Lock Strong
+                  </p>
+                  <p className="mt-2 text-sm leading-6 text-[#f7efe4]/68">
+                    {faceLockStrong
+                      ? "Activo en ambos motores. Prioriza rostro real y ojos café oscuro."
+                      : "Desactivado. Permite más libertad creativa, pero puede variar más la cara."}
+                  </p>
+                </button>
+
                 <textarea
                   value={notes}
                   onChange={(event) => setNotes(event.target.value)}
@@ -590,36 +675,27 @@ export default function SecretStudioClient({
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div>
                   <p className="text-[0.64rem] uppercase tracking-[0.28em] text-[#d8bb8e]">
-                    Resultado actual
+                    Álbum actual
                   </p>
                   <p className="mt-2 text-sm leading-6 text-[#f7efe4]/62">
-                    Cada generación cambia la receta automáticamente para no repetir el mismo shooting.
+                    Cada clic crea un álbum completo. Dentro del álbum se mantiene el mismo look; en el siguiente se cambia todo.
                   </p>
                 </div>
-                {currentShot ? (
+                {currentAlbum ? (
                   <div className="flex flex-wrap gap-3">
                     <button
                       type="button"
-                      onClick={() => handleSaveCurrent(currentShot)}
+                      onClick={() => handleSaveAlbum(currentAlbum)}
                       className="luxury-button-secondary border-white/15 bg-white/5 px-4 py-3 text-[#f7efe4] hover:border-[#f7efe4] hover:bg-[#f7efe4] hover:text-[#120f0d]"
                     >
-                      Guardar local
+                      Guardar álbum
                     </button>
                     <button
                       type="button"
-                      onClick={() =>
-                        downloadImage(currentShot.imageUrl, `robeanny-session-${Date.now()}.png`)
-                      }
+                      onClick={() => removeSessionAlbum(currentAlbum.id)}
                       className="luxury-button-secondary border-white/15 bg-white/5 px-4 py-3 text-[#f7efe4] hover:border-[#f7efe4] hover:bg-[#f7efe4] hover:text-[#120f0d]"
                     >
-                      Descargar
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => removeSessionShot(currentShot.id)}
-                      className="luxury-button-secondary border-white/15 bg-white/5 px-4 py-3 text-[#f7efe4] hover:border-[#f7efe4] hover:bg-[#f7efe4] hover:text-[#120f0d]"
-                    >
-                      Borrar
+                      Borrar álbum
                     </button>
                   </div>
                 ) : null}
@@ -638,28 +714,53 @@ export default function SecretStudioClient({
               ) : null}
 
               <div className="mt-6">
-                {currentShot ? (
-                  <div className="grid gap-6 xl:grid-cols-[minmax(0,1.3fr)_360px]">
-                    <div className="overflow-hidden rounded-[1.7rem] border border-white/10 bg-black/20">
-                      <div className="relative aspect-[4/5] w-full">
-                        <Image
-                          src={currentShot.imageUrl}
-                          alt="Generated editorial photo"
-                          fill
-                          unoptimized
-                          className="object-cover"
-                          sizes="(max-width: 1280px) 100vw, 900px"
-                        />
-                      </div>
+                {currentAlbum ? (
+                  <div className="grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_360px]">
+                    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                      {currentAlbum.shots.map((shot, index) => (
+                        <article
+                          key={shot.id}
+                          className="overflow-hidden rounded-[1.5rem] border border-white/10 bg-white/4"
+                        >
+                          <div className="relative aspect-[4/5]">
+                            <Image
+                              src={shot.imageUrl}
+                              alt={`Album shot ${index + 1}`}
+                              fill
+                              unoptimized
+                              className="object-cover"
+                              sizes="(max-width: 1280px) 100vw, 420px"
+                            />
+                          </div>
+                          <div className="flex flex-wrap gap-2 px-4 py-4">
+                            <button
+                              type="button"
+                              onClick={() => handleSaveCurrent(shot)}
+                              className="rounded-full border border-white/10 px-3 py-2 text-[0.62rem] uppercase tracking-[0.22em] text-[#f7efe4]/60 transition hover:border-[#f7efe4] hover:text-[#f7efe4]"
+                            >
+                              Guardar
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                downloadImage(shot.imageUrl, `robeanny-album-${index + 1}-${Date.now()}.png`)
+                              }
+                              className="rounded-full border border-white/10 px-3 py-2 text-[0.62rem] uppercase tracking-[0.22em] text-[#f7efe4]/60 transition hover:border-[#f7efe4] hover:text-[#f7efe4]"
+                            >
+                              Descargar
+                            </button>
+                          </div>
+                        </article>
+                      ))}
                     </div>
 
                     <div className="space-y-4">
                       <div className="rounded-[1.5rem] border border-white/10 bg-white/4 p-4">
                         <p className="text-[0.64rem] uppercase tracking-[0.28em] text-[#d8bb8e]">
-                          Motor
+                          Álbum
                         </p>
                         <p className="mt-2 text-sm leading-6 text-[#f7efe4]/72">
-                          {currentShot.providerLabel}
+                          {currentAlbum.shots.length} fotos con el mismo look base
                         </p>
                       </div>
 
@@ -668,7 +769,7 @@ export default function SecretStudioClient({
                           Receta activa
                         </p>
                         <div className="mt-3 flex flex-wrap gap-2">
-                          {Object.entries(currentShot.recipe).map(([key, value]) => (
+                          {Object.entries(currentAlbum.recipe).map(([key, value]) => (
                             <span
                               key={key}
                               className="rounded-full border border-white/10 px-3 py-2 text-[0.67rem] leading-5 text-[#f7efe4]/70"
@@ -681,10 +782,19 @@ export default function SecretStudioClient({
 
                       <div className="rounded-[1.5rem] border border-white/10 bg-white/4 p-4">
                         <p className="text-[0.64rem] uppercase tracking-[0.28em] text-[#d8bb8e]">
-                          Prompt final
+                          Motor
                         </p>
                         <p className="mt-3 text-sm leading-7 text-[#f7efe4]/64">
-                          {currentShot.prompt}
+                          {currentAlbum.providerLabel}
+                        </p>
+                      </div>
+
+                      <div className="rounded-[1.5rem] border border-white/10 bg-white/4 p-4">
+                        <p className="text-[0.64rem] uppercase tracking-[0.28em] text-[#d8bb8e]">
+                          Prompt base
+                        </p>
+                        <p className="mt-3 text-sm leading-7 text-[#f7efe4]/64">
+                          {currentAlbum.shots[0]?.prompt}
                         </p>
                       </div>
                     </div>
@@ -692,10 +802,10 @@ export default function SecretStudioClient({
                 ) : (
                   <div className="rounded-[1.8rem] border border-dashed border-white/12 bg-white/3 px-6 py-14 text-center">
                     <p className="brand-display text-[2.2rem] text-[#fbf2e5]">
-                      Lista para el siguiente shooting
+                      Lista para el siguiente álbum
                     </p>
                     <p className="mx-auto mt-4 max-w-2xl text-[0.98rem] leading-7 text-[#f7efe4]/60">
-                      Sube referencias, elige motor, presiona generar y el sistema irá cambiando el styling de forma consecutiva sin repetir exactamente la misma receta.
+                      Sube referencias, elige motor, define si quieres 6 u 8 fotos y presiona generar. El sistema mantendrá el look dentro del álbum y lo cambiará en el siguiente.
                     </p>
                   </div>
                 )}
@@ -709,24 +819,24 @@ export default function SecretStudioClient({
                     Historial de esta sesión
                   </p>
                   <p className="mt-2 text-sm leading-6 text-[#f7efe4]/62">
-                    Puedes seguir generando y borrar resultados que no te gusten sin guardar nada.
+                    Cada entrada es un álbum completo con un look distinto.
                   </p>
                 </div>
                 <span className="rounded-full border border-white/10 px-3 py-1 text-[0.62rem] uppercase tracking-[0.24em] text-[#f7efe4]/54">
-                  {sessionShots.length} resultados
+                  {sessionAlbums.length} álbumes
                 </span>
               </div>
 
               <div className="mt-5 grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">
-                {sessionShots.map((shot) => (
+                {sessionAlbums.map((album) => (
                   <article
-                    key={shot.id}
+                    key={album.id}
                     className="overflow-hidden rounded-[1.5rem] border border-white/10 bg-white/4"
                   >
                     <div className="relative aspect-[4/5]">
                       <Image
-                        src={shot.imageUrl}
-                        alt="Generated session shot"
+                        src={album.shots[0]?.imageUrl || ""}
+                        alt="Generated album cover"
                         fill
                         unoptimized
                         className="object-cover"
@@ -736,35 +846,26 @@ export default function SecretStudioClient({
                     <div className="space-y-3 px-4 py-4">
                       <div className="flex items-center justify-between gap-3">
                         <p className="text-[0.62rem] uppercase tracking-[0.24em] text-[#d8bb8e]">
-                          {shot.providerLabel}
+                          {album.providerLabel}
                         </p>
                         <span className="text-[0.62rem] uppercase tracking-[0.22em] text-[#f7efe4]/40">
-                          {shot.aspectRatio}
+                          {album.shots.length} fotos
                         </span>
                       </div>
                       <div className="flex flex-wrap gap-2">
                         <button
                           type="button"
-                          onClick={() => handleSaveCurrent(shot)}
+                          onClick={() => handleSaveAlbum(album)}
                           className="rounded-full border border-white/10 px-3 py-2 text-[0.62rem] uppercase tracking-[0.22em] text-[#f7efe4]/60 transition hover:border-[#f7efe4] hover:text-[#f7efe4]"
                         >
-                          Guardar
+                          Guardar álbum
                         </button>
                         <button
                           type="button"
-                          onClick={() =>
-                            downloadImage(shot.imageUrl, `robeanny-session-${Date.now()}.png`)
-                          }
+                          onClick={() => removeSessionAlbum(album.id)}
                           className="rounded-full border border-white/10 px-3 py-2 text-[0.62rem] uppercase tracking-[0.22em] text-[#f7efe4]/60 transition hover:border-[#f7efe4] hover:text-[#f7efe4]"
                         >
-                          Descargar
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => removeSessionShot(shot.id)}
-                          className="rounded-full border border-white/10 px-3 py-2 text-[0.62rem] uppercase tracking-[0.22em] text-[#f7efe4]/60 transition hover:border-[#f7efe4] hover:text-[#f7efe4]"
-                        >
-                          Borrar
+                          Borrar álbum
                         </button>
                       </div>
                     </div>

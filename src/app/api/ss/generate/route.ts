@@ -21,6 +21,8 @@ type GenerateBody = {
   direction?: string;
   aspectRatio?: StudioAspectRatio;
   iteration?: number;
+  albumSize?: number;
+  faceLockStrong?: boolean;
   references?: string[];
 };
 
@@ -280,6 +282,11 @@ export async function POST(request: NextRequest) {
     ? body.aspectRatio
     : "4:5";
   const iteration = Number.isFinite(body.iteration) ? Number(body.iteration) : 0;
+  const requestedAlbumSize = Number.isFinite(body.albumSize)
+    ? Number(body.albumSize)
+    : 6;
+  const albumSize = Math.min(Math.max(requestedAlbumSize, 6), 8);
+  const faceLockStrong = body.faceLockStrong !== false;
   const incomingReferences = Array.isArray(body.references)
     ? body.references.filter((item): item is string => typeof item === "string")
     : [];
@@ -287,13 +294,27 @@ export async function POST(request: NextRequest) {
   try {
     assertSafeCreativeNotes(notes);
 
-    const references = Array.from(
+    const uniqueReferences = Array.from(
       new Set(
         incomingReferences.length
           ? incomingReferences
           : SECRET_STUDIO_FALLBACK_REFERENCES
       )
-    ).slice(0, maxReferencesByProvider[requestedProvider]);
+    ).sort((left, right) => {
+      const leftPriority = left.startsWith("data:") ? 0 : 1;
+      const rightPriority = right.startsWith("data:") ? 0 : 1;
+
+      return leftPriority - rightPriority;
+    });
+
+    const uploadedReferences = uniqueReferences.filter((reference) =>
+      reference.startsWith("data:")
+    );
+    const references =
+      (uploadedReferences.length ? uploadedReferences : uniqueReferences).slice(
+        0,
+        maxReferencesByProvider[requestedProvider]
+      );
 
     if (!references.length) {
       throw new Error("Sube al menos una foto de referencia para arrancar.");
@@ -303,35 +324,54 @@ export async function POST(request: NextRequest) {
       references.map((reference, index) => prepareReference(reference, index))
     );
 
-    const { prompt, recipe } = buildSecretStudioPrompt({
-      notes,
-      direction,
-      aspectRatio,
-      iteration,
-    });
+    const prompts = Array.from({ length: albumSize }, (_, shotIndex) =>
+      buildSecretStudioPrompt({
+        provider: requestedProvider,
+        faceLockStrong,
+        notes,
+        direction,
+        aspectRatio,
+        iteration,
+        shotIndex,
+      })
+    );
 
-    const result =
-      requestedProvider === "google"
-        ? await generateWithGoogle({
-            prompt,
-            aspectRatio,
-            references: preparedReferences,
-          })
-        : await generateWithOpenAi({
-            prompt,
-            aspectRatio,
-            references: preparedReferences,
-          });
+    const images: string[] = [];
+
+    for (const item of prompts) {
+      const result =
+        requestedProvider === "google"
+          ? await generateWithGoogle({
+              prompt: item.prompt,
+              aspectRatio,
+              references: preparedReferences,
+            })
+          : await generateWithOpenAi({
+              prompt: item.prompt,
+              aspectRatio,
+              references: preparedReferences,
+            });
+
+      if (result.images[0]) {
+        images.push(result.images[0]);
+      }
+    }
+
+    if (!images.length) {
+      throw new Error("No pude completar el álbum en esta generación.");
+    }
 
     return NextResponse.json({
       success: true,
       provider: requestedProvider,
       providerLabel: getStudioProviderLabel(requestedProvider),
-      prompt,
-      recipe,
+      prompt: prompts[0]?.prompt || "",
+      prompts: prompts.map((item) => item.prompt),
+      recipe: prompts[0]?.recipe || {},
       aspectRatio,
       iteration,
-      images: result.images,
+      albumSize,
+      images,
       note:
         requestedProvider === "google"
           ? "Nano Banana 2 puede incluir SynthID watermark según la política actual de Google."
