@@ -46,18 +46,18 @@ const creativeDirections = [
 ];
 
 const wardrobeIdeas = [
-  "a structured ivory blazer over a silk camisole with tailored wide-leg trousers",
-  "a monochrome black fashion set with a fitted turtleneck bodysuit and sharp heels",
-  "a soft champagne slip dress with minimalist gold jewelry and elegant sandals",
+  "a fitted monochrome bodysuit with sharp heels and minimal jewelry",
+  "a soft champagne slip dress with delicate gold jewelry and elegant sandals",
   "a crisp white tank with clean denim, a polished belt, and pointed heels",
   "a fitted espresso knit dress with clean modern accessories",
-  "a chic oversized shirt with sculpted shorts and refined knee-high boots",
-  "a minimalist cream set with a ribbed top and fluid trousers",
-  "a sleek after-dark look with a satin blazer and refined fashion styling",
-  "a velvet evening set with tailored structure, luxe heels, and restrained jewelry",
-  "a polished leather editorial look with a sharp blazer and sleek studio styling",
-  "a silk shirt with tailored trousers and elegant pointed heels",
-  "a power suit with sculpted tailoring, refined accessories, and clean polish",
+  "a sculpted mini dress with a sleek silhouette and long clean lines",
+  "a refined bandeau top with a fluid matching skirt and elegant heels",
+  "a minimalist ribbed set with a body-skimming top and fitted skirt",
+  "a sleek after-dark satin set with understated styling",
+  "a velvet evening dress with long clean lines and restrained jewelry",
+  "a polished leather editorial look with sleek studio styling",
+  "a silk slip-inspired look with elegant heels and minimal accessories",
+  "a high-fashion studio look with a body-conscious silhouette and clean styling",
 ];
 
 const poseIdeas = [
@@ -441,6 +441,8 @@ export function buildSecretStudioPrompt({
     "Prefer a polished studio environment, clean seamless backdrop, controlled shadows, restrained contrast, crisp facial detail, and realistic beauty finish.",
     "The final image must look like a real contemporary editorial photoshoot, fully clothed, tasteful, elegant, and commercially usable.",
     "Keep the styling elevated but believable. Add natural micro-details in skin, hair, fabric texture, seams, folds, and lighting falloff.",
+    "Avoid corporate wardrobe, officewear, business-casual styling, graduation-photo energy, or LinkedIn portrait vibes unless the user explicitly asks for that.",
+    "Favor model-test energy, high-fashion editorial restraint, long clean lines, strong feminine silhouette, and modern studio styling.",
     `Follow these quality rules: ${polishRules.join(", ")}.`,
     notes ? `Extra creative notes from the user: ${notes.trim()}.` : "",
   ]

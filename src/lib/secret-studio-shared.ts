@@ -50,6 +50,8 @@ export const STUDIO_PRESETS: StudioPreset[] = [
       "Clean white seamless studio, controlled commercial lighting, elegant beauty finish, dark-brown eyes, grounded studio atmosphere.",
     plan: {
       creativeDirection: "clean white seamless studio portrait",
+      wardrobe:
+        "a fitted studio editorial look with a feminine silhouette, clean long lines, and minimal accessories",
       location: "a clean white seamless studio with subtle sculpted shadows",
       lighting:
         "controlled studio softbox lighting with natural highlight rolloff and believable skin texture",
@@ -67,6 +69,8 @@ export const STUDIO_PRESETS: StudioPreset[] = [
       "Warm beige studio, refined editorial portraiture, luminous skin, dark-brown eyes.",
     plan: {
       creativeDirection: "warm beige editorial portrait",
+      wardrobe:
+        "a soft body-skimming studio look with elegant proportions and restrained accessories",
       location: "a refined beige editorial set with textured walls",
       lighting:
         "soft diffused studio lighting with elegant skin highlights and believable shadow falloff",
@@ -82,6 +86,8 @@ export const STUDIO_PRESETS: StudioPreset[] = [
       "Beauty close crop, detailed skin texture, close-up portraiture, dark-brown eyes, controlled studio light.",
     plan: {
       creativeDirection: "beauty editorial portrait",
+      wardrobe:
+        "a clean beauty-studio top with minimal distraction, refined neckline, and model-test styling",
       albumPose: "close beauty crop with a soft head tilt and direct gaze",
       lighting:
         "beauty-dish lighting with realistic skin texture and precise facial definition",
@@ -99,6 +105,8 @@ export const STUDIO_PRESETS: StudioPreset[] = [
       "Full-body catalogue clarity, clean commercial posing, dark-brown eyes.",
     plan: {
       creativeDirection: "modern catalogue portrait",
+      wardrobe:
+        "a fitted editorial studio set with long legs, clean silhouette, and model-test energy",
       albumPose: "standing with one shoulder angled toward camera, confident posture, subtle movement in the hips",
       lighting:
         "clean white seamless studio lighting with subtle but believable shadow definition",
@@ -114,6 +122,8 @@ export const STUDIO_PRESETS: StudioPreset[] = [
       "Seated studio portraits, refined posture, dark-brown eyes.",
     plan: {
       creativeDirection: "minimal studio fashion story",
+      wardrobe:
+        "a body-skimming seated studio look with elegant structure and a strong feminine silhouette",
       albumPose: "seated on a clean studio cube with elegant posture and relaxed hands",
       location: "a clean white cyc studio",
       stylingNotes:

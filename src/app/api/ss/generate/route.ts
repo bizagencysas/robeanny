@@ -23,7 +23,7 @@ import {
 } from "@/lib/secret-studio";
 
 export const runtime = "nodejs";
-export const maxDuration = 300;
+export const maxDuration = 800;
 
 type GenerateBody = {
   provider?: StudioProvider;
@@ -747,6 +747,7 @@ async function generateCreativePlan({
             generationConfig: {
               temperature: 0.8,
               responseMimeType: "application/json",
+              maxOutputTokens: 2048,
             },
           }),
         }
