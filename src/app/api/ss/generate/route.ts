@@ -387,7 +387,10 @@ async function generateCreativePlan({
           Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
         },
         body: JSON.stringify({
-          model: process.env.SS_OPENAI_PROMPT_MODEL || "gpt-4.1-mini",
+          model: process.env.SS_OPENAI_PROMPT_MODEL || "gpt-5-pro",
+          reasoning: {
+            effort: "high",
+          },
           input: plannerPrompt,
         }),
       });

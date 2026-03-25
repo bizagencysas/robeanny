@@ -81,6 +81,8 @@ const aspectRatioOptions: StudioAspectRatio[] = [
   "16:9",
 ];
 
+const SETTINGS_STORAGE_KEY = "robeanny-secret-studio-settings";
+
 function createId(prefix: string) {
   return `${prefix}-${Math.random().toString(36).slice(2, 10)}`;
 }
@@ -119,7 +121,9 @@ export default function SecretStudioClient({
   const [unlockError, setUnlockError] = useState("");
 
   const [provider, setProvider] = useState<StudioProvider | "">(
-    availableProviders[0] || ""
+    availableProviders.includes("google")
+      ? "google"
+      : availableProviders[0] || ""
   );
   const [direction, setDirection] = useState("Studio clean");
   const [aspectRatio, setAspectRatio] = useState<StudioAspectRatio>("4:5");
@@ -132,6 +136,9 @@ export default function SecretStudioClient({
   );
   const [iteration, setIteration] = useState(0);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generationProgress, setGenerationProgress] = useState(0);
+  const [generationStage, setGenerationStage] = useState("");
+  const [showFullPrompt, setShowFullPrompt] = useState(false);
   const [error, setError] = useState("");
   const [providerNote, setProviderNote] = useState("");
 
@@ -150,6 +157,12 @@ export default function SecretStudioClient({
   const [savedLoading, setSavedLoading] = useState(true);
 
   const currentAlbum = sessionAlbums[0] || null;
+  const basePrompt = currentAlbum?.shots[0]?.prompt || "";
+  const isPromptLong = basePrompt.length > 280;
+  const promptPreview =
+    isPromptLong && !showFullPrompt
+      ? `${basePrompt.slice(0, 280).trim()}...`
+      : basePrompt;
 
   const providerDescription = useMemo(() => {
     if (provider === "google") {
@@ -159,11 +172,137 @@ export default function SecretStudioClient({
     }
 
     if (provider === "openai") {
-      return "OpenAI GPT Image suele dar una salida muy fina para editorial y retrato premium.";
+      return "OpenAI sigue disponible, pero por ahora se siente más lento y menos confiable para realismo fino.";
     }
 
     return "";
   }, [provider, googleQualityMode]);
+
+  const estimatedExperience = useMemo(() => {
+    if (provider === "google") {
+      return googleQualityMode === "premium"
+        ? "Más realista y consistente. Ideal cuando quieres el mejor look."
+        : "Más rápido y más barato, pero menos potente para detalle fino.";
+    }
+
+    if (provider === "openai") {
+      return "Experimental aquí: más lento y con más riesgo de timeout en álbumes largos.";
+    }
+
+    return "";
+  }, [provider, googleQualityMode]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    try {
+      const raw = window.localStorage.getItem(SETTINGS_STORAGE_KEY);
+      if (!raw) return;
+
+      const saved = JSON.parse(raw) as Partial<{
+        provider: StudioProvider;
+        direction: string;
+        aspectRatio: StudioAspectRatio;
+        albumSize: 6 | 8;
+        faceLockStrong: boolean;
+        googleQualityMode: GoogleQualityMode;
+        notes: string;
+      }>;
+
+      if (saved.provider && availableProviders.includes(saved.provider)) {
+        setProvider(saved.provider);
+      }
+      if (saved.direction) setDirection(saved.direction);
+      if (saved.aspectRatio) setAspectRatio(saved.aspectRatio);
+      if (saved.albumSize === 6 || saved.albumSize === 8) {
+        setAlbumSize(saved.albumSize);
+      }
+      if (typeof saved.faceLockStrong === "boolean") {
+        setFaceLockStrong(saved.faceLockStrong);
+      }
+      if (
+        saved.googleQualityMode &&
+        ["premium", "economy"].includes(saved.googleQualityMode)
+      ) {
+        setGoogleQualityMode(saved.googleQualityMode);
+      }
+      if (saved.notes) setNotes(saved.notes);
+    } catch {
+      return;
+    }
+  }, [availableProviders]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    window.localStorage.setItem(
+      SETTINGS_STORAGE_KEY,
+      JSON.stringify({
+        provider,
+        direction,
+        aspectRatio,
+        albumSize,
+        faceLockStrong,
+        googleQualityMode,
+        notes,
+      })
+    );
+  }, [
+    provider,
+    direction,
+    aspectRatio,
+    albumSize,
+    faceLockStrong,
+    googleQualityMode,
+    notes,
+  ]);
+
+  useEffect(() => {
+    if (!isGenerating) {
+      setGenerationProgress(0);
+      setGenerationStage("");
+      return;
+    }
+
+    const stages =
+      provider === "openai"
+        ? [
+            "Preparando receta del álbum...",
+            "Enviando referencias...",
+            "Renderizando tomas...",
+            "Esperando respuesta del modelo...",
+            "Armando el álbum final...",
+          ]
+        : [
+            "Preparando receta del álbum...",
+            "Sincronizando referencias faciales...",
+            "Generando las primeras tomas...",
+            "Cerrando el álbum...",
+          ];
+
+    let currentProgress = 6;
+    let stageIndex = 0;
+    setGenerationProgress(currentProgress);
+    setGenerationStage(stages[stageIndex]);
+
+    const timer = window.setInterval(() => {
+      currentProgress = Math.min(
+        currentProgress + (provider === "openai" ? 4 : 7),
+        94
+      );
+
+      const nextStageIndex = Math.min(
+        Math.floor((currentProgress / 100) * stages.length),
+        stages.length - 1
+      );
+
+      stageIndex = nextStageIndex;
+      setGenerationProgress(currentProgress);
+      setGenerationStage(stages[stageIndex]);
+    }, provider === "openai" ? 2200 : 1500);
+
+    return () => window.clearInterval(timer);
+  }, [isGenerating, provider]);
 
   async function refreshSavedShots() {
     try {
@@ -262,6 +401,8 @@ export default function SecretStudioClient({
 
     try {
       setIsGenerating(true);
+      setGenerationProgress(5);
+      setGenerationStage("Preparando álbum...");
       setError("");
       setProviderNote("");
       const albumSeed = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
@@ -326,9 +467,20 @@ export default function SecretStudioClient({
 
       setSessionAlbums((current) => [album, ...current].slice(0, 6));
       setIteration((value) => value + 1);
+      setShowFullPrompt(false);
+      setGenerationProgress(100);
+      setGenerationStage("Álbum listo.");
       setProviderNote(payload.note || "");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "No pude generar el álbum.");
+      const message = err instanceof Error ? err.message : "No pude generar el álbum.";
+
+      if (message.includes("504") || message.toLowerCase().includes("timeout")) {
+        setError(
+          "El álbum tardó demasiado. Prueba 6 fotos o usa Google Premium para una entrega más estable."
+        );
+      } else {
+        setError(message);
+      }
     } finally {
       setIsGenerating(false);
     }
@@ -440,7 +592,7 @@ export default function SecretStudioClient({
                   Motores
                 </p>
                 <p className="mt-2 leading-6">
-                  OpenAI GPT Image y Nano Banana 2 listos para referencias y variaciones consecutivas.
+                  OpenAI GPT Image y Google con modos Premium/Economy listos para referencias y variaciones consecutivas.
                 </p>
               </div>
               <div className="rounded-2xl border border-white/8 bg-white/4 p-4">
@@ -529,7 +681,7 @@ export default function SecretStudioClient({
                       } ${enabled ? "" : "cursor-not-allowed opacity-40"}`}
                     >
                       <p className="text-[0.66rem] uppercase tracking-[0.24em] text-[#d8bb8e]">
-                        {item === "google" ? "Nano Banana 2" : "OpenAI GPT Image"}
+                        {item === "google" ? "Google Image" : "OpenAI GPT Image"}
                       </p>
                       <p className="mt-2 text-sm leading-6 text-[#f7efe4]/68">
                         {enabled
@@ -542,6 +694,41 @@ export default function SecretStudioClient({
                   );
                 })}
               </div>
+
+              {provider === "google" ? (
+                <div className="mt-3 grid grid-cols-2 gap-3">
+                  {([
+                    {
+                      id: "premium",
+                      title: "Google Premium",
+                      description: "Más calidad, más costo.",
+                    },
+                    {
+                      id: "economy",
+                      title: "Google Economy",
+                      description: "Más barato, menos calidad.",
+                    },
+                  ] as const).map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setGoogleQualityMode(item.id)}
+                      className={`rounded-[1.2rem] border px-4 py-4 text-left transition ${
+                        googleQualityMode === item.id
+                          ? "border-[#d8bb8e] bg-[rgba(216,187,142,0.14)]"
+                          : "border-white/10 bg-white/4"
+                      }`}
+                    >
+                      <p className="text-[0.66rem] uppercase tracking-[0.24em] text-[#d8bb8e]">
+                        {item.title}
+                      </p>
+                      <p className="mt-2 text-sm leading-6 text-[#f7efe4]/68">
+                        {item.description}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              ) : null}
             </section>
 
             <section className="rounded-[2rem] border border-white/10 bg-[rgba(18,14,11,0.78)] p-6">
@@ -812,8 +999,17 @@ export default function SecretStudioClient({
                           Prompt base
                         </p>
                         <p className="mt-3 text-sm leading-7 text-[#f7efe4]/64">
-                          {currentAlbum.shots[0]?.prompt}
+                          {promptPreview}
                         </p>
+                        {isPromptLong ? (
+                          <button
+                            type="button"
+                            onClick={() => setShowFullPrompt((value) => !value)}
+                            className="mt-3 rounded-full border border-white/10 px-3 py-2 text-[0.62rem] uppercase tracking-[0.22em] text-[#f7efe4]/60 transition hover:border-[#f7efe4] hover:text-[#f7efe4]"
+                          >
+                            {showFullPrompt ? "Ver menos" : "Ver más"}
+                          </button>
+                        ) : null}
                       </div>
                     </div>
                   </div>
