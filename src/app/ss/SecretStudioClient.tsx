@@ -198,12 +198,14 @@ export default function SecretStudioClient({
         googleQualityMode,
       })
     : null;
+  const effectiveReferenceLimit = provider === "google" ? 2 : 4;
+  const effectiveReferences = references.slice(0, effectiveReferenceLimit);
 
   const providerDescription = useMemo(() => {
     if (provider === "google") {
       return googleQualityMode === "premium"
-        ? "Google Premium es el modo fuerte: más fiel con rostro, más serio para estudio y bastante más caro."
-        : "Google Economy usa Flash para ahorrar, pero cae en calidad y consistencia facial.";
+        ? "Google Premium es el modo fuerte: más fiel con rostro, más serio para estudio y bastante más caro. En 3:4 Vertex solo admite 2 referencias por álbum."
+        : "Google Economy usa Flash para ahorrar, pero cae en calidad y consistencia facial. En 3:4 Vertex solo admite 2 referencias por álbum.";
     }
 
     if (provider === "openai") {
@@ -421,7 +423,7 @@ export default function SecretStudioClient({
           albumSeed,
           excludedRecipeSignatures,
           recentRecipes,
-          references: references.map((item) => item.value),
+          references: effectiveReferences.map((item) => item.value),
         }),
       });
 
@@ -981,8 +983,16 @@ export default function SecretStudioClient({
                     Referencias
                   </p>
                   <p className="mt-2 text-sm leading-6 text-[#f7efe4]/62">
-                    Usa 3 a 5 fotos limpias del rostro y cuerpo para mantener la identidad estable.
+                    {provider === "google"
+                      ? "Con Google Vertex en 3:4 se usan máximo 2 referencias por álbum para mantener identidad estable."
+                      : "Con OpenAI puedes usar hasta 4 referencias limpias del rostro y cuerpo para mantener la identidad estable."}
                   </p>
+                  {references.length > effectiveReferenceLimit ? (
+                    <p className="mt-2 text-xs leading-5 text-[#f0c98f]">
+                      Hay {references.length} referencias cargadas, pero esta generación
+                      usará solo las primeras {effectiveReferenceLimit}.
+                    </p>
+                  ) : null}
                 </div>
                 <label className="luxury-button-secondary cursor-pointer border-white/15 bg-white/5 px-4 py-3 text-[#f7efe4] hover:border-[#f7efe4] hover:bg-[#f7efe4] hover:text-[#120f0d]">
                   Subir fotos

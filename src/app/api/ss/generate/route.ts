@@ -102,7 +102,7 @@ type StreamEvent =
     };
 
 const maxReferencesByProvider: Record<StudioProvider, number> = {
-  google: 4,
+  google: 2,
   openai: 4,
 };
 
