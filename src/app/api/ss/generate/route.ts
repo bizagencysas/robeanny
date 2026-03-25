@@ -1006,67 +1006,106 @@ export async function POST(request: NextRequest) {
                 0,
                 Math.min(preparedReferences.length, 3)
               );
-              const sequentialResults: Array<{
+              const results: Array<{
                 index: number;
                 imageUrl: string;
                 cloudinaryPublicId: string;
                 cloudinaryFolder: string;
                 prompt: string;
               }> = [];
-              let albumAnchorReference: PreparedReference | null = null;
+              const firstPrompt = prompts[0];
+              const firstDataUrl = await generateWithVertexGeminiImage({
+                prompt: firstPrompt.prompt,
+                aspectRatio: effectiveAspectRatio,
+                references: googleBaseReferences,
+                seed: createVertexSeed(albumSeed, firstPrompt.prompt, 0),
+                hasAlbumAnchor: false,
+              });
+              const albumAnchorReference = dataUrlToReference(
+                firstDataUrl,
+                "album-anchor"
+              );
+              const firstUploaded = await uploadGeneratedImageToCloudinary({
+                file: firstDataUrl,
+                filename: `shot-1-${Date.now()}-${Math.random()
+                  .toString(36)
+                  .slice(2, 8)}`,
+                folderOverride: albumFolder,
+              });
 
-              for (let index = 0; index < prompts.length; index += 1) {
-                const item = prompts[index];
-                const activeReferences = albumAnchorReference
-                  ? [albumAnchorReference, ...googleBaseReferences].slice(0, 4)
-                  : googleBaseReferences;
-                const generatedDataUrl = await generateWithVertexGeminiImage({
-                  prompt: item.prompt,
-                  aspectRatio: effectiveAspectRatio,
-                  references: activeReferences,
-                  seed: createVertexSeed(albumSeed, item.prompt, index),
-                  hasAlbumAnchor: Boolean(albumAnchorReference),
-                });
+              completed += 1;
+              const firstResult = {
+                index: 0,
+                imageUrl: firstUploaded.secureUrl,
+                cloudinaryPublicId: firstUploaded.publicId,
+                cloudinaryFolder: firstUploaded.folder,
+                prompt: firstPrompt.prompt,
+              };
+              results.push(firstResult);
+              send({
+                type: "image",
+                index: firstResult.index,
+                imageUrl: firstResult.imageUrl,
+                cloudinaryPublicId: firstResult.cloudinaryPublicId,
+                cloudinaryFolder: firstResult.cloudinaryFolder,
+                prompt: firstResult.prompt,
+                completed,
+                total: albumSize,
+                stage: `Foto ${completed} de ${albumSize} lista.`,
+              });
 
-                if (!albumAnchorReference) {
-                  albumAnchorReference = dataUrlToReference(
-                    generatedDataUrl,
-                    "album-anchor"
+              const remainingResults = await runWithConcurrency(
+                prompts.slice(1).map((item, offset) => async () => {
+                  const index = offset + 1;
+                  const activeReferences = [albumAnchorReference, ...googleBaseReferences].slice(
+                    0,
+                    4
                   );
+                  const generatedDataUrl = await generateWithVertexGeminiImage({
+                    prompt: item.prompt,
+                    aspectRatio: effectiveAspectRatio,
+                    references: activeReferences,
+                    seed: createVertexSeed(albumSeed, item.prompt, index),
+                    hasAlbumAnchor: true,
+                  });
+
+                  const uploaded = await uploadGeneratedImageToCloudinary({
+                    file: generatedDataUrl,
+                    filename: `shot-${index + 1}-${Date.now()}-${Math.random()
+                      .toString(36)
+                      .slice(2, 8)}`,
+                    folderOverride: albumFolder,
+                  });
+
+                  return {
+                    index,
+                    imageUrl: uploaded.secureUrl,
+                    cloudinaryPublicId: uploaded.publicId,
+                    cloudinaryFolder: uploaded.folder,
+                    prompt: item.prompt,
+                  };
+                }),
+                2,
+                (result) => {
+                  completed += 1;
+                  results.push(result);
+                  send({
+                    type: "image",
+                    index: result.index,
+                    imageUrl: result.imageUrl,
+                    cloudinaryPublicId: result.cloudinaryPublicId,
+                    cloudinaryFolder: result.cloudinaryFolder,
+                    prompt: result.prompt,
+                    completed,
+                    total: albumSize,
+                    stage: `Foto ${completed} de ${albumSize} lista.`,
+                  });
                 }
+              );
 
-                const uploaded = await uploadGeneratedImageToCloudinary({
-                  file: generatedDataUrl,
-                  filename: `shot-${index + 1}-${Date.now()}-${Math.random()
-                    .toString(36)
-                    .slice(2, 8)}`,
-                  folderOverride: albumFolder,
-                });
-
-                completed += 1;
-                const result = {
-                  index,
-                  imageUrl: uploaded.secureUrl,
-                  cloudinaryPublicId: uploaded.publicId,
-                  cloudinaryFolder: uploaded.folder,
-                  prompt: item.prompt,
-                };
-
-                sequentialResults.push(result);
-                send({
-                  type: "image",
-                  index: result.index,
-                  imageUrl: result.imageUrl,
-                  cloudinaryPublicId: result.cloudinaryPublicId,
-                  cloudinaryFolder: result.cloudinaryFolder,
-                  prompt: result.prompt,
-                  completed,
-                  total: albumSize,
-                  stage: `Foto ${completed} de ${albumSize} lista.`,
-                });
-              }
-
-              return sequentialResults;
+              return [firstResult, ...remainingResults].sort(
+                (left, right) => left.index - right.index
+              );
             })()
           : await runWithConcurrency(
               prompts.map((item, index) => async () => {

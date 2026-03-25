@@ -323,6 +323,20 @@ function normalizePlanValue(value: string | undefined, fallback: string) {
   return normalized ? normalized : fallback;
 }
 
+function getAlbumSlotInstruction(shotIndex: number) {
+  const slotInstructions = [
+    "Shot role: opening hero frame with the strongest identity match, clean posture, and direct model presence.",
+    "Shot role: clearly different from the opener, with a new pose and a different camera angle.",
+    "Shot role: introduce movement or a distinctly different body line from earlier shots. Do not repeat the hero frame.",
+    "Shot role: switch to a different crop or composition while keeping the same look and same woman.",
+    "Shot role: beauty-led variation with different expression, head angle, and hand placement from earlier shots.",
+    "Shot role: final variation with a clearly different pose language and silhouette from the rest of the album.",
+    "This shot must be clearly distinct from the previous images in pose, crop, angle, and body line.",
+  ];
+
+  return slotInstructions[shotIndex] || slotInstructions[slotInstructions.length - 1];
+}
+
 export function buildSecretStudioPrompt({
   provider,
   faceLockStrong = true,
@@ -391,6 +405,7 @@ export function buildSecretStudioPrompt({
     shotIndex % 2 === 0
       ? baseLens
       : pickVariant(lensIdeas, baseOffset + 6 + shotIndex);
+  const albumSlotInstruction = getAlbumSlotInstruction(shotIndex);
   const identityLockInstructions = faceLockStrong
     ? [
         "Treat facial identity preservation as the top priority.",
@@ -433,16 +448,19 @@ export function buildSecretStudioPrompt({
     `Framing: ${framing}.`,
     `Expression: ${expression}.`,
     `Aspect ratio target: ${aspectRatio}.`,
+    albumSlotInstruction,
     "Eye color must be dark brown.",
     "Use grounded realism over stylized glamour.",
     "Keep facial proportions natural, skin pores visible, studio shadows believable, and clothing construction realistic.",
     "Avoid generic AI fashion look, waxy skin, over-designed wardrobe, fake facial symmetry, and synthetic background gradients.",
     "Only the pose, framing, expression, and camera crop may change from shot to shot. Do not change haircut, hair styling, wardrobe, set concept, or beauty styling within the album.",
+    "Every photo in the album must be recognizably different from the others in pose, angle, crop, and gesture. Never duplicate a previous frame.",
     "Prefer a polished studio environment, clean seamless backdrop, controlled shadows, restrained contrast, crisp facial detail, and realistic beauty finish.",
     "The final image must look like a real contemporary editorial photoshoot, fully clothed, tasteful, elegant, and commercially usable.",
     "Keep the styling elevated but believable. Add natural micro-details in skin, hair, fabric texture, seams, folds, and lighting falloff.",
     "Avoid corporate wardrobe, officewear, business-casual styling, graduation-photo energy, or LinkedIn portrait vibes unless the user explicitly asks for that.",
     "Favor model-test energy, high-fashion editorial restraint, long clean lines, strong feminine silhouette, and modern studio styling.",
+    "Sensual energy is allowed only when it remains fully clothed, non-explicit, editorial, and tasteful. No nudity, no transparent garments, no explicit exposure.",
     `Follow these quality rules: ${polishRules.join(", ")}.`,
     notes ? `Extra creative notes from the user: ${notes.trim()}.` : "",
   ]
