@@ -240,14 +240,13 @@ export function buildSecretStudioPrompt({
   const baseOffset = hashText(`${direction}|${notes}`) + iteration * 7;
   const creativeDirection = pickVariant(creativeDirections, baseOffset);
   const wardrobe = pickVariant(wardrobeIdeas, baseOffset + 1);
-  const pose = pickVariant(poseIdeas, baseOffset + 2);
+  const basePose = pickVariant(poseIdeas, baseOffset + 2);
   const hair = pickVariant(hairIdeas, baseOffset + 3);
   const lighting = pickVariant(lightingIdeas, baseOffset + 4);
   const location = pickVariant(locationIdeas, baseOffset + 5);
-  const lens = pickVariant(lensIdeas, baseOffset + 6);
   const framing = pickVariant(framingIdeas, baseOffset + shotIndex);
   const expression = pickVariant(expressionIdeas, baseOffset + shotIndex + 2);
-  const pose = pickVariant(poseIdeas, baseOffset + 2 + shotIndex);
+  const shotPose = pickVariant(poseIdeas, baseOffset + 2 + shotIndex);
   const shotLens = pickVariant(lensIdeas, baseOffset + 6 + shotIndex);
   const identityLockInstructions = faceLockStrong
     ? [
@@ -279,7 +278,7 @@ export function buildSecretStudioPrompt({
     openAiIdentityLock,
     `Creative direction: ${creativeDirection}.`,
     `Wardrobe: ${wardrobe}.`,
-    `Pose: ${pose}.`,
+    `Pose: ${shotPose}.`,
     `Hair styling: ${hair}.`,
     `Lighting: ${lighting}.`,
     `Location: ${location}.`,
@@ -301,7 +300,8 @@ export function buildSecretStudioPrompt({
     recipe: {
       creativeDirection,
       wardrobe,
-      pose,
+      pose: shotPose,
+      albumPose: basePose,
       hair,
       lighting,
       location,
