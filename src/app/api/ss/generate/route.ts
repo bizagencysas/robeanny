@@ -969,7 +969,7 @@ export async function POST(request: NextRequest) {
         error:
           "No hay proveedor configurado todavía. Agrega `VERTEX_AI_PROJECT_ID`, `GOOGLE_CREDENTIALS_JSON` u `OPENAI_API_KEY` en el entorno.",
       },
-      { status: 400 }
+      { status: 400, headers: getSecretStudioCorsHeaders(request) }
     );
   }
 
