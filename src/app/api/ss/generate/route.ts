@@ -110,7 +110,7 @@ type StreamEvent =
     };
 
 const maxReferencesByProvider: Record<StudioProvider, number> = {
-  google: 6,
+  google: 3,
   openai: 3,
 };
 
@@ -529,11 +529,12 @@ async function generateWithVertexGeminiImage({
                 "Match the same apparent age visible in the references and keep her clearly young-adult. Never age her up or mature her facial features.",
                 "Keep dark-brown eyes, real skin texture, believable pores, natural asymmetry, and non-waxy skin.",
                 "Preserve youthful cheek fullness, smooth under-eyes, soft feminine facial contours, and recognizable beauty details from the references.",
+                "Do not average identity across the references. Do not invent a blended face. Do not reinterpret the woman.",
                 "Avoid CGI look, waxy skin, mannequin posture, distorted anatomy, extra fingers, extra limbs, generic beauty-face, and fake gradient backgrounds.",
                 "Prefer grounded studio realism over stylized glamour.",
                 hasAlbumAnchor
-                  ? "The first attached image is the album anchor. Match its exact woman, wardrobe, hair, makeup, backdrop, and lighting direction."
-                  : "Establish a clean, believable studio look that can be repeated across the full album.",
+                  ? "The first attached image is the album anchor. The second image is the high-resolution facial identity anchor. The third image is the body proportion anchor."
+                  : "The first attached image is the high-resolution facial identity anchor. The second image is secondary face context. The third image is the body proportion anchor.",
               ].join(" "),
             },
           ],
@@ -552,9 +553,11 @@ async function generateWithVertexGeminiImage({
                 text: [
                   prompt,
                   hasAlbumAnchor
-                    ? "Use the first attached image as the continuity anchor for this album and the remaining images as identity references."
-                    : "Use all attached reference photos as the same real woman.",
+                    ? "Use the first attached image as the continuity anchor for this album. Use the second attached image as the primary facial identity source. Use the third attached image only for body proportions and styling scale."
+                    : "Use the first attached image as the primary facial identity source, the second for face support, and the third only for body proportions.",
+                  "Maintain exact facial geometry and lip shape from the high-resolution reference.",
                   "Preserve her exact face, skin tone, hairline, jawline, nose, lips, and dark-brown eyes.",
+                  "Do not blend, average, or generalize the face from multiple references. The first facial anchor defines who she is.",
                   hasAlbumAnchor
                     ? "Match the same exact outfit pieces, same hair styling, same makeup, same studio set, and same light quality from the anchor image. Only change pose, crop, and expression."
                     : "Lock one single outfit, one single hair setup, one single makeup direction, and one single studio lighting setup for the whole album.",
@@ -1007,11 +1010,22 @@ export async function POST(request: NextRequest) {
     const uploadedReferences = uniqueReferences.filter((reference) =>
       reference.startsWith("data:")
     );
+    const preferredGoogleFallbackReferences = [
+      SECRET_STUDIO_PRIMARY_FACE_REFERENCES[0],
+      SECRET_STUDIO_PRIMARY_FACE_REFERENCES[1] ||
+        SECRET_STUDIO_SECONDARY_FACE_REFERENCES[0],
+      SECRET_STUDIO_BODY_SUPPORT_REFERENCES[0],
+    ].filter((value): value is string => Boolean(value));
+
     const references =
-      (uploadedReferences.length ? uploadedReferences : uniqueReferences).slice(
-        0,
-        maxReferencesByProvider[requestedProvider]
-      );
+      requestedProvider === "google" && !uploadedReferences.length
+        ? preferredGoogleFallbackReferences.filter((value) =>
+            uniqueReferences.includes(value)
+          )
+        : (uploadedReferences.length ? uploadedReferences : uniqueReferences).slice(
+            0,
+            maxReferencesByProvider[requestedProvider]
+          );
 
     if (!references.length) {
       throw new Error("Sube al menos una foto de referencia para arrancar.");
@@ -1162,6 +1176,7 @@ export async function POST(request: NextRequest) {
                   const activeReferences = [
                     albumAnchorReference,
                     googleBaseReferences[0],
+                    googleBaseReferences[2] || googleBaseReferences[1],
                   ].filter(Boolean);
 
                   try {
@@ -1224,6 +1239,7 @@ export async function POST(request: NextRequest) {
                   const fallbackReferences = [
                     albumAnchorReference,
                     googleBaseReferences[0],
+                    googleBaseReferences[2] || googleBaseReferences[1],
                   ].filter(Boolean);
                   const generatedDataUrl = await generateWithVertexGeminiImageWithRetry({
                     prompt: missingShot.item.prompt,

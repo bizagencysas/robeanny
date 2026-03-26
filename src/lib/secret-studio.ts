@@ -415,6 +415,8 @@ export function buildSecretStudioPrompt({
         "Do not beautify by changing ethnicity, age, eye shape, lip fullness, bone structure, or facial proportions.",
         "Match the same apparent age visible in the references and keep her clearly young-adult. Never age her up, mature her features, or add older facial lines.",
         "Preserve youthful cheek fullness, smooth under-eyes, soft facial contours, and the exact same feminine facial balance from the references.",
+        "Maintain exact facial geometry and lip shape from the high-resolution reference.",
+        "Do not average, blend, or generalize identity across references. The primary face anchor defines who she is.",
         "Her eyes must remain dark brown, never hazel, green, blue, or gray.",
         "Maintain dark-brown irises consistently across every image in the album.",
       ].join(" ")
