@@ -1074,32 +1074,38 @@ export async function POST(request: NextRequest) {
                     0,
                     3
                   );
-                  const generatedDataUrl = await generateWithVertexGeminiImage({
-                    prompt: item.prompt,
-                    aspectRatio: effectiveAspectRatio,
-                    references: activeReferences,
-                    seed: createVertexSeed(albumSeed, item.prompt, index),
-                    hasAlbumAnchor: true,
-                  });
 
-                  const uploaded = await uploadGeneratedImageToCloudinary({
-                    file: generatedDataUrl,
-                    filename: `shot-${index + 1}-${Date.now()}-${Math.random()
-                      .toString(36)
-                      .slice(2, 8)}`,
-                    folderOverride: albumFolder,
-                  });
+                  try {
+                    const generatedDataUrl = await generateWithVertexGeminiImage({
+                      prompt: item.prompt,
+                      aspectRatio: effectiveAspectRatio,
+                      references: activeReferences,
+                      seed: createVertexSeed(albumSeed, item.prompt, index),
+                      hasAlbumAnchor: true,
+                    });
 
-                  return {
-                    index,
-                    imageUrl: uploaded.secureUrl,
-                    cloudinaryPublicId: uploaded.publicId,
-                    cloudinaryFolder: uploaded.folder,
-                    prompt: item.prompt,
-                  };
+                    const uploaded = await uploadGeneratedImageToCloudinary({
+                      file: generatedDataUrl,
+                      filename: `shot-${index + 1}-${Date.now()}-${Math.random()
+                        .toString(36)
+                        .slice(2, 8)}`,
+                      folderOverride: albumFolder,
+                    });
+
+                    return {
+                      index,
+                      imageUrl: uploaded.secureUrl,
+                      cloudinaryPublicId: uploaded.publicId,
+                      cloudinaryFolder: uploaded.folder,
+                      prompt: item.prompt,
+                    };
+                  } catch {
+                    return null;
+                  }
                 }),
                 2,
                 (result) => {
+                  if (!result) return;
                   completed += 1;
                   results.push(result);
                   send({
@@ -1116,9 +1122,9 @@ export async function POST(request: NextRequest) {
                 }
               );
 
-              return [firstResult, ...remainingResults].sort(
-                (left, right) => left.index - right.index
-              );
+              return [firstResult, ...remainingResults.filter(Boolean)].sort(
+                (left, right) => left!.index - right!.index
+              ) as typeof results;
             })()
           : await (async () => {
               const openAiBaseReferences = preparedReferences.slice(
@@ -1172,30 +1178,36 @@ export async function POST(request: NextRequest) {
                     0,
                     4
                   );
-                  const generatedDataUrl = await generateWithOpenAi({
-                    prompt: item.prompt,
-                    aspectRatio: effectiveAspectRatio,
-                    references: activeReferences,
-                    hasAlbumAnchor: true,
-                  });
-                  const uploaded = await uploadGeneratedImageToCloudinary({
-                    file: generatedDataUrl,
-                    filename: `shot-${index + 1}-${Date.now()}-${Math.random()
-                      .toString(36)
-                      .slice(2, 8)}`,
-                    folderOverride: albumFolder,
-                  });
 
-                  return {
-                    index,
-                    imageUrl: uploaded.secureUrl,
-                    cloudinaryPublicId: uploaded.publicId,
-                    cloudinaryFolder: uploaded.folder,
-                    prompt: item.prompt,
-                  };
+                  try {
+                    const generatedDataUrl = await generateWithOpenAi({
+                      prompt: item.prompt,
+                      aspectRatio: effectiveAspectRatio,
+                      references: activeReferences,
+                      hasAlbumAnchor: true,
+                    });
+                    const uploaded = await uploadGeneratedImageToCloudinary({
+                      file: generatedDataUrl,
+                      filename: `shot-${index + 1}-${Date.now()}-${Math.random()
+                        .toString(36)
+                        .slice(2, 8)}`,
+                      folderOverride: albumFolder,
+                    });
+
+                    return {
+                      index,
+                      imageUrl: uploaded.secureUrl,
+                      cloudinaryPublicId: uploaded.publicId,
+                      cloudinaryFolder: uploaded.folder,
+                      prompt: item.prompt,
+                    };
+                  } catch {
+                    return null;
+                  }
                 }),
                 2,
                 (result) => {
+                  if (!result) return;
                   completed += 1;
                   send({
                     type: "image",
@@ -1211,9 +1223,9 @@ export async function POST(request: NextRequest) {
                 }
               );
 
-              return [firstResult, ...remainingResults].sort(
-                (left, right) => left.index - right.index
-              );
+              return [firstResult, ...remainingResults.filter(Boolean)].sort(
+                (left, right) => left!.index - right!.index
+              ) as typeof firstResult[];
             })();
 
       if (!images.length) {

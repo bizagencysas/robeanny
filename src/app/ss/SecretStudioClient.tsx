@@ -574,7 +574,30 @@ export default function SecretStudioClient({
         }
       }
 
-      if (!completedSuccessfully) {
+      if (!completedSuccessfully && streamedAlbum) {
+        const readyShots = streamedAlbum.shots.filter(
+          (shot): shot is GeneratedShot =>
+            shot.status === "ready" && Boolean(shot.imageUrl)
+        );
+
+        if (readyShots.length > 0) {
+          const partialAlbum: GeneratedAlbum = {
+            ...streamedAlbum,
+            completedCount: readyShots.length,
+            shots: readyShots,
+          };
+
+          setSessionAlbums((current) => [partialAlbum, ...current].slice(0, 6));
+          setLiveAlbum(null);
+          setIteration((value) => value + 1);
+          setGenerationProgress(100);
+          setGenerationStage("Álbum parcial guardado.");
+          setError(
+            `Se cortó la conexión, pero se rescataron ${readyShots.length} de ${streamedAlbum.shots.length} fotos.`
+          );
+          return;
+        }
+
         throw new Error("La generación se cortó antes de completar el álbum.");
       }
     } catch (err) {
