@@ -305,18 +305,18 @@ export function parseGoogleCredentialsJson() {
 
   try {
     return validateGoogleCredentialsShape(JSON.parse(raw));
-  } catch {}
+  } catch { }
 
   const normalized = normalizeGoogleCredentialsCandidate(raw);
 
   try {
     return validateGoogleCredentialsShape(JSON.parse(normalized));
-  } catch {}
+  } catch { }
 
   try {
     const decoded = Buffer.from(normalized, "base64").toString("utf8");
     return validateGoogleCredentialsShape(JSON.parse(decoded));
-  } catch {}
+  } catch { }
 
   throw new Error(
     "`GOOGLE_CREDENTIALS_JSON` no contiene un JSON válido de cuenta de servicio. Pégalo como JSON completo, sin envolverlo en comillas extra. Si quieres, también acepto el JSON codificado en base64."
@@ -404,13 +404,11 @@ function normalizePlanValue(value: string | undefined, fallback: string) {
 
 function getAlbumSlotInstruction(shotIndex: number) {
   const slotInstructions = [
-    "Shot role: opening hero frame with the strongest identity match, clean posture, and direct model presence.",
-    "Shot role: clearly different from the opener, with a new pose and a different camera angle.",
-    "Shot role: introduce movement or a distinctly different body line from earlier shots. Do not repeat the hero frame.",
-    "Shot role: switch to a different crop or composition while keeping the same look and same woman.",
-    "Shot role: beauty-led variation with different expression, head angle, and hand placement from earlier shots.",
-    "Shot role: final variation with a clearly different pose language and silhouette from the rest of the album.",
-    "This shot must be clearly distinct from the previous images in pose, crop, angle, and body line.",
+    "Shot 1 of 4: opening hero frame. Standing pose facing the camera with direct eye contact, waist-up or three-quarter crop, clean posture, and the strongest identity match.",
+    "Shot 2 of 4: clearly different angle. Three-quarter body turned away from the camera with the head looking back over the shoulder, different crop than shot 1.",
+    "Shot 3 of 4: movement frame. Walking mid-step or adjusting clothing with visible body movement, full-body or knee-up crop, different silhouette from earlier shots.",
+    "Shot 4 of 4: close portrait. Tight beauty crop from chest up or face-only close-up, soft head tilt, different expression from earlier shots, maximum facial detail.",
+    "Bonus shot: unique variation unlike any earlier image. Choose a novel body line, unusual crop, or asymmetric composition.",
   ];
 
   return slotInstructions[shotIndex] || slotInstructions[slotInstructions.length - 1];
@@ -487,31 +485,31 @@ export function buildSecretStudioPrompt({
   const albumSlotInstruction = getAlbumSlotInstruction(shotIndex);
   const identityLockInstructions = faceLockStrong
     ? [
-        "Treat facial identity preservation as the top priority.",
-        "This must be the exact same real woman from the references, not a reinterpretation or inspired-by version.",
-        "Preserve her exact face shape, brow structure, eyelid shape, nose bridge, nose tip, lip shape, smile line, cheek volume, jawline, chin, hairline, and skin tone.",
-        "Preserve subtle asymmetries and recognizable beauty details visible in the references.",
-        "Do not beautify by changing ethnicity, age, eye shape, lip fullness, bone structure, or facial proportions.",
-        "Match the same apparent age visible in the references and keep her clearly young-adult. Never age her up, mature her features, or add older facial lines.",
-        "Preserve youthful cheek fullness, smooth under-eyes, soft facial contours, and the exact same feminine facial balance from the references.",
-        "Maintain exact facial geometry and lip shape from the high-resolution reference.",
-        "Do not enlarge the lips, do not create filler-like lips, and do not increase lip volume beyond what is visible in the references.",
-        "Do not sharpen, hollow, or age the cheeks, jawline, mouth area, or under-eyes.",
-        "Do not average, blend, or generalize identity across references. The primary face anchor defines who she is.",
-        "Her eyes must remain dark brown, never hazel, green, blue, or gray.",
-        "Maintain dark-brown irises consistently across every image in the album.",
-      ].join(" ")
+      "Treat facial identity preservation as the top priority.",
+      "This must be the exact same real woman from the references, not a reinterpretation or inspired-by version.",
+      "Preserve her exact face shape, brow structure, eyelid shape, nose bridge, nose tip, lip shape, smile line, cheek volume, jawline, chin, hairline, and skin tone.",
+      "Preserve subtle asymmetries and recognizable beauty details visible in the references.",
+      "Do not beautify by changing ethnicity, age, eye shape, lip fullness, bone structure, or facial proportions.",
+      "Match the same apparent age visible in the references and keep her clearly young-adult. Never age her up, mature her features, or add older facial lines.",
+      "Preserve youthful cheek fullness, smooth under-eyes, soft facial contours, and the exact same feminine facial balance from the references.",
+      "Maintain exact facial geometry and lip shape from the high-resolution reference.",
+      "Do not enlarge the lips, do not create filler-like lips, and do not increase lip volume beyond what is visible in the references.",
+      "Do not sharpen, hollow, or age the cheeks, jawline, mouth area, or under-eyes.",
+      "Do not average, blend, or generalize identity across references. The primary face anchor defines who she is.",
+      "Her eyes must remain dark brown, never hazel, green, blue, or gray.",
+      "Maintain dark-brown irises consistently across every image in the album.",
+    ].join(" ")
     : "";
   const openAiIdentityLock =
     provider === "openai"
       ? [
-          "Use the first reference image as the primary face identity anchor and treat the remaining references as support for angle and consistency.",
-          "Identity accuracy is more important than styling creativity.",
-          "This must be the exact same real woman from the references, not a lookalike, twin, or inspired-by version.",
-          "Do not change her face shape, eyes, nose, lips, smile line, brow structure, cheek volume, jawline, hairline, or skin tone.",
-          "Preserve recognizable beauty details and subtle asymmetries whenever visible in the references.",
-          "Keep the face highly faithful across all images in the album even when pose, framing, or camera angle changes.",
-        ].join(" ")
+        "Use the first reference image as the primary face identity anchor and treat the remaining references as support for angle and consistency.",
+        "Identity accuracy is more important than styling creativity.",
+        "This must be the exact same real woman from the references, not a lookalike, twin, or inspired-by version.",
+        "Do not change her face shape, eyes, nose, lips, smile line, brow structure, cheek volume, jawline, hairline, or skin tone.",
+        "Preserve recognizable beauty details and subtle asymmetries whenever visible in the references.",
+        "Keep the face highly faithful across all images in the album even when pose, framing, or camera angle changes.",
+      ].join(" ")
       : "";
 
   const prompt = [
