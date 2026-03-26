@@ -545,8 +545,8 @@ async function generateWithVertexGeminiImage({
                 "ABSOLUTE RULE: facial identity preservation is the #1 non-negotiable constraint, above all creative direction.",
                 "The woman in the output MUST be the exact same real adult woman shown in the reference images — not a lookalike, not a similar model, not an inspired-by version, not a twin, not a blend.",
                 "Her face is her face. Do not reinterpret, generalize, soften, sharpen, age, rejuvenate, or blend her facial features in any way.",
-                "Match the same apparent age visible in the references and keep her clearly young-adult, mid-20s. Never age her up or mature her facial features.",
-                "HARD NEGATIVE ON AGE: She is in her mid-20s. The output must NEVER make her look 30, 35, 40, or older. No wrinkles, no expression lines, no forehead lines, no crow's feet, no nasolabial folds, no sagging skin, no hollow cheeks. Keep her skin smooth, plump, and youthful.",
+                "Match the same apparent age visible in the references — she is in her 20s but looks very young, baby-faced, like late teens / early 20s. Never age her up or mature her facial features.",
+                "HARD NEGATIVE ON AGE: She looks like a very young woman. The output must NEVER make her look 30, 35, 40, or older. No wrinkles, no expression lines, no forehead lines, no crow's feet, no nasolabial folds, no sagging skin, no hollow cheeks. Keep her skin smooth, plump, and baby-faced.",
                 "Keep her body proportions youthful and toned. No mature body language or middle-aged woman energy.",
                 "Keep dark-brown eyes in every single frame — never hazel, green, blue, or gray.",
                 "Preserve real skin texture, believable pores, natural facial asymmetry, and non-waxy skin.",
@@ -596,8 +596,8 @@ async function generateWithVertexGeminiImage({
         generationConfig: {
           responseModalities: ["TEXT", "IMAGE"],
           candidateCount: 1,
-          temperature: 0.3,
-          topP: 0.75,
+          temperature: 0.1,
+          topP: 0.5,
           seed,
           imageConfig: {
             aspectRatio:

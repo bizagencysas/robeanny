@@ -2,30 +2,34 @@
 
 import { useEffect, useRef } from "react";
 import Lenis from "lenis";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
 
 export default function SmoothScroll({ children }: { children: React.ReactNode }) {
     const lenisRef = useRef<Lenis | null>(null);
 
     useEffect(() => {
-        // Initialize Lenis with cinematic smoothing
         lenisRef.current = new Lenis({
-            duration: 1.5,
-            easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Exponential decay
+            duration: 1.6,
+            easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
             orientation: "vertical",
             gestureOrientation: "vertical",
             smoothWheel: true,
-            wheelMultiplier: 1,
-            touchMultiplier: 2,
+            wheelMultiplier: 0.9,
+            touchMultiplier: 1.8,
         });
 
-        function raf(time: number) {
-            lenisRef.current?.raf(time);
-            requestAnimationFrame(raf);
-        }
+        // Connect Lenis to GSAP's ticker for ScrollTrigger compatibility
+        lenisRef.current.on("scroll", ScrollTrigger.update);
 
-        requestAnimationFrame(raf);
+        gsap.ticker.add((time) => {
+            lenisRef.current?.raf(time * 1000);
+        });
 
-        // Cleanup on unmount
+        gsap.ticker.lagSmoothing(0);
+
         return () => {
             if (lenisRef.current) {
                 lenisRef.current.destroy();
