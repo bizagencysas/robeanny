@@ -83,285 +83,156 @@ export default function HomePage() {
     [locale]
   );
 
-  // ===== GSAP MASTER TIMELINE =====
+  // ===== GSAP ANIMATIONS (hero = delay-based, scroll = IntersectionObserver) =====
   useEffect(() => {
     const ctx = gsap.context(() => {
-      // ---- HERO: Title clip-path reveal ----
+      // ---- HERO: Title clip-path reveal (delay-based, always works) ----
       if (heroTitleRef.current) {
         gsap.fromTo(
           heroTitleRef.current,
           { clipPath: "inset(100% 0 0 0)", y: 60 },
-          {
-            clipPath: "inset(0% 0 0 0)",
-            y: 0,
-            duration: 1.4,
-            ease: "power4.out",
-            delay: 0.8,
-          }
+          { clipPath: "inset(0% 0 0 0)", y: 0, duration: 1.4, ease: "power4.out", delay: 0.8 }
         );
       }
 
       // Hero CTA stagger
       if (heroCTARef.current) {
         const elements = heroCTARef.current.children;
-        gsap.fromTo(
-          elements,
-          { opacity: 0, y: 30 },
-          { opacity: 1, y: 0, duration: 0.8, stagger: 0.1, ease: "power3.out", delay: 1.6 }
-        );
+        gsap.fromTo(elements, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.8, stagger: 0.1, ease: "power3.out", delay: 1.6 });
       }
 
-      // Hero parallax on scroll — more aggressive
+      // Hero parallax on scroll (scrub-based = works fine with Lenis)
       if (heroTitleRef.current) {
         gsap.to(heroTitleRef.current, {
-          y: -300,
-          scale: 0.7,
-          opacity: 0,
-          rotateX: 15,
-          ease: "none",
-          scrollTrigger: {
-            trigger: heroRef.current,
-            start: "top top",
-            end: "bottom top",
-            scrub: 1,
-          },
+          y: -300, scale: 0.7, opacity: 0, rotateX: 15, ease: "none",
+          scrollTrigger: { trigger: heroRef.current, start: "top top", end: "bottom top", scrub: 1 },
         });
       }
 
       if (heroImageContainerRef.current) {
         gsap.to(heroImageContainerRef.current, {
-          y: 200,
-          scale: 1.25,
-          ease: "none",
-          scrollTrigger: {
-            trigger: heroRef.current,
-            start: "top top",
-            end: "bottom top",
-            scrub: 1.5,
-          },
+          y: 200, scale: 1.25, ease: "none",
+          scrollTrigger: { trigger: heroRef.current, start: "top top", end: "bottom top", scrub: 1.5 },
         });
       }
 
-      // ---- MARQUEE: Infinite scroll with scroll-velocity skew ----
+      // ---- MARQUEE: Infinite scroll ----
       if (marqueeRef.current) {
         const marqueeInner = marqueeRef.current.querySelector(".marquee-inner") as HTMLElement;
         if (marqueeInner) {
-          gsap.to(marqueeInner, {
-            xPercent: -50,
-            repeat: -1,
-            duration: 22,
-            ease: "linear",
-          });
-
-          // Scroll-velocity-driven skew: faster scroll = more skew
-          ScrollTrigger.create({
-            trigger: marqueeRef.current,
-            start: "top bottom",
-            end: "bottom top",
-            onUpdate: (self) => {
-              const velocity = self.getVelocity();
-              const skewAmount = gsap.utils.clamp(-8, 8, velocity / 200);
-              gsap.to(marqueeInner, {
-                skewX: skewAmount,
-                duration: 0.3,
-                overwrite: true,
-              });
-            },
-          });
+          gsap.to(marqueeInner, { xPercent: -50, repeat: -1, duration: 22, ease: "linear" });
         }
       }
 
-      // ---- PORTFOLIO: Clip-path diagonal wipe (toggleActions = reliable) ----
-      if (portfolioSectionRef.current) {
-        gsap.set(portfolioSectionRef.current, {
-          clipPath: "polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%)",
-        });
-        gsap.to(portfolioSectionRef.current, {
-          clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
-          duration: 1.4,
-          ease: "power4.inOut",
-          scrollTrigger: {
-            trigger: portfolioSectionRef.current,
-            start: "top 85%",
-            toggleActions: "play none none none",
-          },
-        });
-      }
-
-      // Portfolio title
-      if (portfolioTitleRef.current) {
-        gsap.fromTo(
-          portfolioTitleRef.current,
-          { opacity: 0, y: 80, clipPath: "inset(100% 0 0 0)" },
-          {
-            opacity: 1,
-            y: 0,
-            clipPath: "inset(0% 0 0 0)",
-            duration: 1.2,
-            ease: "power4.out",
-            scrollTrigger: {
-              trigger: portfolioTitleRef.current,
-              start: "top 85%",
-              toggleActions: "play none none none",
-            },
-          }
-        );
-      }
-
-      // Portfolio cards — staggered 3D entry with opacity + rotation
-      portfolioCardsRef.current.forEach((card, i) => {
-        if (!card) return;
-        gsap.set(card, { opacity: 0, y: 120, rotateX: 15, rotateZ: i % 2 === 0 ? -2 : 2, scale: 0.85 });
-        gsap.to(card, {
-          opacity: 1,
-          y: 0,
-          rotateX: 0,
-          rotateZ: 0,
-          scale: 1,
-          duration: 1.1,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: card,
-            start: "top 96%",
-            toggleActions: "play none none none",
-          },
-          delay: (i % 4) * 0.08,
-        });
-
-        // Scroll-driven parallax on each card (different speeds create depth)
-        gsap.to(card, {
-          y: -(20 + (i % 3) * 15),
-          ease: "none",
-          scrollTrigger: {
-            trigger: card,
-            start: "top bottom",
-            end: "bottom top",
-            scrub: 1,
-          },
-        });
-      });
-
-      // ---- ABOUT: Clip-path inset reveal ----
-      if (aboutImageRef.current) {
-        gsap.set(aboutImageRef.current, {
-          clipPath: "inset(100% 0 0 0)",
-          scale: 1.15,
-        });
-        gsap.to(aboutImageRef.current, {
-          clipPath: "inset(0% 0 0 0)",
-          scale: 1,
-          duration: 1.4,
-          ease: "power4.inOut",
-          scrollTrigger: {
-            trigger: aboutSectionRef.current,
-            start: "top 75%",
-            toggleActions: "play none none none",
-          },
-        });
-      }
-
-      if (aboutTextRef.current) {
-        const textChildren = aboutTextRef.current.children;
-        gsap.fromTo(
-          textChildren,
-          { opacity: 0, y: 50, rotateX: 10 },
-          {
-            opacity: 1,
-            y: 0,
-            rotateX: 0,
-            duration: 0.9,
-            stagger: 0.12,
-            ease: "power3.out",
-            scrollTrigger: {
-              trigger: aboutSectionRef.current,
-              start: "top 55%",
-              toggleActions: "play none none none",
-            },
-          }
-        );
-      }
-
-      // ---- SESSIONS: Horizontal scroll with scale ----
+      // ---- SESSIONS: Horizontal scroll (scrub-based = works fine) ----
       if (sessionsTrackRef.current && sessionsSectionRef.current) {
         const track = sessionsTrackRef.current;
         const totalScrollWidth = track.scrollWidth - window.innerWidth;
-
         gsap.to(track, {
-          x: -totalScrollWidth,
-          ease: "none",
+          x: -totalScrollWidth, ease: "none",
           scrollTrigger: {
-            trigger: sessionsSectionRef.current,
-            start: "top top",
-            end: () => `+=${totalScrollWidth}`,
-            scrub: 1,
-            pin: true,
-            anticipatePin: 1,
-            invalidateOnRefresh: true,
+            trigger: sessionsSectionRef.current, start: "top top",
+            end: () => `+=${totalScrollWidth}`, scrub: 1, pin: true,
+            anticipatePin: 1, invalidateOnRefresh: true,
           },
         });
-
-        // Images scale up as they enter center of viewport
-        const sessionImages = track.querySelectorAll(".session-card");
-        sessionImages.forEach((img) => {
-          gsap.fromTo(
-            img,
-            { scale: 0.85, rotateY: -5 },
-            {
-              scale: 1,
-              rotateY: 0,
-              ease: "power2.out",
-              scrollTrigger: {
-                trigger: img,
-                containerAnimation: gsap.getById?.("sessionsScroll") || undefined,
-                start: "left center",
-                end: "center center",
-                scrub: 1,
-              },
-            }
-          );
-        });
-      }
-
-      // ---- SOCIAL: Clip-path bottom wipe ----
-      if (socialSectionRef.current) {
-        gsap.set(socialSectionRef.current, {
-          clipPath: "inset(0 0 100% 0)",
-        });
-        gsap.to(socialSectionRef.current, {
-          clipPath: "inset(0 0 0% 0)",
-          duration: 1.2,
-          ease: "power4.inOut",
-          scrollTrigger: {
-            trigger: socialSectionRef.current,
-            start: "top 85%",
-            toggleActions: "play none none none",
-          },
-        });
-      }
-
-      // ---- CTA: Dramatic zoom + rotation ----
-      if (ctaTitleRef.current) {
-        gsap.fromTo(
-          ctaTitleRef.current,
-          { scale: 0.3, opacity: 0, rotateX: 25, filter: "blur(10px)" },
-          {
-            scale: 1,
-            opacity: 1,
-            rotateX: 0,
-            filter: "blur(0px)",
-            ease: "power3.out",
-            scrollTrigger: {
-              trigger: ctaRef.current,
-              start: "top 90%",
-              end: "top 25%",
-              scrub: 1,
-            },
-          }
-        );
       }
     }, mainRef);
 
     return () => ctx.revert();
+  }, []);
+
+  // ===== IntersectionObserver-triggered GSAP reveals (100% reliable) =====
+  useEffect(() => {
+    const observers: IntersectionObserver[] = [];
+
+    // Helper: observe element, run animation once when visible
+    const revealOnce = (
+      el: HTMLElement | null,
+      setup: () => void,
+      animate: () => void,
+      threshold = 0.15
+    ) => {
+      if (!el) return;
+      setup(); // Set initial hidden state
+      const obs = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              animate(); // Run reveal animation
+              obs.unobserve(el); // Only once
+            }
+          });
+        },
+        { threshold }
+      );
+      obs.observe(el);
+      observers.push(obs);
+    };
+
+    // ---- PORTFOLIO SECTION: Diagonal polygon wipe ----
+    revealOnce(
+      portfolioSectionRef.current,
+      () => gsap.set(portfolioSectionRef.current!, { clipPath: "polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%)" }),
+      () => gsap.to(portfolioSectionRef.current!, { clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)", duration: 1.4, ease: "power4.inOut" }),
+      0.05
+    );
+
+    // ---- PORTFOLIO TITLE: Clip-path + slide up ----
+    revealOnce(
+      portfolioTitleRef.current,
+      () => gsap.set(portfolioTitleRef.current!, { opacity: 0, y: 80, clipPath: "inset(100% 0 0 0)" }),
+      () => gsap.to(portfolioTitleRef.current!, { opacity: 1, y: 0, clipPath: "inset(0% 0 0 0)", duration: 1.2, ease: "power4.out" }),
+      0.1
+    );
+
+    // ---- PORTFOLIO CARDS: Staggered 3D entry ----
+    portfolioCardsRef.current.forEach((card, i) => {
+      if (!card) return;
+      revealOnce(
+        card,
+        () => gsap.set(card, { opacity: 0, y: 100, rotateX: 12, rotateZ: i % 2 === 0 ? -2 : 2, scale: 0.88 }),
+        () => gsap.to(card, { opacity: 1, y: 0, rotateX: 0, rotateZ: 0, scale: 1, duration: 1, ease: "power3.out", delay: (i % 4) * 0.08 }),
+        0.05
+      );
+    });
+
+    // ---- ABOUT IMAGE: Clip-path inset reveal + scale ----
+    revealOnce(
+      aboutImageRef.current,
+      () => gsap.set(aboutImageRef.current!, { clipPath: "inset(100% 0 0 0)", scale: 1.15 }),
+      () => gsap.to(aboutImageRef.current!, { clipPath: "inset(0% 0 0 0)", scale: 1, duration: 1.4, ease: "power4.inOut" }),
+      0.1
+    );
+
+    // ---- ABOUT TEXT: Staggered slide up ----
+    if (aboutTextRef.current) {
+      const textChildren = Array.from(aboutTextRef.current.children) as HTMLElement[];
+      revealOnce(
+        aboutTextRef.current,
+        () => gsap.set(textChildren, { opacity: 0, y: 50, rotateX: 10 }),
+        () => gsap.to(textChildren, { opacity: 1, y: 0, rotateX: 0, duration: 0.9, stagger: 0.12, ease: "power3.out" }),
+        0.1
+      );
+    }
+
+    // ---- SOCIAL SECTION: Bottom clip-path wipe ----
+    revealOnce(
+      socialSectionRef.current,
+      () => gsap.set(socialSectionRef.current!, { clipPath: "inset(0 0 100% 0)" }),
+      () => gsap.to(socialSectionRef.current!, { clipPath: "inset(0 0 0% 0)", duration: 1.2, ease: "power4.inOut" }),
+      0.05
+    );
+
+    // ---- CTA: Dramatic zoom from small ----
+    revealOnce(
+      ctaTitleRef.current,
+      () => gsap.set(ctaTitleRef.current!, { scale: 0.3, opacity: 0, rotateX: 25, filter: "blur(10px)" }),
+      () => gsap.to(ctaTitleRef.current!, { scale: 1, opacity: 1, rotateX: 0, filter: "blur(0px)", duration: 1.2, ease: "power3.out" }),
+      0.1
+    );
+
+    return () => observers.forEach((obs) => obs.disconnect());
   }, []);
 
   // ---- MAGNETIC BUTTON EFFECT ----
