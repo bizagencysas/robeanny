@@ -1,5 +1,7 @@
 "use client";
 
+import { buildSecretStudioApiUrl } from "@/lib/secret-studio-shared";
+
 export type CloudinaryUploadResult = {
   publicId: string;
   secureUrl: string;
@@ -22,7 +24,7 @@ export function getSecretStudioCloudinaryConfig() {
 }
 
 export async function ensureSecretStudioCloudinaryPreset() {
-  const response = await fetch("/api/ss/cloudinary-bootstrap", {
+  const response = await fetch(buildSecretStudioApiUrl("/api/ss/cloudinary-bootstrap"), {
     method: "POST",
   });
 

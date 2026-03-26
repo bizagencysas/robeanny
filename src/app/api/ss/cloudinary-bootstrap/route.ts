@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   SECRET_STUDIO_COOKIE,
+  getSecretStudioCorsHeaders,
   hasSecretStudioAccess,
 } from "@/lib/secret-studio";
 
@@ -10,13 +11,20 @@ const DEFAULT_CLOUD_NAME = "dwpbbjp1d";
 const DEFAULT_UPLOAD_PRESET = "robeanny_unsigned";
 const DEFAULT_FOLDER = "robeanny";
 
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 204,
+    headers: getSecretStudioCorsHeaders(request),
+  });
+}
+
 export async function POST(request: NextRequest) {
   const session = request.cookies.get(SECRET_STUDIO_COOKIE)?.value;
 
   if (!hasSecretStudioAccess(session)) {
     return NextResponse.json(
       { error: "Primero desbloquea la ruta privada." },
-      { status: 401 }
+      { status: 401, headers: getSecretStudioCorsHeaders(request) }
     );
   }
 
@@ -34,7 +42,7 @@ export async function POST(request: NextRequest) {
         error:
           "Faltan `CLOUDINARY_API_KEY` o `CLOUDINARY_API_SECRET` en el entorno.",
       },
-      { status: 400 }
+      { status: 400, headers: getSecretStudioCorsHeaders(request) }
     );
   }
 
@@ -83,7 +91,7 @@ export async function POST(request: NextRequest) {
         uploadPreset,
         folder,
         existed: true,
-      });
+      }, { headers: getSecretStudioCorsHeaders(request) });
     }
 
     return NextResponse.json(
@@ -92,7 +100,7 @@ export async function POST(request: NextRequest) {
           message ||
           "Cloudinary no permitió crear el upload preset unsigned.",
       },
-      { status: 400 }
+      { status: 400, headers: getSecretStudioCorsHeaders(request) }
     );
   }
 
@@ -102,5 +110,5 @@ export async function POST(request: NextRequest) {
     uploadPreset,
     folder,
     existed: false,
-  });
+  }, { headers: getSecretStudioCorsHeaders(request) });
 }

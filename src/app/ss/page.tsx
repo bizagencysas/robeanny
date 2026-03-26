@@ -6,7 +6,9 @@ import {
   SECRET_STUDIO_FALLBACK_REFERENCES,
   getAvailableStudioProviders,
   hasSecretStudioAccess,
+  isSecretStudioAuthDisabled,
 } from "@/lib/secret-studio";
+import { isExternalSecretStudioApiEnabled } from "@/lib/secret-studio-shared";
 
 export const dynamic = "force-dynamic";
 
@@ -29,15 +31,24 @@ export const metadata: Metadata = {
 
 export default function SecretStudioPage() {
   const cookieStore = cookies();
+  const externalApiEnabled = isExternalSecretStudioApiEnabled();
+  const authDisabled = isSecretStudioAuthDisabled() || externalApiEnabled;
   const unlocked = hasSecretStudioAccess(
     cookieStore.get(SECRET_STUDIO_COOKIE)?.value
   );
   const availableProviders = getAvailableStudioProviders();
+  const effectiveProviders =
+    availableProviders.length > 0
+      ? availableProviders
+      : externalApiEnabled
+        ? (["google"] as const)
+        : availableProviders;
 
   return (
     <SecretStudioClient
-      initialUnlocked={unlocked}
-      availableProviders={availableProviders}
+      initialUnlocked={authDisabled || unlocked}
+      authRequired={!authDisabled}
+      availableProviders={[...effectiveProviders]}
       fallbackReferences={SECRET_STUDIO_FALLBACK_REFERENCES}
     />
   );

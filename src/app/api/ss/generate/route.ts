@@ -24,6 +24,7 @@ import {
   getAvailableStudioProviders,
   getOpenAiImageSize,
   getStudioProviderLabel,
+  getSecretStudioCorsHeaders,
   hasSecretStudioAccess,
 } from "@/lib/secret-studio";
 
@@ -889,15 +890,17 @@ async function generateCreativePlan({
   return null;
 }
 
-function streamHeaders() {
+function streamHeaders(request: Request) {
   return {
     "Content-Type": "application/x-ndjson; charset=utf-8",
     "Cache-Control": "no-cache, no-transform",
     Connection: "keep-alive",
+    ...getSecretStudioCorsHeaders(request),
   };
 }
 
 function createStreamResponse(
+  request: Request,
   executor: (send: (event: StreamEvent) => void) => Promise<void>
 ) {
   const encoder = new TextEncoder();
@@ -928,7 +931,14 @@ function createStreamResponse(
     },
   });
 
-  return new Response(stream, { headers: streamHeaders() });
+  return new Response(stream, { headers: streamHeaders(request) });
+}
+
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 204,
+    headers: getSecretStudioCorsHeaders(request),
+  });
 }
 
 export async function POST(request: NextRequest) {
@@ -937,14 +947,17 @@ export async function POST(request: NextRequest) {
   if (!hasSecretStudioAccess(session)) {
     return NextResponse.json(
       { error: "Primero desbloquea la ruta privada." },
-      { status: 401 }
+      { status: 401, headers: getSecretStudioCorsHeaders(request) }
     );
   }
 
   const body = (await request.json().catch(() => null)) as GenerateBody | null;
 
   if (!body) {
-    return NextResponse.json({ error: "Solicitud inválida." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Solicitud inválida." },
+      { status: 400, headers: getSecretStudioCorsHeaders(request) }
+    );
   }
 
   const availableProviders = getAvailableStudioProviders();
@@ -1108,7 +1121,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return createStreamResponse(async (send) => {
+    return createStreamResponse(request, async (send) => {
       await ensureCloudinaryPresetServer();
 
       send({
@@ -1438,6 +1451,9 @@ export async function POST(request: NextRequest) {
     const message =
       error instanceof Error ? error.message : "No se pudo generar la foto.";
 
-    return NextResponse.json({ error: message }, { status: 400 });
+    return NextResponse.json(
+      { error: message },
+      { status: 400, headers: getSecretStudioCorsHeaders(request) }
+    );
   }
 }

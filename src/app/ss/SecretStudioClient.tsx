@@ -3,6 +3,7 @@
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import {
+  buildSecretStudioApiUrl,
   GoogleQualityMode,
   STUDIO_PRESETS,
   StudioAspectRatio,
@@ -155,10 +156,12 @@ function isJsonResponse(response: Response) {
 
 export default function SecretStudioClient({
   initialUnlocked,
+  authRequired,
   availableProviders,
   fallbackReferences,
 }: {
   initialUnlocked: boolean;
+  authRequired: boolean;
   availableProviders: StudioProvider[];
   fallbackReferences: string[];
 }) {
@@ -318,7 +321,7 @@ export default function SecretStudioClient({
       setUnlocking(true);
       setUnlockError("");
 
-      const response = await fetch("/api/ss/unlock", {
+      const response = await fetch(buildSecretStudioApiUrl("/api/ss/unlock"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -342,7 +345,11 @@ export default function SecretStudioClient({
   }
 
   async function handleLogout() {
-    await fetch("/api/ss/logout", { method: "POST" }).catch(() => null);
+    if (authRequired) {
+      await fetch(buildSecretStudioApiUrl("/api/ss/logout"), {
+        method: "POST",
+      }).catch(() => null);
+    }
     setUnlocked(false);
     setSessionAlbums([]);
     setLiveAlbum(null);
@@ -422,7 +429,7 @@ export default function SecretStudioClient({
         .map((album) => album.recipeSignature);
       const recentRecipes = sessionAlbums.slice(0, 3).map((album) => album.recipe);
 
-      const response = await fetch("/api/ss/generate", {
+      const response = await fetch(buildSecretStudioApiUrl("/api/ss/generate"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -696,7 +703,7 @@ export default function SecretStudioClient({
     }
   }
 
-  if (!unlocked) {
+  if (authRequired && !unlocked) {
     return (
       <div className="min-h-screen bg-[#090807] px-5 py-10 text-[#f5ecdd]">
         <div className="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-6xl items-center justify-center">

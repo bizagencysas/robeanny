@@ -33,6 +33,9 @@ export type StudioCostEstimate = {
   providerNote: string;
 };
 
+const DEFAULT_SECRET_STUDIO_REMOTE_API_BASE =
+  process.env.NODE_ENV === "production" ? "https://robeanny.onrender.com" : "";
+
 export const SECRET_STUDIO_PRIMARY_FACE_REFERENCES = [
   "/FotoPrueba1.JPG",
   "/FotoPrueba3.jpg",
@@ -238,4 +241,22 @@ const providerLabels: Record<StudioProvider, string> = {
 
 export function getStudioProviderLabel(provider: StudioProvider) {
   return providerLabels[provider];
+}
+
+export function getSecretStudioApiBase() {
+  return (
+    process.env.NEXT_PUBLIC_SS_API_BASE?.trim().replace(/\/$/, "") ||
+    DEFAULT_SECRET_STUDIO_REMOTE_API_BASE
+  );
+}
+
+export function isExternalSecretStudioApiEnabled() {
+  return Boolean(getSecretStudioApiBase());
+}
+
+export function buildSecretStudioApiUrl(pathname: string) {
+  const normalizedPath = pathname.startsWith("/") ? pathname : `/${pathname}`;
+  const base = getSecretStudioApiBase();
+
+  return base ? `${base}${normalizedPath}` : normalizedPath;
 }
