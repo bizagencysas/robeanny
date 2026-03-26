@@ -558,8 +558,8 @@ async function generateWithVertexGeminiImage({
                 "HARD NEGATIVE: Never dress her as a businesswoman, corporate executive, office worker, or marketing professional. Never put her in a black blazer, suit jacket, business suit, or officewear. She is a young fashion model, not a corporate woman.",
                 "Prefer grounded studio realism over stylized glamour.",
                 hasAlbumAnchor
-                  ? "The first attached image is the high-resolution facial identity anchor — identity comes from this image above all others. The second image is the album continuity anchor for styling and set. Additional images provide body proportion and angle context."
-                  : "The first attached image is the high-resolution facial identity anchor — this defines who the woman is. The second image provides secondary face angle context. Additional images provide body proportion reference.",
+                  ? "The first attached image is the high-resolution facial identity anchor — identity comes from this image above all others. The second image is the album continuity anchor for styling and set. The third image is the SAME face again to reinforce identity. Additional images provide body proportion context."
+                  : "The first attached image is the high-resolution facial identity anchor — this defines who the woman is. The second image provides secondary face angle context. The third image is the SAME primary face again to lock identity. Additional images provide body proportion reference.",
               ].join(" "),
             },
           ],
@@ -1080,8 +1080,7 @@ export async function POST(request: NextRequest) {
       SECRET_STUDIO_PRIMARY_FACE_REFERENCES[0],
       SECRET_STUDIO_PRIMARY_FACE_REFERENCES[1] ||
       SECRET_STUDIO_SECONDARY_FACE_REFERENCES[0],
-      SECRET_STUDIO_SECONDARY_FACE_REFERENCES[0] ||
-      SECRET_STUDIO_PRIMARY_FACE_REFERENCES[1],
+      SECRET_STUDIO_PRIMARY_FACE_REFERENCES[0],
       SECRET_STUDIO_BODY_SUPPORT_REFERENCES[0],
     ].filter((value): value is string => Boolean(value));
 
