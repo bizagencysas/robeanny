@@ -171,23 +171,21 @@ export default function HomePage() {
         }
       }
 
-      // ---- PORTFOLIO: Fade-in section ----
+      // ---- PORTFOLIO: Clip-path diagonal wipe (toggleActions = reliable) ----
       if (portfolioSectionRef.current) {
-        gsap.fromTo(
-          portfolioSectionRef.current,
-          { opacity: 0, y: 60 },
-          {
-            opacity: 1,
-            y: 0,
-            duration: 1,
-            ease: "power3.out",
-            scrollTrigger: {
-              trigger: portfolioSectionRef.current,
-              start: "top 92%",
-              toggleActions: "play none none none",
-            },
-          }
-        );
+        gsap.set(portfolioSectionRef.current, {
+          clipPath: "polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%)",
+        });
+        gsap.to(portfolioSectionRef.current, {
+          clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
+          duration: 1.4,
+          ease: "power4.inOut",
+          scrollTrigger: {
+            trigger: portfolioSectionRef.current,
+            start: "top 85%",
+            toggleActions: "play none none none",
+          },
+        });
       }
 
       // Portfolio title
@@ -210,26 +208,25 @@ export default function HomePage() {
         );
       }
 
-      // Portfolio cards — staggered 3D with rotation
+      // Portfolio cards — staggered 3D entry with opacity + rotation
       portfolioCardsRef.current.forEach((card, i) => {
         if (!card) return;
-        gsap.fromTo(
-          card,
-          { y: 80, rotateX: 8, scale: 0.92 },
-          {
-            y: 0,
-            rotateX: 0,
-            scale: 1,
-            duration: 1.1,
-            ease: "power3.out",
-            scrollTrigger: {
-              trigger: card,
-              start: "top 98%",
-              toggleActions: "play none none none",
-            },
-            delay: (i % 4) * 0.08,
-          }
-        );
+        gsap.set(card, { opacity: 0, y: 120, rotateX: 15, rotateZ: i % 2 === 0 ? -2 : 2, scale: 0.85 });
+        gsap.to(card, {
+          opacity: 1,
+          y: 0,
+          rotateX: 0,
+          rotateZ: 0,
+          scale: 1,
+          duration: 1.1,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: card,
+            start: "top 96%",
+            toggleActions: "play none none none",
+          },
+          delay: (i % 4) * 0.08,
+        });
 
         // Scroll-driven parallax on each card (different speeds create depth)
         gsap.to(card, {
@@ -244,23 +241,23 @@ export default function HomePage() {
         });
       });
 
-      // ---- ABOUT: Image reveal ----
+      // ---- ABOUT: Clip-path inset reveal ----
       if (aboutImageRef.current) {
-        gsap.fromTo(
-          aboutImageRef.current,
-          { scale: 1.15, y: 40 },
-          {
-            scale: 1,
-            y: 0,
-            duration: 1.4,
-            ease: "power4.out",
-            scrollTrigger: {
-              trigger: aboutSectionRef.current,
-              start: "top 75%",
-              toggleActions: "play none none none",
-            },
-          }
-        );
+        gsap.set(aboutImageRef.current, {
+          clipPath: "inset(100% 0 0 0)",
+          scale: 1.15,
+        });
+        gsap.to(aboutImageRef.current, {
+          clipPath: "inset(0% 0 0 0)",
+          scale: 1,
+          duration: 1.4,
+          ease: "power4.inOut",
+          scrollTrigger: {
+            trigger: aboutSectionRef.current,
+            start: "top 75%",
+            toggleActions: "play none none none",
+          },
+        });
       }
 
       if (aboutTextRef.current) {
@@ -325,23 +322,21 @@ export default function HomePage() {
         });
       }
 
-      // ---- SOCIAL: Fade-in reveal ----
+      // ---- SOCIAL: Clip-path bottom wipe ----
       if (socialSectionRef.current) {
-        gsap.fromTo(
-          socialSectionRef.current,
-          { opacity: 0, y: 50 },
-          {
-            opacity: 1,
-            y: 0,
-            duration: 1,
-            ease: "power3.out",
-            scrollTrigger: {
-              trigger: socialSectionRef.current,
-              start: "top 88%",
-              toggleActions: "play none none none",
-            },
-          }
-        );
+        gsap.set(socialSectionRef.current, {
+          clipPath: "inset(0 0 100% 0)",
+        });
+        gsap.to(socialSectionRef.current, {
+          clipPath: "inset(0 0 0% 0)",
+          duration: 1.2,
+          ease: "power4.inOut",
+          scrollTrigger: {
+            trigger: socialSectionRef.current,
+            start: "top 85%",
+            toggleActions: "play none none none",
+          },
+        });
       }
 
       // ---- CTA: Dramatic zoom + rotation ----
