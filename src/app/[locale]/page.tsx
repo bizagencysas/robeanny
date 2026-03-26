@@ -14,6 +14,7 @@ import {
   sessionsTeaser,
 } from "@/lib/data";
 import InstagramWidget from "@/components/ui/InstagramWidget";
+import TextScramble from "@/components/ui/TextScramble";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -51,11 +52,11 @@ export default function HomePage() {
   const heroRef = useRef<HTMLElement>(null);
   const heroTitleRef = useRef<HTMLHeadingElement>(null);
   const heroImageContainerRef = useRef<HTMLDivElement>(null);
-  const heroOverlayRef = useRef<HTMLDivElement>(null);
   const heroCTARef = useRef<HTMLDivElement>(null);
 
   // Section refs
   const marqueeRef = useRef<HTMLDivElement>(null);
+  const portfolioSectionRef = useRef<HTMLElement>(null);
   const portfolioTitleRef = useRef<HTMLDivElement>(null);
   const portfolioCardsRef = useRef<HTMLDivElement[]>([]);
   const aboutSectionRef = useRef<HTMLElement>(null);
@@ -65,6 +66,7 @@ export default function HomePage() {
   const sessionsSectionRef = useRef<HTMLDivElement>(null);
   const ctaRef = useRef<HTMLElement>(null);
   const ctaTitleRef = useRef<HTMLHeadingElement>(null);
+  const socialSectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -109,12 +111,13 @@ export default function HomePage() {
         );
       }
 
-      // Hero parallax on scroll
+      // Hero parallax on scroll — more aggressive
       if (heroTitleRef.current) {
         gsap.to(heroTitleRef.current, {
-          y: -200,
-          scale: 0.85,
+          y: -300,
+          scale: 0.7,
           opacity: 0,
+          rotateX: 15,
           ease: "none",
           scrollTrigger: {
             trigger: heroRef.current,
@@ -127,8 +130,8 @@ export default function HomePage() {
 
       if (heroImageContainerRef.current) {
         gsap.to(heroImageContainerRef.current, {
-          y: 150,
-          scale: 1.15,
+          y: 200,
+          scale: 1.25,
           ease: "none",
           scrollTrigger: {
             trigger: heroRef.current,
@@ -139,42 +142,58 @@ export default function HomePage() {
         });
       }
 
-      // ---- MARQUEE: Infinite scroll ----
+      // ---- MARQUEE: Infinite scroll with scroll-velocity skew ----
       if (marqueeRef.current) {
         const marqueeInner = marqueeRef.current.querySelector(".marquee-inner") as HTMLElement;
         if (marqueeInner) {
           gsap.to(marqueeInner, {
             xPercent: -50,
             repeat: -1,
-            duration: 25,
+            duration: 22,
             ease: "linear",
           });
-        }
 
-        // Scroll speed variation
-        gsap.to(marqueeRef.current, {
-          scrollTrigger: {
+          // Scroll-velocity-driven skew: faster scroll = more skew
+          ScrollTrigger.create({
             trigger: marqueeRef.current,
             start: "top bottom",
             end: "bottom top",
-            scrub: 2,
             onUpdate: (self) => {
-              if (marqueeInner) {
-                gsap.to(marqueeInner, {
-                  skewX: self.direction === 1 ? -2 : 2,
-                  duration: 0.3,
-                });
-              }
+              const velocity = self.getVelocity();
+              const skewAmount = gsap.utils.clamp(-8, 8, velocity / 200);
+              gsap.to(marqueeInner, {
+                skewX: skewAmount,
+                duration: 0.3,
+                overwrite: true,
+              });
             },
-          },
-        });
+          });
+        }
       }
 
-      // ---- PORTFOLIO: Staggered 3D reveals ----
+      // ---- PORTFOLIO: Section clip-path reveal (diagonal wipe) ----
+      if (portfolioSectionRef.current) {
+        gsap.fromTo(
+          portfolioSectionRef.current,
+          { clipPath: "polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%)" },
+          {
+            clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
+            ease: "power3.inOut",
+            scrollTrigger: {
+              trigger: portfolioSectionRef.current,
+              start: "top 90%",
+              end: "top 40%",
+              scrub: 1,
+            },
+          }
+        );
+      }
+
+      // Portfolio title
       if (portfolioTitleRef.current) {
         gsap.fromTo(
           portfolioTitleRef.current,
-          { opacity: 0, y: 60, clipPath: "inset(100% 0 0 0)" },
+          { opacity: 0, y: 80, clipPath: "inset(100% 0 0 0)" },
           {
             opacity: 1,
             y: 0,
@@ -190,33 +209,47 @@ export default function HomePage() {
         );
       }
 
+      // Portfolio cards — staggered 3D with rotation
       portfolioCardsRef.current.forEach((card, i) => {
         if (!card) return;
         gsap.fromTo(
           card,
-          { opacity: 0, y: 140, rotateX: 15, scale: 0.85 },
+          { opacity: 0, y: 160, rotateX: 20, rotateZ: i % 2 === 0 ? -3 : 3, scale: 0.8 },
           {
             opacity: 1,
             y: 0,
             rotateX: 0,
+            rotateZ: 0,
             scale: 1,
-            duration: 1,
+            duration: 1.1,
             ease: "power3.out",
             scrollTrigger: {
               trigger: card,
-              start: "top 92%",
+              start: "top 95%",
               toggleActions: "play none none none",
             },
             delay: (i % 4) * 0.08,
           }
         );
+
+        // Scroll-driven parallax on each card (different speeds create depth)
+        gsap.to(card, {
+          y: -(20 + (i % 3) * 15),
+          ease: "none",
+          scrollTrigger: {
+            trigger: card,
+            start: "top bottom",
+            end: "bottom top",
+            scrub: 1,
+          },
+        });
       });
 
       // ---- ABOUT: Split reveal ----
       if (aboutImageRef.current) {
         gsap.fromTo(
           aboutImageRef.current,
-          { clipPath: "inset(100% 0 0 0)", scale: 1.15 },
+          { clipPath: "inset(100% 0 0 0)", scale: 1.2 },
           {
             clipPath: "inset(0% 0 0 0)",
             scale: 1,
@@ -235,23 +268,24 @@ export default function HomePage() {
         const textChildren = aboutTextRef.current.children;
         gsap.fromTo(
           textChildren,
-          { opacity: 0, y: 40 },
+          { opacity: 0, y: 50, rotateX: 10 },
           {
             opacity: 1,
             y: 0,
-            duration: 0.8,
+            rotateX: 0,
+            duration: 0.9,
             stagger: 0.12,
             ease: "power3.out",
             scrollTrigger: {
               trigger: aboutSectionRef.current,
-              start: "top 60%",
+              start: "top 55%",
               toggleActions: "play none none none",
             },
           }
         );
       }
 
-      // ---- SESSIONS: Horizontal scroll ----
+      // ---- SESSIONS: Horizontal scroll with scale ----
       if (sessionsTrackRef.current && sessionsSectionRef.current) {
         const track = sessionsTrackRef.current;
         const totalScrollWidth = track.scrollWidth - window.innerWidth;
@@ -269,22 +303,62 @@ export default function HomePage() {
             invalidateOnRefresh: true,
           },
         });
+
+        // Images scale up as they enter center of viewport
+        const sessionImages = track.querySelectorAll(".session-card");
+        sessionImages.forEach((img) => {
+          gsap.fromTo(
+            img,
+            { scale: 0.85, rotateY: -5 },
+            {
+              scale: 1,
+              rotateY: 0,
+              ease: "power2.out",
+              scrollTrigger: {
+                trigger: img,
+                containerAnimation: gsap.getById?.("sessionsScroll") || undefined,
+                start: "left center",
+                end: "center center",
+                scrub: 1,
+              },
+            }
+          );
+        });
       }
 
-      // ---- CTA: Dramatic zoom ----
+      // ---- SOCIAL: Staggered reveal ----
+      if (socialSectionRef.current) {
+        gsap.fromTo(
+          socialSectionRef.current,
+          { clipPath: "inset(0 0 100% 0)" },
+          {
+            clipPath: "inset(0 0 0% 0)",
+            ease: "power3.inOut",
+            scrollTrigger: {
+              trigger: socialSectionRef.current,
+              start: "top 85%",
+              end: "top 40%",
+              scrub: 1,
+            },
+          }
+        );
+      }
+
+      // ---- CTA: Dramatic zoom + rotation ----
       if (ctaTitleRef.current) {
         gsap.fromTo(
           ctaTitleRef.current,
-          { scale: 0.4, opacity: 0, rotateX: 15 },
+          { scale: 0.3, opacity: 0, rotateX: 25, filter: "blur(10px)" },
           {
             scale: 1,
             opacity: 1,
             rotateX: 0,
+            filter: "blur(0px)",
             ease: "power3.out",
             scrollTrigger: {
               trigger: ctaRef.current,
-              start: "top 85%",
-              end: "top 30%",
+              start: "top 90%",
+              end: "top 25%",
               scrub: 1,
             },
           }
@@ -306,10 +380,10 @@ export default function HomePage() {
         const rect = btn.getBoundingClientRect();
         const x = e.clientX - rect.left - rect.width / 2;
         const y = e.clientY - rect.top - rect.height / 2;
-        gsap.to(btn, { x: x * 0.3, y: y * 0.3, duration: 0.3, ease: "power2.out" });
+        gsap.to(btn, { x: x * 0.35, y: y * 0.35, duration: 0.3, ease: "power2.out" });
       };
       const onLeave = () => {
-        gsap.to(btn, { x: 0, y: 0, duration: 0.5, ease: "elastic.out(1, 0.5)" });
+        gsap.to(btn, { x: 0, y: 0, duration: 0.6, ease: "elastic.out(1, 0.4)" });
       };
       (btn as HTMLElement).addEventListener("mousemove", onMove as EventListener);
       (btn as HTMLElement).addEventListener("mouseleave", onLeave);
@@ -327,6 +401,36 @@ export default function HomePage() {
     };
   }, []);
 
+  // ---- SCROLL-VELOCITY IMAGE SKEW (global) ----
+  useEffect(() => {
+    let lastScrollY = window.scrollY;
+    let lastTime = Date.now();
+    let rafId: number;
+
+    const skewImages = () => {
+      const now = Date.now();
+      const dt = Math.max(now - lastTime, 1);
+      const velocity = (window.scrollY - lastScrollY) / dt;
+      const skewVal = gsap.utils.clamp(-4, 4, velocity * 8);
+
+      document.querySelectorAll(".velocity-skew").forEach((el) => {
+        gsap.to(el, {
+          skewY: skewVal,
+          duration: 0.4,
+          ease: "power2.out",
+          overwrite: true,
+        });
+      });
+
+      lastScrollY = window.scrollY;
+      lastTime = now;
+      rafId = requestAnimationFrame(skewImages);
+    };
+
+    rafId = requestAnimationFrame(skewImages);
+    return () => cancelAnimationFrame(rafId);
+  }, []);
+
   return (
     <div ref={mainRef} className="w-full overflow-hidden bg-black">
       {/* ===== HERO ===== */}
@@ -340,8 +444,8 @@ export default function HomePage() {
               alt={`Robeanny hero ${index + 1}`}
               fill
               priority={index === 0}
-              className={`object-cover object-top transition-[opacity] duration-[2000ms] ${
-                index === activeSlide ? "opacity-100" : "opacity-0"
+              className={`object-cover object-top transition-[opacity,transform] duration-[2000ms] ${
+                index === activeSlide ? "opacity-100 scale-100" : "opacity-0 scale-105"
               }`}
               sizes="120vw"
             />
@@ -349,15 +453,20 @@ export default function HomePage() {
           <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/25 to-black" />
         </div>
 
-        {/* Vignette */}
+        {/* Animated vignette */}
         <div className="cinematic-vignette" />
 
+        {/* Scan lines overlay */}
+        <div className="absolute inset-0 z-[6] pointer-events-none opacity-[0.03]" style={{
+          backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.05) 2px, rgba(255,255,255,0.05) 4px)",
+        }} />
+
         {/* Content */}
-        <div className="relative z-10 flex flex-col items-center text-center pointer-events-none px-4 w-full">
+        <div className="relative z-10 flex flex-col items-center text-center pointer-events-none px-4 w-full" style={{ perspective: "1200px" }}>
           {/* Kicker */}
           <span className="inline-flex items-center gap-3 mb-4 text-[0.5rem] uppercase tracking-[0.6em] text-[#c79a59]/60">
             <span className="inline-block h-[1px] w-10 bg-[#c79a59]/30" />
-            {tHero("subtitle")}
+            <TextScramble text={tHero("subtitle")} delay={1800} speed={35} />
             <span className="inline-block h-[1px] w-10 bg-[#c79a59]/30" />
           </span>
 
@@ -365,7 +474,7 @@ export default function HomePage() {
           <h1
             ref={heroTitleRef}
             className="brand-display text-[clamp(5rem,22vw,20rem)] leading-[0.78] tracking-[0.06em] text-[#e8dcc8] will-change-transform"
-            style={{ clipPath: "inset(100% 0 0 0)" }}
+            style={{ clipPath: "inset(100% 0 0 0)", transformStyle: "preserve-3d" }}
           >
             ROBEANNY
           </h1>
@@ -435,11 +544,11 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* ===== PORTFOLIO TEASER ===== */}
-      <section className="section-spacing relative">
+      {/* ===== PORTFOLIO TEASER with section clip-path reveal ===== */}
+      <section ref={portfolioSectionRef} className="section-spacing relative">
         {/* Ambient glow */}
         <div className="absolute top-0 left-1/4 w-[500px] h-[500px] rounded-full pointer-events-none"
-          style={{ background: "radial-gradient(circle, rgba(199,154,89,0.05), transparent 60%)", filter: "blur(120px)" }}
+          style={{ background: "radial-gradient(circle, rgba(199,154,89,0.06), transparent 60%)", filter: "blur(120px)" }}
         />
 
         <div className="page-shell">
@@ -451,7 +560,7 @@ export default function HomePage() {
             </h2>
           </div>
 
-          {/* 3D Perspective Grid */}
+          {/* 3D Perspective Grid with RGB split hover */}
           <div
             className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3"
             style={{ perspective: "1200px" }}
@@ -465,7 +574,7 @@ export default function HomePage() {
                   ref={(el) => {
                     if (el) portfolioCardsRef.current[index] = el as unknown as HTMLDivElement;
                   }}
-                  className={`group relative overflow-hidden bg-[#080808] ${
+                  className={`group relative overflow-hidden bg-[#080808] velocity-skew rgb-split-hover ${
                     isLarge ? "col-span-2 row-span-2 aspect-[4/5]" : "aspect-[3/4]"
                   }`}
                   style={{ transformStyle: "preserve-3d" }}
@@ -490,6 +599,11 @@ export default function HomePage() {
                     <div className="absolute top-0 left-0 w-full h-[1px] bg-[#c79a59]/40" />
                     <div className="absolute top-0 left-0 h-full w-[1px] bg-[#c79a59]/40" />
                   </div>
+                  {/* Bottom-right corner accent */}
+                  <div className="absolute bottom-0 right-0 w-10 h-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                    <div className="absolute bottom-0 right-0 w-full h-[1px] bg-[#c79a59]/40" />
+                    <div className="absolute bottom-0 right-0 h-full w-[1px] bg-[#c79a59]/40" />
+                  </div>
                 </Link>
               );
             })}
@@ -498,7 +612,7 @@ export default function HomePage() {
           <div className="mt-14 flex justify-center">
             <Link href={toLocalePath("/portfolio")} className="magnetic-btn luxury-button-secondary group">
               <span>{locale === "en" ? "View Full Portfolio" : "Ver Portfolio Completo"}</span>
-              <span className="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>
+              <span className="inline-block transition-transform duration-300 group-hover:translate-x-2">→</span>
             </Link>
           </div>
         </div>
@@ -510,7 +624,7 @@ export default function HomePage() {
           {/* Image with clip-path reveal */}
           <div
             ref={aboutImageRef}
-            className="relative min-h-[500px] lg:min-h-[700px] overflow-hidden"
+            className="relative min-h-[500px] lg:min-h-[700px] overflow-hidden velocity-skew"
             style={{ clipPath: "inset(100% 0 0 0)" }}
           >
             <Image
@@ -528,6 +642,7 @@ export default function HomePage() {
           <div
             ref={aboutTextRef}
             className="flex flex-col justify-center gap-6 bg-[#060606] p-8 md:p-12 lg:p-16"
+            style={{ perspective: "800px" }}
           >
             <p className="label-kicker">{locale === "en" ? "About" : "Acerca de"}</p>
             <h2 className="brand-display text-[clamp(2.2rem,5vw,4.5rem)] leading-[0.85] text-[#e8dcc8]">
@@ -540,8 +655,8 @@ export default function HomePage() {
             {/* Measurements — minimal grid */}
             <div className="grid grid-cols-3 gap-[1px] bg-[#e8dcc8]/6 mt-4">
               {measurements.slice(0, 6).map((item) => (
-                <div key={item.label} className="bg-[#060606] p-4">
-                  <p className="text-[0.42rem] uppercase tracking-[0.35em] text-[#e8dcc8]/20">
+                <div key={item.label} className="bg-[#060606] p-4 group/cell hover:bg-[#0d0d0d] transition-colors duration-300">
+                  <p className="text-[0.42rem] uppercase tracking-[0.35em] text-[#e8dcc8]/20 group-hover/cell:text-[#c79a59]/50 transition-colors">
                     {item.label}
                   </p>
                   <p className="mt-1 text-[0.85rem] text-[#e8dcc8]/60">{item.value}</p>
@@ -561,7 +676,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ===== MARQUEE BAND 2 ===== */}
+      {/* ===== MARQUEE BAND 2 — reverse direction ===== */}
       <div className="overflow-hidden border-y border-[#e8dcc8]/6 py-5">
         <div className="flex items-center whitespace-nowrap gap-10 animate-[marqueeReverse_20s_linear_infinite]">
           {[...Array(3)].map((_, r) => (
@@ -598,7 +713,7 @@ export default function HomePage() {
             <Link
               href={toLocalePath("/sessions")}
               key={image}
-              className="group relative flex-shrink-0 overflow-hidden"
+              className="session-card group relative flex-shrink-0 overflow-hidden velocity-skew"
               style={{
                 width: index === 0 ? "55vw" : index % 2 === 0 ? "30vw" : "40vw",
                 height: "72vh",
@@ -611,13 +726,24 @@ export default function HomePage() {
                 className="object-cover transition-transform duration-[1600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.08]"
                 sizes="55vw"
               />
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-colors duration-[600ms]" />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-[600ms]" />
+
               {/* Hover reveal */}
               <div className="absolute bottom-0 left-0 right-0 p-6 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]">
                 <div className="h-[1px] w-10 bg-[#c79a59]/40 mb-3" />
                 <span className="text-[0.48rem] uppercase tracking-[0.35em] text-[#e8dcc8]/50">
                   {locale === "en" ? "Session" : "Sesión"} {String(index + 1).padStart(2, "0")}
                 </span>
+              </div>
+
+              {/* Corner accents */}
+              <div className="absolute top-3 left-3 w-6 h-6 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                <div className="absolute top-0 left-0 w-full h-[1px] bg-[#c79a59]/30" />
+                <div className="absolute top-0 left-0 h-full w-[1px] bg-[#c79a59]/30" />
+              </div>
+              <div className="absolute bottom-3 right-3 w-6 h-6 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                <div className="absolute bottom-0 right-0 w-full h-[1px] bg-[#c79a59]/30" />
+                <div className="absolute bottom-0 right-0 h-full w-[1px] bg-[#c79a59]/30" />
               </div>
             </Link>
           ))}
@@ -634,8 +760,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ===== SOCIAL ===== */}
-      <section className="section-spacing relative border-t border-[#e8dcc8]/6">
+      {/* ===== SOCIAL — clip-path reveal ===== */}
+      <section ref={socialSectionRef} className="section-spacing relative border-t border-[#e8dcc8]/6">
         <div className="page-shell">
           <p className="label-kicker mb-5">{tSocial("label")}</p>
           <div className="mb-14 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
@@ -686,7 +812,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ===== CTA — DRAMATIC ZOOM ===== */}
+      {/* ===== CTA — DRAMATIC ZOOM with rotation + blur ===== */}
       <section ref={ctaRef} className="relative py-32 md:py-48 overflow-hidden border-t border-[#e8dcc8]/6">
         {/* Multiple ambient glows */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full pointer-events-none"

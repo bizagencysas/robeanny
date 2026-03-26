@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { locales } from "@/i18n";
 
 import CustomCursor from "@/components/ui/CustomCursor";
+import CursorSpotlight from "@/components/ui/CursorSpotlight";
 import LoadingScreen from "@/components/layout/LoadingScreen";
 import SmoothScroll from "@/components/layout/SmoothScroll";
 import Navbar from "@/components/layout/Navbar";
@@ -178,6 +179,7 @@ export default async function LocaleLayout({ children, params }: Props) {
                 <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="anonymous" />
                 <SmoothScroll>
                     <CustomCursor />
+                    <CursorSpotlight />
                     <LoadingScreen />
                     <Navbar />
                     <main className="min-h-screen">
