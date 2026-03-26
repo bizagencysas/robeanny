@@ -15,7 +15,9 @@ import {
 } from "@/lib/data";
 import InstagramWidget from "@/components/ui/InstagramWidget";
 
-gsap.registerPlugin(ScrollTrigger);
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 const heroImages = [
   "/014A7144-2.jpg",
@@ -476,7 +478,7 @@ export default function HomePage() {
                     sizes={isLarge ? "50vw" : "25vw"}
                   />
                   {/* Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-600" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-[600ms]" />
                   {/* Index */}
                   <div className="absolute bottom-4 left-4 translate-y-4 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-500">
                     <span className="text-[0.48rem] uppercase tracking-[0.4em] text-[#e8dcc8]/60">
@@ -606,10 +608,10 @@ export default function HomePage() {
                 src={image}
                 alt={`Session ${index + 1}`}
                 fill
-                className="object-cover transition-transform duration-[1600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-108"
+                className="object-cover transition-transform duration-[1600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.08]"
                 sizes="55vw"
               />
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-colors duration-600" />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-colors duration-[600ms]" />
               {/* Hover reveal */}
               <div className="absolute bottom-0 left-0 right-0 p-6 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]">
                 <div className="h-[1px] w-10 bg-[#c79a59]/40 mb-3" />

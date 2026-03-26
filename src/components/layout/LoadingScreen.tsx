@@ -22,15 +22,17 @@ export default function LoadingScreen() {
     });
 
     // Phase 1: Counter animation 0 → 100
-    tl.fromTo(
-      { val: 0 },
+    // Phase 1: Counter animation 0 → 100
+    const counter = { val: 0 };
+    tl.to(
+      counter,
       {
         val: 100,
         duration: 1.6,
         ease: "power2.inOut",
-        onUpdate: function () {
+        onUpdate: () => {
           if (counterRef.current) {
-            counterRef.current.textContent = String(Math.round(this.targets()[0].val));
+            counterRef.current.textContent = String(Math.round(counter.val));
           }
         },
       }

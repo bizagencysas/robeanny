@@ -8,7 +8,9 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { portfolioPhotos } from "@/lib/data";
 
-gsap.registerPlugin(ScrollTrigger);
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 export default function PortfolioPage() {
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -58,15 +60,16 @@ export default function PortfolioPage() {
 
         // Counter animation
         if (counterRef.current) {
-          tl.fromTo(
-            { val: 0 },
+          const counter = { val: 0 };
+          tl.to(
+            counter,
             {
               val: portfolioPhotos.length,
               duration: 1.2,
               ease: "power2.out",
-              onUpdate: function () {
+              onUpdate: () => {
                 if (counterRef.current) {
-                  counterRef.current.textContent = String(Math.round(this.targets()[0].val));
+                  counterRef.current.textContent = String(Math.round(counter.val));
                 }
               },
             },

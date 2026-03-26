@@ -108,7 +108,7 @@ export default function SessionsStack() {
       </h2>
 
       {/* Card Stack */}
-      <div className="relative z-10 h-[62svh] max-h-[800px] w-[88vw] max-w-[430px] perspective-[1200px]">
+      <div className="relative z-10 h-[62svh] max-h-[800px] w-[88vw] max-w-[430px]" style={{ perspective: "1200px" }}>
         <AnimatePresence initial={false}>
           {remainingCards
             .map((url, i) => {
