@@ -37,8 +37,8 @@ const DEFAULT_SECRET_STUDIO_REMOTE_API_BASE =
   process.env.NODE_ENV === "production" ? "https://robeanny.onrender.com" : "";
 
 export const SECRET_STUDIO_PRIMARY_FACE_REFERENCES = [
-  "/FotoPrueba1.JPG",
   "/FotoPrueba3.jpg",
+  "/FotoPrueba1.JPG",
 ];
 
 export const SECRET_STUDIO_SECONDARY_FACE_REFERENCES = [
