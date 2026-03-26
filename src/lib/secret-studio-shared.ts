@@ -63,7 +63,7 @@ export const STUDIO_PRESETS: StudioPreset[] = [
     label: "White Seamless",
     description: "Estudio blanco limpio, sombras suaves, look editorial real.",
     notes:
-      "Same woman from the references in a clean white seamless studio, neutral studio light, natural skin texture, dark-brown eyes, no corporate portrait vibe.",
+      "MUST be the exact same woman from the references — not a different person, not a lookalike. She is mid-20s (25-27), youthful, fresh. Dark-brown eyes. Clean white seamless studio, neutral studio light, natural skin texture. Never age her past mid-20s. No corporate portrait vibe. No businesswoman styling.",
     plan: {
       creativeDirection: "same woman from the references on a clean white seamless studio set",
       wardrobe:
@@ -82,7 +82,7 @@ export const STUDIO_PRESETS: StudioPreset[] = [
     label: "Warm Beige Studio",
     description: "Fondo beige cálido, editorial limpio, piel luminosa.",
     notes:
-      "Same woman from the references in a warm beige studio, luminous skin, dark-brown eyes, grounded youthful editorial realism.",
+      "MUST be the exact same woman from the references — not a different person, not a lookalike. She is mid-20s (25-27), youthful, fresh. Dark-brown eyes. Warm beige studio, luminous skin, grounded youthful editorial realism. Never age her past mid-20s. No corporate styling.",
     plan: {
       creativeDirection: "same woman from the references in a warm beige editorial portrait",
       wardrobe:
@@ -99,7 +99,7 @@ export const STUDIO_PRESETS: StudioPreset[] = [
     label: "Beauty Close Crop",
     description: "Close-up potente de rostro, piel, ojos y pelo.",
     notes:
-      "Same woman from the references in a beauty close crop, detailed skin texture, dark-brown eyes, controlled studio light.",
+      "MUST be the exact same woman from the references — not a different person, not a lookalike. She is mid-20s (25-27), youthful, fresh. Dark-brown eyes. Beauty close crop, detailed skin texture, controlled studio light. Never age her past mid-20s. Her face must match the references exactly.",
     plan: {
       creativeDirection: "same woman from the references in a beauty editorial portrait",
       wardrobe:
@@ -118,7 +118,7 @@ export const STUDIO_PRESETS: StudioPreset[] = [
     label: "Full-Body Catalogue",
     description: "Fotos de cuerpo completo, claras, útiles y comerciales.",
     notes:
-      "Same woman from the references in a full-body studio frame, dark-brown eyes, clean full-look visibility, no corporate posing.",
+      "MUST be the exact same woman from the references — not a different person, not a lookalike. She is mid-20s (25-27), youthful, fresh. Dark-brown eyes. Full-body studio frame, clean full-look visibility. Never age her past mid-20s. No corporate posing. No businesswoman wardrobe.",
     plan: {
       creativeDirection: "same woman from the references in a full-body studio fashion frame",
       wardrobe:
@@ -135,7 +135,7 @@ export const STUDIO_PRESETS: StudioPreset[] = [
     label: "Seated Studio",
     description: "Retratos sentados, elegantes y controlados.",
     notes:
-      "Same woman from the references in seated studio portraits, dark-brown eyes, refined posture, grounded youthful realism.",
+      "MUST be the exact same woman from the references — not a different person, not a lookalike. She is mid-20s (25-27), youthful, fresh. Dark-brown eyes. Seated studio portraits, refined posture, grounded youthful realism. Never age her past mid-20s. No corporate styling.",
     plan: {
       creativeDirection: "same woman from the references in a minimal seated studio fashion story",
       wardrobe:
@@ -151,7 +151,7 @@ export const STUDIO_PRESETS: StudioPreset[] = [
     label: "Commercial Denim",
     description: "Tanque blanco y denim limpio, look comercial poderoso.",
     notes:
-      "Same woman from the references in a white tank and denim studio session, dark-brown eyes, youthful studio realism.",
+      "MUST be the exact same woman from the references — not a different person, not a lookalike. She is mid-20s (25-27), youthful, fresh. Dark-brown eyes. White tank and denim studio session, youthful studio realism. Never age her past mid-20s. No corporate wardrobe.",
     plan: {
       creativeDirection: "same woman from the references in a denim studio portrait",
       wardrobe:
@@ -169,7 +169,7 @@ export const STUDIO_PRESETS: StudioPreset[] = [
     description:
       "Sesión de estudio más sensual y fashion, siempre no explícita y totalmente vestida.",
     notes:
-      "Same woman from the references in a sensual studio editorial, dark-brown eyes, strong feminine silhouette, fully clothed, non-explicit, youthful and believable.",
+      "MUST be the exact same woman from the references — not a different person, not a lookalike. She is mid-20s (25-27), youthful, fresh. Dark-brown eyes. Sensual studio editorial, strong feminine silhouette, fully clothed, non-explicit, youthful and believable. Never age her past mid-20s. No businesswoman styling.",
     plan: {
       creativeDirection: "same woman from the references in a sensual studio editorial",
       wardrobe:

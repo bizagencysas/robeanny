@@ -596,8 +596,8 @@ async function generateWithVertexGeminiImage({
         generationConfig: {
           responseModalities: ["TEXT", "IMAGE"],
           candidateCount: 1,
-          temperature: 0.5,
-          topP: 0.9,
+          temperature: 0.3,
+          topP: 0.75,
           seed,
           imageConfig: {
             aspectRatio:
