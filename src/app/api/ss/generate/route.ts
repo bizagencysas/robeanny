@@ -61,6 +61,8 @@ type CloudinaryUploadResult = {
   folder: string;
 };
 
+type VertexGoogleImageSize = "1K" | "2K" | "4K";
+
 type StreamEvent =
   | {
       type: "meta";
@@ -118,7 +120,6 @@ const VERTEX_GOOGLE_IMAGE_MODEL =
 const VERTEX_GOOGLE_IMAGE_LOCATION =
   process.env.VERTEX_GOOGLE_IMAGE_LOCATION || "global";
 const VERTEX_GOOGLE_IMAGE_ASPECT_RATIO = "3:4";
-const VERTEX_GOOGLE_IMAGE_SIZE = "1536x1536"; // Reducido de 4K a resolución estándar para la tarifa base comercial
 const DEFAULT_CLOUDINARY_CLOUD_NAME = "dwpbbjp1d";
 const DEFAULT_CLOUDINARY_UPLOAD_PRESET = "robeanny_unsigned";
 const DEFAULT_CLOUDINARY_FOLDER = "robeanny";
@@ -141,6 +142,16 @@ function isPresetId(value: string): value is StudioPresetId {
     "commercial_denim",
     "sensual_editorial",
   ].includes(value);
+}
+
+function getVertexGoogleImageSize(): VertexGoogleImageSize {
+  const configured = process.env.VERTEX_GOOGLE_IMAGE_SIZE?.trim().toUpperCase();
+
+  if (configured === "1K" || configured === "2K" || configured === "4K") {
+    return configured;
+  }
+
+  return "2K";
 }
 
 function getFileExtension(mimeType: string) {
@@ -491,6 +502,7 @@ async function generateWithVertexGeminiImage({
   const { projectId } = getVertexSession();
   const token = await getVertexAccessToken();
   const location = VERTEX_GOOGLE_IMAGE_LOCATION;
+  const imageSize = getVertexGoogleImageSize();
   const endpointHost =
     location === "global"
       ? "https://aiplatform.googleapis.com"
@@ -556,7 +568,7 @@ async function generateWithVertexGeminiImage({
           imageConfig: {
             aspectRatio:
               aspectRatio === "3:4" ? aspectRatio : VERTEX_GOOGLE_IMAGE_ASPECT_RATIO,
-            imageSize: VERTEX_GOOGLE_IMAGE_SIZE,
+            imageSize,
             personGeneration: "allow_all",
             imageOutputOptions: {
               mimeType: "image/jpeg",
@@ -624,6 +636,42 @@ async function generateWithVertexGeminiImage({
   }
 
   return `data:${mimeType};base64,${base64}`;
+}
+
+async function generateWithVertexGeminiImageWithRetry({
+  prompt,
+  aspectRatio,
+  references,
+  seed,
+  hasAlbumAnchor = false,
+  attempts = 2,
+}: {
+  prompt: string;
+  aspectRatio: StudioAspectRatio;
+  references: PreparedReference[];
+  seed: number;
+  hasAlbumAnchor?: boolean;
+  attempts?: number;
+}) {
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    try {
+      return await generateWithVertexGeminiImage({
+        prompt,
+        aspectRatio,
+        references,
+        seed: createVertexSeed(`${seed}-${attempt}`, prompt, attempt),
+        hasAlbumAnchor,
+      });
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError instanceof Error
+    ? lastError
+    : new Error("Vertex AI no pudo generar la imagen en este momento.");
 }
 
 function extractJsonObject(text: string) {
@@ -1057,7 +1105,7 @@ export async function POST(request: NextRequest) {
                 prompt: string;
               }> = [];
               const firstPrompt = prompts[0];
-              const firstDataUrl = await generateWithVertexGeminiImage({
+              const firstDataUrl = await generateWithVertexGeminiImageWithRetry({
                 prompt: firstPrompt.prompt,
                 aspectRatio: effectiveAspectRatio,
                 references: googleBaseReferences,
@@ -1106,7 +1154,7 @@ export async function POST(request: NextRequest) {
                   );
 
                   try {
-                    const generatedDataUrl = await generateWithVertexGeminiImage({
+                    const generatedDataUrl = await generateWithVertexGeminiImageWithRetry({
                       prompt: item.prompt,
                       aspectRatio: effectiveAspectRatio,
                       references: activeReferences,
@@ -1133,7 +1181,7 @@ export async function POST(request: NextRequest) {
                     return null;
                   }
                 }),
-                2,
+                3,
                 (result) => {
                   if (!result) return;
                   completed += 1;
@@ -1260,6 +1308,12 @@ export async function POST(request: NextRequest) {
 
       if (!images.length) {
         throw new Error("No pude completar el álbum en esta generación.");
+      }
+
+      if (images.length < albumSize) {
+        throw new Error(
+          `Solo pude completar ${images.length} de ${albumSize} fotos antes de que se cortara la generación.`
+        );
       }
 
       send({
