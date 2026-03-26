@@ -72,14 +72,14 @@ const poseIdeas = [
 ];
 
 const hairIdeas = [
-  "soft polished waves with clean volume",
-  "a sleek straight blowout with healthy shine",
-  "a refined high ponytail with face-framing strands",
-  "glossy loose curls with movement",
-  "a sculpted bun with delicate tendrils",
-  "a brushed-back editorial wet-look finish",
-  "an elevated half-up style with soft texture",
-  "smooth side-parted glamour hair",
+  "blonde soft polished waves with clean volume and warm honey highlights",
+  "blonde sleek straight blowout with healthy golden shine",
+  "blonde refined high ponytail with face-framing strands and warm highlights",
+  "blonde glossy loose curls with natural movement and honey tones",
+  "blonde sculpted bun with delicate tendrils and warm highlights",
+  "blonde brushed-back editorial finish with natural golden tones",
+  "blonde elevated half-up style with soft texture and warm highlights",
+  "blonde smooth side-parted glamour hair with honey highlights",
 ];
 
 const lightingIdeas = [
@@ -505,7 +505,8 @@ export function buildSecretStudioPrompt({
       "Do not average, blend, or generalize identity across references. The primary face anchor defines who she is.",
       "If you cannot match the identity exactly, err on the side of copying the face more literally rather than less.",
       "Her eyes must remain dark brown, never hazel, green, blue, or gray.",
-      "Maintain dark-brown irises consistently across every image in the album.",
+      "Her hair must remain blonde with warm honey/golden highlights as visible in the references. Never change her hair to dark brown, black, red, or any non-blonde color.",
+      "Maintain dark-brown irises and blonde hair consistently across every image in the album.",
     ].join(" ")
     : "";
   const openAiIdentityLock =
@@ -531,7 +532,7 @@ export function buildSecretStudioPrompt({
     `Creative direction: ${creativeDirection}.`,
     `Wardrobe: ${wardrobe}.`,
     `Album continuity rule: keep the exact same wardrobe, same outfit pieces, same accessories, same makeup direction, and same hairstyle across every image in this album.`,
-    `Hair continuity rule: keep the exact same hair color, hair length, parting, texture, and styling across every image in this album.`,
+    `Hair continuity rule: keep the exact same blonde hair color, hair length, parting, texture, and styling across every image in this album. Her hair is BLONDE with warm honey highlights — never dark brown, black, or any non-blonde color.`,
     `Pose: ${shotPose}.`,
     `Hair styling: ${hair}.`,
     `Lighting: ${lighting}.`,

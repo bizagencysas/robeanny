@@ -46,14 +46,14 @@ body {
   overflow-x: hidden;
 }
 
-/* Subtle film grain overlay */
+/* Film grain overlay */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 9999;
-  opacity: 0.04;
+  opacity: 0.025;
   mix-blend-mode: overlay;
   background-image: radial-gradient(rgba(255, 255, 255, 0.12) 0.5px, transparent 0.5px);
   background-size: 3px 3px;
@@ -94,7 +94,7 @@ label {
 
 /* Scrollbar */
 ::-webkit-scrollbar {
-  width: 4px;
+  width: 3px;
 }
 
 ::-webkit-scrollbar-track {
@@ -102,12 +102,12 @@ label {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(199, 154, 89, 0.25);
+  background: rgba(199, 154, 89, 0.2);
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(199, 154, 89, 0.5);
+  background: rgba(199, 154, 89, 0.45);
 }
 
 /* ---------- Design System ---------- */
@@ -116,8 +116,8 @@ label {
   display: inline-flex;
   align-items: center;
   gap: 0.7rem;
-  font-size: 0.6rem;
-  letter-spacing: 0.36em;
+  font-size: 0.54rem;
+  letter-spacing: 0.4em;
   text-transform: uppercase;
   color: var(--text-muted);
 }
@@ -127,7 +127,7 @@ label {
   width: 2.4rem;
   height: 1px;
   background: var(--accent);
-  opacity: 0.5;
+  opacity: 0.4;
 }
 
 .page-shell {
@@ -147,25 +147,27 @@ label {
 
 /* Glass panel */
 .luxury-panel {
-  border: 1px solid rgba(232, 220, 200, 0.08);
-  background: rgba(12, 12, 12, 0.6);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(232, 220, 200, 0.06);
+  background: rgba(10, 10, 10, 0.65);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
 }
 
-/* Buttons */
+/* ---- Buttons ---- */
 .luxury-button,
 .luxury-button-secondary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.7rem;
-  padding: 1rem 2rem;
-  font-size: 0.62rem;
-  letter-spacing: 0.3em;
+  padding: 1rem 2.2rem;
+  font-size: 0.58rem;
+  letter-spacing: 0.32em;
   text-transform: uppercase;
   transition: all 500ms cubic-bezier(0.16, 1, 0.3, 1);
   border-radius: 0;
+  position: relative;
+  overflow: hidden;
 }
 
 .luxury-button {
@@ -174,24 +176,55 @@ label {
   color: #000;
 }
 
+.luxury-button::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.1), transparent);
+  transition: left 600ms ease;
+}
+
+.luxury-button:hover::before {
+  left: 100%;
+}
+
 .luxury-button:hover {
   background: transparent;
   color: var(--accent);
+  box-shadow: 0 0 40px rgba(199, 154, 89, 0.15);
 }
 
 .luxury-button-secondary {
-  border: 1px solid rgba(232, 220, 200, 0.2);
+  border: 1px solid rgba(232, 220, 200, 0.15);
   background: transparent;
   color: var(--text);
 }
 
+.luxury-button-secondary::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0%;
+  height: 100%;
+  background: var(--text);
+  transition: width 500ms cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: -1;
+}
+
+.luxury-button-secondary:hover::before {
+  width: 100%;
+}
+
 .luxury-button-secondary:hover {
   border-color: var(--text);
-  background: var(--text);
   color: #000;
 }
 
-/* Edge fade for images */
+/* Edge fade */
 .edge-fade {
   position: relative;
 }
@@ -200,7 +233,7 @@ label {
   content: "";
   position: absolute;
   inset: 0;
-  border: 1px solid rgba(232, 220, 200, 0.06);
+  border: 1px solid rgba(232, 220, 200, 0.04);
   pointer-events: none;
 }
 
@@ -224,7 +257,7 @@ label {
   background: rgba(12, 12, 12, 0.6);
 }
 
-/* 3D Perspective Containers */
+/* 3D Perspective */
 .perspective-container {
   perspective: 1200px;
   perspective-origin: 50% 50%;
@@ -252,18 +285,18 @@ label {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: radial-gradient(ellipse at center, transparent 30%, rgba(0, 0, 0, 0.65) 100%);
+  background: radial-gradient(ellipse at center, transparent 25%, rgba(0, 0, 0, 0.7) 100%);
   z-index: 5;
 }
 
-/* Horizontal scroll container */
+/* Horizontal scroll */
 .horizontal-scroll-section {
   overflow: hidden;
 }
 
 .horizontal-scroll-track {
   display: flex;
-  gap: 2rem;
+  gap: 1.5rem;
   width: max-content;
   will-change: transform;
 }
@@ -278,13 +311,18 @@ label {
   transform: perspective(800px) rotateY(-4deg) rotateX(3deg) scale(1.02);
 }
 
-/* Magnetic text effect */
+/* Magnetic text */
 .magnetic-text {
   display: inline-block;
   transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Stagger line reveal */
+/* Magnetic button wrapper */
+.magnetic-btn {
+  will-change: transform;
+}
+
+/* Line reveal */
 .line-reveal {
   overflow: hidden;
 }
@@ -294,7 +332,15 @@ label {
   transform: translateY(100%);
 }
 
-/* Page enter */
+/* Stagger line reveal */
+.stagger-line-reveal > span {
+  display: block;
+  opacity: 0;
+  transform: translateY(100%);
+}
+
+/* ---- Animations ---- */
+
 @keyframes rise {
   0% {
     opacity: 0;
@@ -310,15 +356,77 @@ label {
   animation: rise 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* Scroll pulse for hero */
+@keyframes scrollPulse {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(250%);
+    opacity: 0;
+  }
+}
+
+/* Marquee reverse (CSS-only for second band) */
+@keyframes marqueeReverse {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-33.33%);
+  }
+}
+
 /* Glow accent */
 .glow-accent {
   position: absolute;
   width: 300px;
   height: 300px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(199, 154, 89, 0.12), transparent 70%);
+  background: radial-gradient(circle, rgba(199, 154, 89, 0.1), transparent 70%);
   pointer-events: none;
   filter: blur(60px);
+}
+
+/* Shine effect for images on hover */
+.shine-on-hover {
+  position: relative;
+  overflow: hidden;
+}
+
+.shine-on-hover::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(199, 154, 89, 0.05) 50%,
+    transparent 70%
+  );
+  transform: rotate(0deg) translateX(-100%);
+  transition: none;
+  pointer-events: none;
+}
+
+.shine-on-hover:hover::after {
+  animation: shineSlide 0.8s ease forwards;
+}
+
+@keyframes shineSlide {
+  0% {
+    transform: rotate(45deg) translateX(-100%);
+  }
+  100% {
+    transform: rotate(45deg) translateX(100%);
+  }
 }
 
 /* ---- Mobile Overrides ---- */
@@ -329,15 +437,15 @@ label {
 
   .luxury-button,
   .luxury-button-secondary {
-    min-height: 3.2rem;
-    padding: 0.92rem 1.5rem;
+    min-height: 3rem;
+    padding: 0.85rem 1.4rem;
     border-radius: 999px;
     letter-spacing: 0.22em;
-    font-size: 0.6rem;
+    font-size: 0.56rem;
   }
 
   .luxury-panel {
-    border-radius: 1rem;
+    border-radius: 0.75rem;
   }
 
   .section-spacing {
@@ -346,12 +454,12 @@ label {
 
   .label-kicker {
     gap: 0.5rem;
-    font-size: 0.52rem;
+    font-size: 0.48rem;
     letter-spacing: 0.28em;
   }
 
   .label-kicker::before {
-    width: 1.4rem;
+    width: 1.2rem;
   }
 
   .editorial-body {
@@ -365,11 +473,15 @@ label {
   }
 
   .luxury-panel {
-    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
   }
 
   h1 {
     letter-spacing: 0.04em;
+  }
+
+  .horizontal-scroll-track {
+    gap: 1rem;
   }
 }
 
