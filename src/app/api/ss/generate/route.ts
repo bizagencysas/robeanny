@@ -274,6 +274,21 @@ function normalizeVertexReferenceMimeType(mimeType: string) {
   return "image/jpeg";
 }
 
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function isVertexCapacityError(error: unknown) {
+  const message =
+    error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
+
+  return (
+    message.includes("resource exhausted") ||
+    message.includes("too many requests") ||
+    message.includes("429")
+  );
+}
+
 function toVertexCompatibleReferenceUrl(url: string) {
   if (!url.includes("res.cloudinary.com") || !url.includes("/image/upload/")) {
     return url;
@@ -674,6 +689,15 @@ async function generateWithVertexGeminiImageWithRetry({
       });
     } catch (error) {
       lastError = error;
+
+      if (attempt < attempts - 1 && isVertexCapacityError(error)) {
+        const waitMs = Math.min(
+          12000,
+          2500 * 2 ** attempt + Math.floor(Math.random() * 700)
+        );
+        await sleep(waitMs);
+        continue;
+      }
     }
   }
 
@@ -1207,7 +1231,7 @@ export async function POST(request: NextRequest) {
                     return null;
                   }
                 }),
-                3,
+                2,
                 (result) => {
                   if (!result) return;
                   completed += 1;
