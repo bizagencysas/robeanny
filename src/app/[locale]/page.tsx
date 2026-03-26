@@ -171,19 +171,20 @@ export default function HomePage() {
         }
       }
 
-      // ---- PORTFOLIO: Section clip-path reveal (diagonal wipe) ----
+      // ---- PORTFOLIO: Fade-in section ----
       if (portfolioSectionRef.current) {
         gsap.fromTo(
           portfolioSectionRef.current,
-          { clipPath: "polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%)" },
+          { opacity: 0, y: 60 },
           {
-            clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
-            ease: "power3.inOut",
+            opacity: 1,
+            y: 0,
+            duration: 1,
+            ease: "power3.out",
             scrollTrigger: {
               trigger: portfolioSectionRef.current,
-              start: "top 90%",
-              end: "top 40%",
-              scrub: 1,
+              start: "top 92%",
+              toggleActions: "play none none none",
             },
           }
         );
@@ -214,18 +215,16 @@ export default function HomePage() {
         if (!card) return;
         gsap.fromTo(
           card,
-          { opacity: 0, y: 160, rotateX: 20, rotateZ: i % 2 === 0 ? -3 : 3, scale: 0.8 },
+          { y: 80, rotateX: 8, scale: 0.92 },
           {
-            opacity: 1,
             y: 0,
             rotateX: 0,
-            rotateZ: 0,
             scale: 1,
             duration: 1.1,
             ease: "power3.out",
             scrollTrigger: {
               trigger: card,
-              start: "top 95%",
+              start: "top 98%",
               toggleActions: "play none none none",
             },
             delay: (i % 4) * 0.08,
@@ -245,19 +244,19 @@ export default function HomePage() {
         });
       });
 
-      // ---- ABOUT: Split reveal ----
+      // ---- ABOUT: Image reveal ----
       if (aboutImageRef.current) {
         gsap.fromTo(
           aboutImageRef.current,
-          { clipPath: "inset(100% 0 0 0)", scale: 1.2 },
+          { scale: 1.15, y: 40 },
           {
-            clipPath: "inset(0% 0 0 0)",
             scale: 1,
+            y: 0,
             duration: 1.4,
-            ease: "power4.inOut",
+            ease: "power4.out",
             scrollTrigger: {
               trigger: aboutSectionRef.current,
-              start: "top 70%",
+              start: "top 75%",
               toggleActions: "play none none none",
             },
           }
@@ -326,19 +325,20 @@ export default function HomePage() {
         });
       }
 
-      // ---- SOCIAL: Staggered reveal ----
+      // ---- SOCIAL: Fade-in reveal ----
       if (socialSectionRef.current) {
         gsap.fromTo(
           socialSectionRef.current,
-          { clipPath: "inset(0 0 100% 0)" },
+          { opacity: 0, y: 50 },
           {
-            clipPath: "inset(0 0 0% 0)",
-            ease: "power3.inOut",
+            opacity: 1,
+            y: 0,
+            duration: 1,
+            ease: "power3.out",
             scrollTrigger: {
               trigger: socialSectionRef.current,
-              start: "top 85%",
-              end: "top 40%",
-              scrub: 1,
+              start: "top 88%",
+              toggleActions: "play none none none",
             },
           }
         );
@@ -636,7 +636,6 @@ export default function HomePage() {
           <div
             ref={aboutImageRef}
             className="relative min-h-[500px] lg:min-h-[700px] overflow-hidden velocity-skew"
-            style={{ clipPath: "inset(100% 0 0 0)" }}
           >
             <Image
               src={aboutImage}
