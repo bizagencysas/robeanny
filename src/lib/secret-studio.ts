@@ -154,6 +154,9 @@ const polishRules = [
   "no mannequin pose",
   "no overly smooth gradient background",
   "keep natural fabric folds and believable garment wrinkles",
+  "NEVER dress her as a businesswoman, executive, office worker, marketing professional, or corporate woman",
+  "NEVER put her in a black blazer, suit jacket, structured blazer, business suit, or officewear of any kind",
+  "NEVER create a LinkedIn headshot, corporate portrait, graduation photo, or business-casual look",
 ];
 
 const stylingNotesIdeas = [
@@ -548,6 +551,10 @@ export function buildSecretStudioPrompt({
     "The final image must look like a real contemporary editorial photoshoot, fully clothed, tasteful, elegant, and commercially usable.",
     "Keep the styling elevated but believable. Add natural micro-details in skin, hair, fabric texture, seams, folds, and lighting falloff.",
     "Avoid corporate wardrobe, officewear, business-casual styling, graduation-photo energy, or LinkedIn portrait vibes unless the user explicitly asks for that.",
+    "HARD NEGATIVE: She is NOT a businesswoman, NOT a marketing executive, NOT a corporate professional, NOT an office worker. She is a young fashion model in an editorial session.",
+    "NEVER dress her in a black blazer, suit jacket, structured blazer, pencil skirt, button-down shirt, business suit, or any executive/office wardrobe.",
+    "NEVER create imagery that looks like a corporate headshot, LinkedIn photo, real estate agent portrait, or business-team photo.",
+    "If the wardrobe or pose starts to look corporate, office-like, or executive, change it to something youthful, fashion-editorial, and model-test instead.",
     "Favor model-test energy, high-fashion editorial restraint, long clean lines, strong feminine silhouette, and modern studio styling.",
     "Sensual energy is allowed only when it remains fully clothed, non-explicit, editorial, and tasteful. No nudity, no transparent garments, no explicit exposure.",
     `Follow these quality rules: ${polishRules.join(", ")}.`,

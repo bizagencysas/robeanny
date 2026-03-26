@@ -553,6 +553,7 @@ async function generateWithVertexGeminiImage({
                 "Do not average identity across references. Do not invent a blended face. Do not create a generic model face.",
                 "If there is any conflict between creative direction and identity fidelity, identity fidelity ALWAYS wins.",
                 "Avoid CGI look, waxy skin, mannequin posture, distorted anatomy, extra fingers, extra limbs, generic beauty-face, and fake gradient backgrounds.",
+                "HARD NEGATIVE: Never dress her as a businesswoman, corporate executive, office worker, or marketing professional. Never put her in a black blazer, suit jacket, business suit, or officewear. She is a young fashion model, not a corporate woman.",
                 "Prefer grounded studio realism over stylized glamour.",
                 hasAlbumAnchor
                   ? "The first attached image is the high-resolution facial identity anchor — identity comes from this image above all others. The second image is the album continuity anchor for styling and set. Additional images provide body proportion and angle context."
@@ -817,6 +818,7 @@ async function generateCreativePlan({
     "The same woman must remain recognizable, with dark-brown eyes, same face shape, same age, same skin tone.",
     "Strong preference: polished studio imagery, clean backdrop, believable lighting, real skin texture, and natural human anatomy.",
     "Do not describe a generic model. Describe styling FOR the specific woman in the references.",
+    "HARD NEGATIVE: Never describe businesswoman styling, corporate wardrobe, office looks, black blazers, suit jackets, executive portraits, or LinkedIn headshot energy. She is a young fashion model in an editorial session, not a corporate professional.",
     `Freshness token: ${albumSeed}-${attempt}.`,
     `Requested preset direction: ${direction}.`,
     `Preset description: ${presetDescription}.`,

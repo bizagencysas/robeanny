@@ -173,7 +173,7 @@ export const STUDIO_PRESETS: StudioPreset[] = [
     plan: {
       creativeDirection: "same woman from the references in a sensual studio editorial",
       wardrobe:
-        "an opaque black bodysuit or a body-skimming editorial look with a sharp blazer, sleek boots, and refined accessories",
+        "an opaque black bodysuit or a body-skimming editorial look with sleek boots and refined accessories, never a blazer or suit jacket",
       albumPose:
         "confident studio pose with elongated legs, elegant posture, and restrained sensual energy",
       location: "a clean studio set with soft warm neutrals and minimal distractions",
