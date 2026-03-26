@@ -780,13 +780,15 @@ export default function SecretStudioClient({
             >
               {isGenerating ? "Generando álbum..." : "Generar nuevo álbum"}
             </button>
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="luxury-button-secondary min-w-[160px] justify-center border-white/20 bg-white/5 text-[#f7efe4] hover:border-[#f7efe4] hover:bg-[#f7efe4] hover:text-[#120f0d]"
-            >
-              Bloquear ruta
-            </button>
+            {authRequired ? (
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="luxury-button-secondary min-w-[160px] justify-center border-white/20 bg-white/5 text-[#f7efe4] hover:border-[#f7efe4] hover:bg-[#f7efe4] hover:text-[#120f0d]"
+              >
+                Bloquear ruta
+              </button>
+            ) : null}
           </div>
         </div>
 

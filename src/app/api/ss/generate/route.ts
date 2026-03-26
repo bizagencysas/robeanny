@@ -22,6 +22,7 @@ import {
   buildSecretStudioPrompt,
   createRecipeSignature,
   getAvailableStudioProviders,
+  getVertexAiConfigurationError,
   getOpenAiImageSize,
   getStudioProviderLabel,
   getSecretStudioCorsHeaders,
@@ -119,6 +120,7 @@ const VERTEX_GEMINI_MODEL =
   process.env.VERTEX_GEMINI_MODEL || "gemini-2.5-flash";
 const VERTEX_GOOGLE_IMAGE_MODEL =
   process.env.VERTEX_GOOGLE_IMAGE_MODEL ||
+  process.env.GOOGLE_PREMIUM_IMAGE_MODEL ||
   process.env.VERTEX_IMAGEN_MODEL ||
   "gemini-3-pro-image-preview";
 const VERTEX_GOOGLE_IMAGE_LOCATION =
@@ -630,7 +632,12 @@ async function generateWithVertexGeminiImage({
     throw new Error(message);
   }
 
-  const candidateParts = payload?.candidates?.[0]?.content?.parts;
+  const candidates = Array.isArray((payload as { candidates?: unknown } | null)?.candidates)
+    ? ((payload as { candidates?: Array<Record<string, unknown>> }).candidates ?? [])
+    : [];
+  const candidateParts = Array.isArray(candidates[0]?.content)
+    ? null
+    : ((candidates[0]?.content as { parts?: unknown } | undefined)?.parts ?? null);
   const imagePart = Array.isArray(candidateParts)
     ? candidateParts.find(
         (part: Record<string, unknown>) =>
@@ -650,8 +657,10 @@ async function generateWithVertexGeminiImage({
           (part: Record<string, unknown>) => typeof part?.text === "string"
         )
       : null;
+    const payloadError =
+      (payload as { error?: { message?: string } } | null)?.error?.message || null;
     const raiReason =
-      (messagePart as { text?: string } | null)?.text || payload?.error?.message;
+      (messagePart as { text?: string } | null)?.text || payloadError;
 
     throw new Error(
       raiReason ||
@@ -964,9 +973,17 @@ export async function POST(request: NextRequest) {
   const requestedProvider = body.provider || availableProviders[0];
 
   if (!requestedProvider || !availableProviders.includes(requestedProvider)) {
+    const providerSpecificError =
+      requestedProvider === "google"
+        ? getVertexAiConfigurationError()
+        : requestedProvider === "openai" && !process.env.OPENAI_API_KEY
+          ? "Falta `OPENAI_API_KEY` para usar OpenAI GPT Image."
+          : null;
+
     return NextResponse.json(
       {
         error:
+          providerSpecificError ||
           "No hay proveedor configurado todavía. Agrega `VERTEX_AI_PROJECT_ID`, `GOOGLE_CREDENTIALS_JSON` u `OPENAI_API_KEY` en el entorno.",
       },
       { status: 400, headers: getSecretStudioCorsHeaders(request) }

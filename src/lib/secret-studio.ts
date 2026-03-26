@@ -256,6 +256,44 @@ export function getGoogleCredentialsJson() {
   return process.env.GOOGLE_CREDENTIALS_JSON?.trim() || "";
 }
 
+type GoogleServiceAccountCredentials = Record<string, string> & {
+  client_email: string;
+  private_key: string;
+};
+
+function normalizeGoogleCredentialsCandidate(raw: string) {
+  const trimmed = raw.trim();
+
+  if (
+    (trimmed.startsWith("'") && trimmed.endsWith("'")) ||
+    (trimmed.startsWith('"') && trimmed.endsWith('"'))
+  ) {
+    return trimmed.slice(1, -1).trim();
+  }
+
+  return trimmed;
+}
+
+function validateGoogleCredentialsShape(
+  parsed: unknown
+): GoogleServiceAccountCredentials {
+  if (!parsed || typeof parsed !== "object") {
+    throw new Error("missing-fields");
+  }
+
+  const record = parsed as Record<string, string>;
+
+  if (!record.client_email || !record.private_key) {
+    throw new Error("missing-fields");
+  }
+
+  return {
+    ...record,
+    client_email: record.client_email,
+    private_key: record.private_key.replace(/\\n/g, "\n"),
+  };
+}
+
 export function parseGoogleCredentialsJson() {
   const raw = getGoogleCredentialsJson();
 
@@ -266,17 +304,39 @@ export function parseGoogleCredentialsJson() {
   }
 
   try {
-    const parsed = JSON.parse(raw) as Record<string, string>;
+    return validateGoogleCredentialsShape(JSON.parse(raw));
+  } catch {}
 
-    if (!parsed.client_email || !parsed.private_key) {
-      throw new Error("missing-fields");
-    }
+  const normalized = normalizeGoogleCredentialsCandidate(raw);
 
-    return parsed;
-  } catch {
-    throw new Error(
-      "`GOOGLE_CREDENTIALS_JSON` no contiene un JSON válido de cuenta de servicio."
-    );
+  try {
+    return validateGoogleCredentialsShape(JSON.parse(normalized));
+  } catch {}
+
+  try {
+    const decoded = Buffer.from(normalized, "base64").toString("utf8");
+    return validateGoogleCredentialsShape(JSON.parse(decoded));
+  } catch {}
+
+  throw new Error(
+    "`GOOGLE_CREDENTIALS_JSON` no contiene un JSON válido de cuenta de servicio. Pégalo como JSON completo, sin envolverlo en comillas extra. Si quieres, también acepto el JSON codificado en base64."
+  );
+}
+
+export function getVertexAiConfigurationError() {
+  const credentialsJson = getGoogleCredentialsJson();
+
+  if (!credentialsJson) {
+    return "Falta `GOOGLE_CREDENTIALS_JSON` con el JSON completo de la cuenta de servicio para Vertex AI.";
+  }
+
+  try {
+    parseGoogleCredentialsJson();
+    return null;
+  } catch (error) {
+    return error instanceof Error
+      ? error.message
+      : "La configuración de Vertex AI no es válida.";
   }
 }
 
