@@ -5,7 +5,10 @@ import path from "path";
 import { GoogleAuth } from "google-auth-library";
 import {
   GoogleQualityMode,
+  SECRET_STUDIO_BODY_SUPPORT_REFERENCES,
   StudioPresetId,
+  SECRET_STUDIO_PRIMARY_FACE_REFERENCES,
+  SECRET_STUDIO_SECONDARY_FACE_REFERENCES,
   getStudioPreset,
 } from "@/lib/secret-studio-shared";
 import {
@@ -523,7 +526,9 @@ async function generateWithVertexGeminiImage({
                 "Generate a realistic studio fashion photograph.",
                 "Treat facial identity preservation as a hard constraint.",
                 "The woman must remain the exact same real adult woman shown in the references.",
+                "Match the same apparent age visible in the references and keep her clearly young-adult. Never age her up or mature her facial features.",
                 "Keep dark-brown eyes, real skin texture, believable pores, natural asymmetry, and non-waxy skin.",
+                "Preserve youthful cheek fullness, smooth under-eyes, soft feminine facial contours, and recognizable beauty details from the references.",
                 "Avoid CGI look, waxy skin, mannequin posture, distorted anatomy, extra fingers, extra limbs, generic beauty-face, and fake gradient backgrounds.",
                 "Prefer grounded studio realism over stylized glamour.",
                 hasAlbumAnchor
@@ -977,6 +982,9 @@ export async function POST(request: NextRequest) {
     assertSafeCreativeNotes(notes);
 
     const fallbackReferenceSet = new Set(SECRET_STUDIO_FALLBACK_REFERENCES);
+    const primaryFaceReferenceSet = new Set(SECRET_STUDIO_PRIMARY_FACE_REFERENCES);
+    const secondaryFaceReferenceSet = new Set(SECRET_STUDIO_SECONDARY_FACE_REFERENCES);
+    const bodySupportReferenceSet = new Set(SECRET_STUDIO_BODY_SUPPORT_REFERENCES);
     const uniqueReferences = Array.from(
       new Set(
         incomingReferences.length
@@ -987,7 +995,10 @@ export async function POST(request: NextRequest) {
       const getPriority = (value: string) => {
         if (value.startsWith("data:")) return 0;
         if (!fallbackReferenceSet.has(value)) return 1;
-        return 2;
+        if (primaryFaceReferenceSet.has(value)) return 2;
+        if (secondaryFaceReferenceSet.has(value)) return 3;
+        if (bodySupportReferenceSet.has(value)) return 4;
+        return 5;
       };
 
       return getPriority(left) - getPriority(right);
@@ -1148,10 +1159,10 @@ export async function POST(request: NextRequest) {
               const remainingResults = await runWithConcurrency(
                 prompts.slice(1).map((item, offset) => async () => {
                   const index = offset + 1;
-                  const activeReferences = [albumAnchorReference, ...googleBaseReferences].slice(
-                    0,
-                    3
-                  );
+                  const activeReferences = [
+                    albumAnchorReference,
+                    googleBaseReferences[0],
+                  ].filter(Boolean);
 
                   try {
                     const generatedDataUrl = await generateWithVertexGeminiImageWithRetry({
@@ -1200,7 +1211,68 @@ export async function POST(request: NextRequest) {
                 }
               );
 
-              return [firstResult, ...remainingResults.filter(Boolean)].sort(
+              const missingShots = prompts
+                .slice(1)
+                .map((item, offset) => ({
+                  item,
+                  index: offset + 1,
+                }))
+                .filter((_, offset) => !remainingResults[offset]);
+
+              for (const missingShot of missingShots) {
+                try {
+                  const fallbackReferences = [
+                    albumAnchorReference,
+                    googleBaseReferences[0],
+                  ].filter(Boolean);
+                  const generatedDataUrl = await generateWithVertexGeminiImageWithRetry({
+                    prompt: missingShot.item.prompt,
+                    aspectRatio: effectiveAspectRatio,
+                    references: fallbackReferences,
+                    seed: createVertexSeed(
+                      `${albumSeed}-recovery`,
+                      missingShot.item.prompt,
+                      missingShot.index
+                    ),
+                    hasAlbumAnchor: true,
+                    attempts: 3,
+                  });
+
+                  const uploaded = await uploadGeneratedImageToCloudinary({
+                    file: generatedDataUrl,
+                    filename: `shot-${missingShot.index + 1}-${Date.now()}-${Math.random()
+                      .toString(36)
+                      .slice(2, 8)}`,
+                    folderOverride: albumFolder,
+                  });
+
+                  const rescuedResult = {
+                    index: missingShot.index,
+                    imageUrl: uploaded.secureUrl,
+                    cloudinaryPublicId: uploaded.publicId,
+                    cloudinaryFolder: uploaded.folder,
+                    prompt: missingShot.item.prompt,
+                  };
+
+                  completed += 1;
+                  results.push(rescuedResult);
+                  send({
+                    type: "image",
+                    index: rescuedResult.index,
+                    imageUrl: rescuedResult.imageUrl,
+                    cloudinaryPublicId: rescuedResult.cloudinaryPublicId,
+                    cloudinaryFolder: rescuedResult.cloudinaryFolder,
+                    prompt: rescuedResult.prompt,
+                    completed,
+                    total: albumSize,
+                    stage: `Foto ${completed} de ${albumSize} lista.`,
+                  });
+                } catch {
+                  // Leave the album partial if even the rescue pass fails.
+                }
+              }
+
+              return results.sort(
                 (left, right) => left!.index - right!.index
               ) as typeof results;
             })()

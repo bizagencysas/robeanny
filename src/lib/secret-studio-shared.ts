@@ -33,13 +33,25 @@ export type StudioCostEstimate = {
   providerNote: string;
 };
 
-export const SECRET_STUDIO_FALLBACK_REFERENCES = [
+export const SECRET_STUDIO_PRIMARY_FACE_REFERENCES = [
   "/FotoPrueba1.JPG",
-  "/FotoPrueba2.jpg",
   "/FotoPrueba3.jpg",
+];
+
+export const SECRET_STUDIO_SECONDARY_FACE_REFERENCES = [
+  "/FotoPrueba2.jpg",
   "/FotoPrueba4.jpg",
+];
+
+export const SECRET_STUDIO_BODY_SUPPORT_REFERENCES = [
   "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101023/2_ltpa5y.webp",
   "https://res.cloudinary.com/dbm7zxsxr/image/upload/v1774101024/6_d2ejcx.webp",
+];
+
+export const SECRET_STUDIO_FALLBACK_REFERENCES = [
+  ...SECRET_STUDIO_PRIMARY_FACE_REFERENCES,
+  ...SECRET_STUDIO_SECONDARY_FACE_REFERENCES,
+  ...SECRET_STUDIO_BODY_SUPPORT_REFERENCES,
 ];
 
 export const STUDIO_PRESETS: StudioPreset[] = [
