@@ -157,6 +157,8 @@ const polishRules = [
   "NEVER dress her as a businesswoman, executive, office worker, marketing professional, or corporate woman",
   "NEVER put her in a black blazer, suit jacket, structured blazer, business suit, or officewear of any kind",
   "NEVER create a LinkedIn headshot, corporate portrait, graduation photo, or business-casual look",
+  "She must look mid-20s, youthful, fresh — NEVER aged, mature, mid-30s, 40s, or older-looking",
+  "No wrinkles, no expression lines, no forehead lines, no crow's feet, no nasolabial folds on her face",
 ];
 
 const stylingNotesIdeas = [
@@ -494,8 +496,9 @@ export function buildSecretStudioPrompt({
       "Preserve her exact face shape, brow structure, eyelid shape, nose bridge, nose tip, lip shape, smile line, cheek volume, jawline, chin, hairline, and skin tone.",
       "Preserve subtle asymmetries and recognizable beauty details visible in the references.",
       "Do not beautify by changing ethnicity, age, eye shape, lip fullness, bone structure, or facial proportions.",
-      "Match the same apparent age visible in the references and keep her clearly young-adult. Never age her up, mature her features, or add older facial lines.",
-      "Preserve youthful cheek fullness, smooth under-eyes, soft facial contours, and the exact same feminine facial balance from the references.",
+      "Match the same apparent age visible in the references and keep her clearly young-adult, mid-20s. Never age her up, mature her features, or add older facial lines.",
+      "HARD NEGATIVE ON AGE: She is in her mid-20s. She must NEVER look 30, 35, 40, or older. No mature skin, no expression lines, no forehead wrinkles, no crow's feet, no nasolabial folds, no sagging, no hollow cheeks, no thinning lips.",
+      "Preserve youthful cheek fullness, smooth under-eyes, soft facial contours, plump healthy skin, and the exact same feminine facial balance from the references.",
       "Maintain exact facial geometry and lip shape from the high-resolution reference.",
       "Do not enlarge the lips, do not create filler-like lips, and do not increase lip volume beyond what is visible in the references.",
       "Do not sharpen, hollow, or age the cheeks, jawline, mouth area, or under-eyes.",
@@ -543,7 +546,9 @@ export function buildSecretStudioPrompt({
     "Use grounded realism over stylized glamour.",
     "Keep facial proportions natural, skin pores visible, studio shadows believable, and clothing construction realistic.",
     "Keep the lips at their exact natural volume from the references. No lip filler effect, no inflated mouth shape, no overlined-lip look.",
-    "Keep the face young-adult, soft, and faithful to the references. No mature beauty campaign face and no executive portrait face.",
+    "Keep the face young-adult (mid-20s), soft, and faithful to the references. No mature beauty campaign face and no executive portrait face. She must never look older than mid-20s.",
+    "HARD NEGATIVE ON AGE: Do not add wrinkles, expression lines, forehead lines, crow's feet, nasolabial folds, or any sign of aging. Keep her skin smooth, plump, and youthful like the references.",
+    "Keep her body proportions youthful and toned — no mature body language, no stiff corporate posture, no middle-aged woman energy.",
     "Avoid generic AI fashion look, waxy skin, over-designed wardrobe, fake facial symmetry, and synthetic background gradients.",
     "Only the pose, framing, expression, and camera crop may change from shot to shot. Do not change haircut, hair styling, wardrobe, set concept, or beauty styling within the album.",
     "Every photo in the album must be recognizably different from the others in pose, angle, crop, and gesture. Never duplicate a previous frame.",
