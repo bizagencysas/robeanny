@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createHash } from "crypto";
+import { readFile } from "fs/promises";
+import path from "path";
 import { GoogleAuth } from "google-auth-library";
 import {
   GoogleQualityMode,
@@ -185,6 +187,30 @@ async function urlToReference(url: string, filenameBase: string): Promise<Prepar
   };
 }
 
+async function publicFileToReference(
+  publicPath: string,
+  filenameBase: string
+): Promise<PreparedReference> {
+  const normalizedPath = publicPath.startsWith("/")
+    ? publicPath.slice(1)
+    : publicPath;
+  const absolutePath = path.join(process.cwd(), "public", normalizedPath);
+  const arrayBuffer = await readFile(absolutePath);
+  const extension = path.extname(normalizedPath).toLowerCase();
+  const mimeType =
+    extension === ".png"
+      ? "image/png"
+      : extension === ".webp"
+        ? "image/webp"
+        : "image/jpeg";
+
+  return {
+    mimeType,
+    base64: Buffer.from(arrayBuffer).toString("base64"),
+    filename: `${filenameBase}.${getFileExtension(mimeType)}`,
+  };
+}
+
 async function prepareReference(source: string, index: number) {
   if (source.startsWith("data:")) {
     return dataUrlToReference(source, `reference-${index + 1}`);
@@ -194,7 +220,11 @@ async function prepareReference(source: string, index: number) {
     return urlToReference(source, `reference-${index + 1}`);
   }
 
-  throw new Error("Solo se aceptan referencias en data URL o URL absoluta.");
+  if (source.startsWith("/")) {
+    return publicFileToReference(source, `reference-${index + 1}`);
+  }
+
+  throw new Error("Solo se aceptan referencias en data URL, URL absoluta o rutas de `public/`.");
 }
 
 function getVertexSession() {
