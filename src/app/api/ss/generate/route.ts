@@ -568,12 +568,6 @@ async function generateWithVertexGeminiImage({
           {
             role: "user",
             parts: [
-              ...references.map((reference) => ({
-                inlineData: {
-                  mimeType: reference.mimeType,
-                  data: reference.base64,
-                },
-              })),
               {
                 text: [
                   prompt,
@@ -590,6 +584,12 @@ async function generateWithVertexGeminiImage({
                   "Create one single highly realistic studio photo with believable lighting, believable clothing construction, and natural human anatomy.",
                 ].join(" "),
               },
+              ...references.map((reference) => ({
+                inlineData: {
+                  mimeType: reference.mimeType,
+                  data: reference.base64,
+                },
+              })),
             ],
           },
         ],
