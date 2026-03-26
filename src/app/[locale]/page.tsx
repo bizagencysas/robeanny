@@ -461,37 +461,48 @@ export default function HomePage() {
           backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.05) 2px, rgba(255,255,255,0.05) 4px)",
         }} />
 
-        {/* Content */}
-        <div className="relative z-10 flex flex-col items-center text-center pointer-events-none px-4 w-full" style={{ perspective: "1200px" }}>
+        {/* Content — Split layout: title fills screen, info at bottom */}
+        <div className="relative z-10 flex flex-col items-center justify-center text-center pointer-events-none px-4 w-full h-full" style={{ perspective: "1200px" }}>
           {/* Kicker */}
-          <span className="inline-flex items-center gap-3 mb-4 text-[0.5rem] uppercase tracking-[0.6em] text-[#c79a59]/60">
+          <span className="inline-flex items-center gap-3 mb-6 text-[0.5rem] uppercase tracking-[0.6em] text-[#c79a59]/60">
             <span className="inline-block h-[1px] w-10 bg-[#c79a59]/30" />
             <TextScramble text={tHero("subtitle")} delay={1800} speed={35} />
             <span className="inline-block h-[1px] w-10 bg-[#c79a59]/30" />
           </span>
 
-          {/* Giant Title with clip-path reveal */}
+          {/* Giant Title — mix-blend-mode so it interacts with the photo */}
           <h1
             ref={heroTitleRef}
-            className="brand-display text-[clamp(5rem,22vw,20rem)] leading-[0.78] tracking-[0.06em] text-[#e8dcc8] will-change-transform"
+            className="brand-display text-[clamp(5rem,22vw,20rem)] leading-[0.78] tracking-[0.06em] text-[#e8dcc8] will-change-transform mix-blend-difference"
             style={{ clipPath: "inset(100% 0 0 0)", transformStyle: "preserve-3d" }}
           >
             ROBEANNY
           </h1>
 
-          {/* Subtitle */}
-          <p className="mt-5 max-w-md text-[0.78rem] leading-relaxed text-[#e8dcc8]/35 md:text-[0.88rem]">
-            {tIntro("bio")}
-          </p>
+          {/* Warm glow behind title */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vw] h-[40vh] rounded-full pointer-events-none cinematic-glow"
+            style={{ background: "radial-gradient(ellipse, rgba(199,154,89,0.08), transparent 60%)", filter: "blur(80px)" }}
+          />
+        </div>
 
-          {/* CTAs */}
-          <div ref={heroCTARef} className="mt-8 flex flex-wrap justify-center gap-3 pointer-events-auto">
-            <Link href={toLocalePath("/portfolio")} className="magnetic-btn luxury-button">
-              {tHero("cta")} <span>→</span>
-            </Link>
-            <Link href={toLocalePath("/book")} className="magnetic-btn luxury-button-secondary">
-              {tCta("book")}
-            </Link>
+        {/* Bottom info bar — absolute positioned, separate from title */}
+        <div className="absolute bottom-20 left-0 right-0 z-20 pointer-events-none px-4">
+          <div className="page-shell">
+            <div className="flex flex-col md:flex-row items-center md:items-end justify-between gap-4">
+              <p className="max-w-sm text-[0.72rem] leading-relaxed text-[#e8dcc8]/40 text-center md:text-left md:text-[0.8rem]">
+                {tIntro("bio")}
+              </p>
+
+              {/* CTAs */}
+              <div ref={heroCTARef} className="flex flex-wrap justify-center gap-3 pointer-events-auto">
+                <Link href={toLocalePath("/portfolio")} className="magnetic-btn luxury-button">
+                  {tHero("cta")} <span>→</span>
+                </Link>
+                <Link href={toLocalePath("/book")} className="magnetic-btn luxury-button-secondary">
+                  {tCta("book")}
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
 

@@ -110,6 +110,24 @@ label {
   background: rgba(199, 154, 89, 0.45);
 }
 
+/* ---------- Warm Ambient Glow ---------- */
+
+@keyframes warmBreathe {
+  0%,
+  100% {
+    opacity: 0.04;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.09;
+    transform: scale(1.1);
+  }
+}
+
+.cinematic-glow {
+  animation: warmBreathe 6s ease-in-out infinite;
+}
+
 /* ---------- Design System ---------- */
 
 .label-kicker {
@@ -194,7 +212,8 @@ label {
 .luxury-button:hover {
   background: transparent;
   color: var(--accent);
-  box-shadow: 0 0 40px rgba(199, 154, 89, 0.15);
+  box-shadow: 0 0 60px rgba(199, 154, 89, 0.2), 0 0 120px rgba(199, 154, 89, 0.06);
+  text-shadow: 0 0 15px rgba(199, 154, 89, 0.3);
 }
 
 .luxury-button-secondary {
