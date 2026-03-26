@@ -558,8 +558,8 @@ async function generateWithVertexGeminiImage({
                 "HARD NEGATIVE: Never dress her as a businesswoman, corporate executive, office worker, or marketing professional. Never put her in a black blazer, suit jacket, business suit, or officewear. She is a young fashion model, not a corporate woman.",
                 "Prefer grounded studio realism over stylized glamour.",
                 hasAlbumAnchor
-                  ? "The first attached image is the high-resolution facial identity anchor — identity comes from this image above all others. The second image is the album continuity anchor for styling and set. The third image is the SAME face again to reinforce identity. Additional images provide body proportion context."
-                  : "The first attached image is the high-resolution facial identity anchor — this defines who the woman is. The second image provides secondary face angle context. The third image is the SAME primary face again to lock identity. Additional images provide body proportion reference.",
+                  ? "The first attached image is the high-resolution facial identity anchor — identity comes from this image above all others. The second image is the album continuity anchor for styling and set. The remaining images provide additional face angles and body proportion context."
+                  : "The first attached image is the high-resolution facial identity anchor — this defines who the woman is. The second image provides a secondary face angle. The third image provides another face angle or body proportion. All face references show THE SAME woman.",
               ].join(" "),
             },
           ],
@@ -1080,9 +1080,12 @@ export async function POST(request: NextRequest) {
       SECRET_STUDIO_PRIMARY_FACE_REFERENCES[0],
       SECRET_STUDIO_PRIMARY_FACE_REFERENCES[1] ||
       SECRET_STUDIO_SECONDARY_FACE_REFERENCES[0],
+      SECRET_STUDIO_SECONDARY_FACE_REFERENCES[0] ||
       SECRET_STUDIO_PRIMARY_FACE_REFERENCES[0],
       SECRET_STUDIO_BODY_SUPPORT_REFERENCES[0],
-    ].filter((value): value is string => Boolean(value));
+    ].filter((value, index, self): value is string =>
+      Boolean(value) && self.indexOf(value) === index
+    );
 
     const references =
       requestedProvider === "google" && !uploadedReferences.length
@@ -1167,10 +1170,9 @@ export async function POST(request: NextRequest) {
         albumSize,
         googleQualityMode:
           requestedProvider === "google" ? googleQualityMode : null,
-        note:
-          requestedProvider === "google"
-            ? "Google Vertex usa Gemini 3 Pro Image con referencias múltiples y foco total en realismo facial."
-            : "OpenAI queda marcado como experimental: tarda más y aquí sigue siendo menos fiel para realismo que Google Pro Image.",
+        note: `${requestedProvider === "google"
+          ? "Google Vertex usa Gemini 3 Pro Image con referencias múltiples y foco total en realismo facial."
+          : "OpenAI queda marcado como experimental."} [DEBUG: ${preparedReferences.length} refs enviadas, fuentes: ${references.map(r => r.startsWith('data:') ? 'upload' : r.startsWith('http') ? 'url' : r).join(', ')}]`,
         presetId,
       });
 

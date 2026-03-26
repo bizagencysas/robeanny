@@ -42,20 +42,28 @@ export default function SessionsStack() {
   };
 
   return (
-    <section className="dark-stage relative flex min-h-[100svh] w-full flex-col items-center justify-center overflow-hidden pb-12 pt-24 md:pb-16 md:pt-32">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(255,255,255,0.08),transparent_35%),radial-gradient(circle_at_80%_80%,rgba(165,140,99,0.23),transparent_30%)]" />
+    <section className="relative flex min-h-[100svh] w-full flex-col items-center justify-center overflow-hidden bg-black pb-12 pt-24 md:pb-16 md:pt-32">
+      {/* Ambient glows */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute top-1/4 left-1/4 w-[400px] h-[400px] rounded-full"
+          style={{ background: "radial-gradient(circle, rgba(199,154,89,0.08), transparent 70%)", filter: "blur(100px)" }}
+        />
+        <div className="absolute bottom-1/4 right-1/4 w-[300px] h-[300px] rounded-full"
+          style={{ background: "radial-gradient(circle, rgba(199,154,89,0.06), transparent 70%)", filter: "blur(80px)" }}
+        />
+      </div>
 
       <div className="page-shell relative z-20 mb-10 flex flex-wrap items-end justify-between gap-5">
         <div>
           <p className="label-kicker mb-4">Interactive Session Deck</p>
-          <h1 className="brand-display text-[clamp(2.1rem,6.5vw,5rem)] leading-[0.9] tracking-[0.08em] text-[#efe9de]">
+          <h1 className="brand-display text-[clamp(2.1rem,6.5vw,5rem)] leading-[0.9] tracking-[0.08em] text-[#e8dcc8]">
             {t("title")} {t("titleAccent")}
           </h1>
         </div>
-        <p className="max-w-md text-sm leading-relaxed text-[#efe9de]/58">{t("drag")}</p>
+        <p className="max-w-md text-sm leading-relaxed text-[#e8dcc8]/40">{t("drag")}</p>
       </div>
 
-      <h2 className="pointer-events-none absolute left-1/2 top-1/2 z-[1] -translate-x-1/2 -translate-y-1/2 whitespace-nowrap text-[23vw] font-[var(--font-bodoni)] tracking-[0.05em] text-[#efe9de]/6 md:text-[15vw]">
+      <h2 className="pointer-events-none absolute left-1/2 top-1/2 z-[1] -translate-x-1/2 -translate-y-1/2 whitespace-nowrap text-[23vw] font-[var(--font-bodoni)] tracking-[0.05em] text-[#e8dcc8]/[0.03] md:text-[15vw]">
         SESSIONS
       </h2>
 
@@ -74,7 +82,7 @@ export default function SessionsStack() {
               return (
                 <motion.div
                   key={url}
-                  className={`absolute inset-0 overflow-hidden border border-[#efe9de]/20 bg-[#161412] shadow-[0_35px_70px_rgba(0,0,0,0.55)] ${isTop ? "touch-none" : ""}`}
+                  className={`absolute inset-0 overflow-hidden border border-[#e8dcc8]/10 bg-[#0a0a0a] shadow-[0_35px_70px_rgba(0,0,0,0.7)] ${isTop ? "touch-none" : ""}`}
                   style={{ zIndex, touchAction: isTop ? "none" : "auto" }}
                   initial={{
                     x: isTop ? exitX : 0,
@@ -114,7 +122,7 @@ export default function SessionsStack() {
                     priority={i < 2}
                     draggable={false}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
                 </motion.div>
               );
             })
@@ -129,18 +137,18 @@ export default function SessionsStack() {
           aria-label={t("back")}
           className={`flex h-12 w-12 items-center justify-center border transition-all ${
             currentIndex === 0
-              ? "cursor-not-allowed border-[#efe9de]/15 text-[#efe9de]/25"
-              : "border-[#efe9de]/35 text-[#efe9de]/72 hover:bg-[#efe9de] hover:text-[#161412]"
+              ? "cursor-not-allowed border-[#e8dcc8]/10 text-[#e8dcc8]/20"
+              : "border-[#e8dcc8]/25 text-[#e8dcc8]/60 hover:bg-[#e8dcc8] hover:text-black"
           }`}
         >
           <RotateCcw size={16} />
         </button>
 
         <div className="text-right">
-          <p className="brand-display text-3xl tracking-[0.08em] text-[#efe9de] md:text-4xl">
+          <p className="brand-display text-3xl tracking-[0.08em] text-[#e8dcc8] md:text-4xl">
             {String(currentIndex + 1).padStart(2, "0")}
           </p>
-          <p className="mt-1 text-[0.62rem] uppercase tracking-[0.3em] text-[#efe9de]/52">/ {sessionPhotos.length}</p>
+          <p className="mt-1 text-[0.56rem] uppercase tracking-[0.3em] text-[#e8dcc8]/35">/ {sessionPhotos.length}</p>
         </div>
 
         <button
@@ -149,8 +157,8 @@ export default function SessionsStack() {
           aria-label={locale === "en" ? "Next photo" : "Siguiente foto"}
           className={`flex h-12 w-12 items-center justify-center border transition-all ${
             currentIndex === sessionPhotos.length - 1
-              ? "cursor-not-allowed border-[#efe9de]/15 text-[#efe9de]/25"
-              : "border-[#efe9de]/35 text-[#efe9de]/72 hover:bg-[#efe9de] hover:text-[#161412]"
+              ? "cursor-not-allowed border-[#e8dcc8]/10 text-[#e8dcc8]/20"
+              : "border-[#e8dcc8]/25 text-[#e8dcc8]/60 hover:bg-[#e8dcc8] hover:text-black"
           }`}
         >
           <ArrowRight size={16} />

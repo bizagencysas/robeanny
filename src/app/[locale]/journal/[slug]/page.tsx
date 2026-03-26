@@ -78,28 +78,28 @@ export default async function JournalPostPage({ params }: Props) {
   }).format(new Date(post.date));
 
   return (
-    <div className="min-h-screen pb-24 pt-24 md:pt-32">
+    <div className="min-h-screen bg-black pb-24 pt-24 md:pt-32">
       <article className="page-shell max-w-[980px]">
         <Link
           href={localizedPath(locale, "/journal")}
-          className="inline-flex border border-black/18 px-4 py-2 text-[0.62rem] uppercase tracking-[0.28em] text-[#171513]/66 transition-colors hover:border-black hover:text-[#171513]"
+          className="luxury-button-secondary inline-flex text-[0.58rem]"
         >
           ← Journal
         </Link>
 
-        <div className="mt-8 border-b border-black/12 pb-8">
-          <div className="mb-5 flex flex-wrap items-center gap-3 text-[0.58rem] uppercase tracking-[0.3em] text-[#171513]/48">
+        <div className="mt-8 border-b border-[#e8dcc8]/8 pb-8">
+          <div className="mb-5 flex flex-wrap items-center gap-3 text-[0.54rem] uppercase tracking-[0.3em] text-[#c79a59]/50">
             <span>{post.category}</span>
-            <span>•</span>
-            <span>{dateText}</span>
-            <span>•</span>
-            <span>{post.readTime}</span>
+            <span className="text-[#e8dcc8]/15">•</span>
+            <span className="text-[#e8dcc8]/30">{dateText}</span>
+            <span className="text-[#e8dcc8]/15">•</span>
+            <span className="text-[#e8dcc8]/30">{post.readTime}</span>
           </div>
 
-          <h1 className="brand-display text-[clamp(2.2rem,6vw,5.2rem)] leading-[0.9] tracking-[0.05em] text-[#171513]">
+          <h1 className="brand-display text-[clamp(2.2rem,6vw,5.2rem)] leading-[0.9] tracking-[0.05em] text-[#e8dcc8]">
             {post.title}
           </h1>
-          <p className="mt-5 max-w-3xl text-sm leading-relaxed text-[#171513]/62 md:text-base">{post.excerpt}</p>
+          <p className="mt-5 max-w-3xl text-sm leading-relaxed text-[#e8dcc8]/45 md:text-base">{post.excerpt}</p>
         </div>
 
         <div className="edge-fade relative mt-8 min-h-[52svh] overflow-hidden">
@@ -111,15 +111,16 @@ export default async function JournalPostPage({ params }: Props) {
             sizes="100vw"
             priority
           />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
         </div>
 
         <div className="mt-10 space-y-7">
           {post.content.map((paragraph, i) => (
             <div key={i}>
-              <p className="text-[1.03rem] leading-[1.95] text-[#171513]/80 md:text-[1.15rem]">{paragraph}</p>
+              <p className="text-[1.03rem] leading-[1.95] text-[#e8dcc8]/65 md:text-[1.15rem]">{paragraph}</p>
 
               {i > 0 && i % 2 === 1 && post.images[Math.floor(i / 2)] && (
-                <div className="mt-8 overflow-hidden border border-black/12">
+                <div className="mt-8 overflow-hidden border border-[#e8dcc8]/8">
                   <div className="relative h-[380px] w-full md:h-[520px]">
                     <Image
                       src={post.images[Math.floor(i / 2)]}
@@ -135,15 +136,15 @@ export default async function JournalPostPage({ params }: Props) {
           ))}
         </div>
 
-        <div className="mt-14 grid gap-4 border-t border-black/12 pt-8 md:grid-cols-2">
+        <div className="mt-14 grid gap-4 border-t border-[#e8dcc8]/8 pt-8 md:grid-cols-2">
           <div>
             {prevPost ? (
               <Link
                 href={localizedPath(locale, `/journal/${prevPost.slug}`)}
-                className="group block border border-black/14 bg-white/55 p-4 transition-colors hover:border-black/35"
+                className="group block luxury-panel p-4 transition-all hover:border-[#c79a59]/25"
               >
-                <p className="text-[0.58rem] uppercase tracking-[0.28em] text-[#171513]/50">← Previous</p>
-                <p className="brand-display mt-3 text-[clamp(1.3rem,3.2vw,2rem)] leading-[0.95] text-[#171513] group-hover:text-[#171513]/82">
+                <p className="text-[0.54rem] uppercase tracking-[0.28em] text-[#e8dcc8]/30">← Previous</p>
+                <p className="brand-display mt-3 text-[clamp(1.3rem,3.2vw,2rem)] leading-[0.95] text-[#e8dcc8] group-hover:text-[#c79a59]">
                   {prevPost.title}
                 </p>
               </Link>
@@ -154,10 +155,10 @@ export default async function JournalPostPage({ params }: Props) {
             {nextPost ? (
               <Link
                 href={localizedPath(locale, `/journal/${nextPost.slug}`)}
-                className="group block border border-black/14 bg-white/55 p-4 text-right transition-colors hover:border-black/35"
+                className="group block luxury-panel p-4 text-right transition-all hover:border-[#c79a59]/25"
               >
-                <p className="text-[0.58rem] uppercase tracking-[0.28em] text-[#171513]/50">Next →</p>
-                <p className="brand-display mt-3 text-[clamp(1.3rem,3.2vw,2rem)] leading-[0.95] text-[#171513] group-hover:text-[#171513]/82">
+                <p className="text-[0.54rem] uppercase tracking-[0.28em] text-[#e8dcc8]/30">Next →</p>
+                <p className="brand-display mt-3 text-[clamp(1.3rem,3.2vw,2rem)] leading-[0.95] text-[#e8dcc8] group-hover:text-[#c79a59]">
                   {nextPost.title}
                 </p>
               </Link>

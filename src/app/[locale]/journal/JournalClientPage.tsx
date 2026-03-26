@@ -37,25 +37,25 @@ export default function JournalPage() {
   const restPosts = filtered.slice(1);
 
   return (
-    <div className="min-h-screen pb-24 pt-24 md:pt-32">
+    <div className="min-h-screen bg-black pb-24 pt-24 md:pt-32">
       <div className="page-shell">
-        <div className="luxury-panel border-black/8 p-5 md:border-0 md:bg-transparent md:p-0">
+        <div>
           <p className="label-kicker mb-5">Editorial Notes</p>
-          <h1 className="brand-display text-[clamp(2.5rem,7vw,6rem)] leading-[0.88] tracking-[0.05em] text-[#171513]">
+          <h1 className="brand-display text-[clamp(2.5rem,7vw,6rem)] leading-[0.88] tracking-[0.05em] text-[#e8dcc8]">
             {t("pageTitle")}
           </h1>
-          <p className="mt-5 max-w-2xl text-sm leading-relaxed text-[#171513]/62 md:text-base">{t("subtitle")}</p>
+          <p className="mt-5 max-w-2xl text-sm leading-relaxed text-[#e8dcc8]/45 md:text-base">{t("subtitle")}</p>
         </div>
 
-        <div className="mt-8 flex flex-wrap gap-2.5 border-b border-black/12 pb-5">
+        <div className="mt-8 flex flex-wrap gap-2.5 border-b border-[#e8dcc8]/8 pb-5">
           {journalCategories.map((category) => (
             <button
               key={category}
               onClick={() => setActiveCategory(category)}
-              className={`rounded-full px-4 py-2 text-[0.58rem] uppercase tracking-[0.28em] transition-all md:rounded-none ${
+              className={`rounded-full px-4 py-2 text-[0.56rem] uppercase tracking-[0.28em] transition-all md:rounded-none ${
                 activeCategory === category
-                  ? "bg-black text-[#f8f3ea]"
-                  : "border border-black/12 text-[#171513]/52 hover:border-black/30 hover:text-[#171513]"
+                  ? "bg-[#e8dcc8] text-black"
+                  : "border border-[#e8dcc8]/12 text-[#e8dcc8]/40 hover:border-[#e8dcc8]/25 hover:text-[#e8dcc8]"
               }`}
             >
               {categoryMap[category] || category}
@@ -66,7 +66,7 @@ export default function JournalPage() {
         {leadPost && (
           <Link
             href={toLocalePath(`/journal/${leadPost.slug}`)}
-            className="group mt-8 grid gap-5 rounded-2xl border border-black/10 bg-white/50 p-3.5 transition-colors hover:border-black/25 md:grid-cols-[1.1fr_0.9fr] md:rounded-none md:p-5"
+            className="group mt-8 grid gap-5 luxury-panel p-3.5 transition-all hover:border-[#c79a59]/25 md:grid-cols-[1.1fr_0.9fr] md:p-5"
           >
             <div className="relative min-h-[300px] overflow-hidden">
               <Image
@@ -77,18 +77,19 @@ export default function JournalPage() {
                 sizes="(max-width: 768px) 100vw, 60vw"
                 priority
               />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
             </div>
             <div className="flex flex-col justify-between">
               <div>
-                <p className="text-[0.58rem] uppercase tracking-[0.3em] text-[#171513]/45">
+                <p className="text-[0.54rem] uppercase tracking-[0.3em] text-[#c79a59]/60">
                   {categoryMap[leadPost.category] || leadPost.category}
                 </p>
-                <h2 className="brand-display mt-3 text-[clamp(1.8rem,4vw,3.6rem)] leading-[0.92] text-[#171513]">
+                <h2 className="brand-display mt-3 text-[clamp(1.8rem,4vw,3.6rem)] leading-[0.92] text-[#e8dcc8]">
                   {leadPost.title}
                 </h2>
-                <p className="mt-4 text-sm leading-relaxed text-[#171513]/62 md:text-base">{leadPost.excerpt}</p>
+                <p className="mt-4 text-sm leading-relaxed text-[#e8dcc8]/45 md:text-base">{leadPost.excerpt}</p>
               </div>
-              <div className="mt-6 flex items-center gap-4 text-[0.58rem] uppercase tracking-[0.26em] text-[#171513]/52">
+              <div className="mt-6 flex items-center gap-4 text-[0.54rem] uppercase tracking-[0.26em] text-[#e8dcc8]/30">
                 <span>{leadPost.date}</span>
                 <span>•</span>
                 <span>{leadPost.readTime}</span>
@@ -103,7 +104,7 @@ export default function JournalPage() {
               <Link
                 key={post.slug}
                 href={toLocalePath(`/journal/${post.slug}`)}
-                className="group rounded-xl border border-black/10 bg-white/50 p-3.5 transition-colors hover:border-black/25 md:rounded-none"
+                className="group luxury-panel p-3.5 transition-all hover:border-[#c79a59]/25 md:rounded-none"
               >
                 <div className="relative h-[280px] overflow-hidden">
                   <Image
@@ -113,15 +114,16 @@ export default function JournalPage() {
                     className="object-cover transition-transform duration-[1300ms] group-hover:scale-105"
                     sizes="(max-width: 768px) 100vw, 50vw"
                   />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
                 </div>
-                <p className="mt-4 text-[0.58rem] uppercase tracking-[0.3em] text-[#171513]/45">
+                <p className="mt-4 text-[0.54rem] uppercase tracking-[0.3em] text-[#c79a59]/50">
                   {categoryMap[post.category] || post.category}
                 </p>
-                <h3 className="brand-display mt-3 text-[clamp(1.5rem,3.2vw,2.7rem)] leading-[0.94] text-[#171513]">
+                <h3 className="brand-display mt-3 text-[clamp(1.5rem,3.2vw,2.7rem)] leading-[0.94] text-[#e8dcc8]">
                   {post.title}
                 </h3>
-                <p className="mt-3 text-sm leading-relaxed text-[#171513]/62">{post.excerpt}</p>
-                <p className="mt-4 text-[0.58rem] uppercase tracking-[0.26em] text-[#171513]/52">{post.readTime}</p>
+                <p className="mt-3 text-sm leading-relaxed text-[#e8dcc8]/40">{post.excerpt}</p>
+                <p className="mt-4 text-[0.54rem] uppercase tracking-[0.26em] text-[#e8dcc8]/25">{post.readTime}</p>
               </Link>
             ))}
           </div>

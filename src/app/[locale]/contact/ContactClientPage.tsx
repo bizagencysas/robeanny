@@ -45,18 +45,18 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="min-h-screen pb-24 pt-24 md:pt-32">
+    <div className="min-h-screen bg-black pb-24 pt-24 md:pt-32">
       <div className="page-shell">
-        <div className="luxury-panel border-black/8 p-5 md:border-0 md:bg-transparent md:p-0">
+        <div>
           <p className="label-kicker mb-5">Direct Contact</p>
-          <h1 className="brand-display text-[clamp(2.4rem,7vw,6rem)] leading-[0.88] tracking-[0.05em] text-[#171513]">
+          <h1 className="brand-display text-[clamp(2.4rem,7vw,6rem)] leading-[0.88] tracking-[0.05em] text-[#e8dcc8]">
             {t("pageTitle")}
           </h1>
         </div>
 
         <div className="mt-10 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
           <aside className="luxury-panel h-fit p-6 md:p-8">
-            <h2 className="brand-display text-[clamp(1.7rem,4vw,3rem)] leading-[0.9] text-[#171513]">
+            <h2 className="brand-display text-[clamp(1.7rem,4vw,3rem)] leading-[0.9] text-[#e8dcc8]">
               {t("workTogether")}
             </h2>
 
@@ -67,22 +67,22 @@ export default function ContactPage() {
               <ContactItem label={t("location")} value={personalData.workCity} />
             </div>
 
-            <div className="mt-8 border-t border-black/12 pt-6">
-              <p className="text-[0.62rem] uppercase tracking-[0.28em] text-[#171513]/52">{t("bookingNote")}</p>
+            <div className="mt-8 border-t border-[#e8dcc8]/8 pt-6">
+              <p className="text-[0.56rem] uppercase tracking-[0.28em] text-[#e8dcc8]/35">{t("bookingNote")}</p>
               <Link
                 href={toLocalePath("/book")}
-                className="mt-3 inline-flex border border-black/20 px-4 py-2 text-[0.62rem] uppercase tracking-[0.28em] text-[#171513]/76 transition-colors hover:border-black hover:text-[#171513]"
+                className="luxury-button-secondary mt-3 inline-flex text-[0.56rem]"
               >
                 {t("bookPage")}
               </Link>
             </div>
 
-            <div className="mt-8 border-t border-black/12 pt-6">
-              <p className="mb-3 text-[0.62rem] uppercase tracking-[0.28em] text-[#171513]/52">{t("support")}</p>
-              <div className="flex flex-col gap-2.5 text-sm text-[#171513]/72">
-                <a href="https://love.robeanny.com/" target="_blank" rel="noopener noreferrer" className="hover:text-[#171513]">{t("coffee")}</a>
-                <a href={personalData.socials.patreon} target="_blank" rel="noopener noreferrer" className="hover:text-[#171513]">Patreon</a>
-                <a href={personalData.socials.linkedin} target="_blank" rel="noopener noreferrer" className="hover:text-[#171513]">LinkedIn</a>
+            <div className="mt-8 border-t border-[#e8dcc8]/8 pt-6">
+              <p className="mb-3 text-[0.56rem] uppercase tracking-[0.28em] text-[#e8dcc8]/35">{t("support")}</p>
+              <div className="flex flex-col gap-2.5 text-sm text-[#e8dcc8]/50">
+                <a href="https://love.robeanny.com/" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-[#c79a59]">{t("coffee")}</a>
+                <a href={personalData.socials.patreon} target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-[#c79a59]">Patreon</a>
+                <a href={personalData.socials.linkedin} target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-[#c79a59]">LinkedIn</a>
               </div>
             </div>
           </aside>
@@ -90,8 +90,8 @@ export default function ContactPage() {
           <section className="luxury-panel p-6 md:p-8">
             {formState === "success" ? (
               <div className="flex min-h-[420px] flex-col items-center justify-center text-center">
-                <h3 className="brand-display text-[clamp(2rem,5vw,3.6rem)] leading-[0.9] text-[#171513]">{t("success")}</h3>
-                <p className="mt-4 max-w-md text-sm leading-relaxed text-[#171513]/62 md:text-base">{t("successMsg")}</p>
+                <h3 className="brand-display text-[clamp(2rem,5vw,3.6rem)] leading-[0.9] text-[#e8dcc8]">{t("success")}</h3>
+                <p className="mt-4 max-w-md text-sm leading-relaxed text-[#e8dcc8]/50 md:text-base">{t("successMsg")}</p>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -110,11 +110,11 @@ export default function ContactPage() {
                 />
 
                 <label className="flex flex-col gap-2">
-                  <span className="text-[0.58rem] uppercase tracking-[0.3em] text-[#171513]/48">{t("fields.subject")}</span>
+                  <span className="text-[0.54rem] uppercase tracking-[0.3em] text-[#e8dcc8]/35">{t("fields.subject")}</span>
                   <select
                     value={formData.subject}
                     onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                    className="rounded-[1rem] md:rounded-none border border-black/18 bg-white/70 px-4 py-3 text-sm text-[#171513] outline-none transition-colors focus:border-black/45"
+                    className="rounded-xl md:rounded-none border border-[#e8dcc8]/12 bg-[#0a0a0a] px-4 py-3 text-sm text-[#e8dcc8] outline-none transition-colors focus:border-[#c79a59]/50"
                   >
                     <option value="">{t("subjects.placeholder")}</option>
                     <option value="Collaboration">{t("subjects.collab")}</option>
@@ -125,18 +125,18 @@ export default function ContactPage() {
                 </label>
 
                 <label className="flex flex-col gap-2">
-                  <span className="text-[0.58rem] uppercase tracking-[0.3em] text-[#171513]/48">{t("fields.message")}</span>
+                  <span className="text-[0.54rem] uppercase tracking-[0.3em] text-[#e8dcc8]/35">{t("fields.message")}</span>
                   <textarea
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                     rows={7}
                     required
-                    className="resize-none rounded-[1rem] md:rounded-none border border-black/18 bg-white/70 px-4 py-3 text-sm text-[#171513] outline-none transition-colors focus:border-black/45"
+                    className="resize-none rounded-xl md:rounded-none border border-[#e8dcc8]/12 bg-[#0a0a0a] px-4 py-3 text-sm text-[#e8dcc8] outline-none transition-colors focus:border-[#c79a59]/50"
                   />
                 </label>
 
                 {formState === "error" && (
-                  <p className="text-xs uppercase tracking-[0.2em] text-red-600">
+                  <p className="text-xs uppercase tracking-[0.2em] text-red-400">
                     {t("error")} {personalData.email}
                   </p>
                 )}
@@ -144,7 +144,7 @@ export default function ContactPage() {
                 <button
                   type="submit"
                   disabled={formState === "submitting"}
-                  className="border border-black bg-black px-7 py-3 text-[0.64rem] uppercase tracking-[0.28em] text-[#f8f3ea] transition-colors hover:bg-transparent hover:text-[#171513] disabled:cursor-not-allowed disabled:opacity-45"
+                  className="luxury-button disabled:cursor-not-allowed disabled:opacity-45"
                 >
                   {formState === "submitting" ? t("submitting") : t("fields.send")}
                 </button>
@@ -172,13 +172,13 @@ function FieldInput({
 }) {
   return (
     <label className="flex flex-col gap-2">
-      <span className="text-[0.58rem] uppercase tracking-[0.3em] text-[#171513]/48">{label}</span>
+      <span className="text-[0.54rem] uppercase tracking-[0.3em] text-[#e8dcc8]/35">{label}</span>
       <input
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         required={required}
-        className="rounded-[1rem] md:rounded-none border border-black/18 bg-white/70 px-4 py-3 text-sm text-[#171513] outline-none transition-colors focus:border-black/45"
+        className="rounded-xl md:rounded-none border border-[#e8dcc8]/12 bg-[#0a0a0a] px-4 py-3 text-sm text-[#e8dcc8] outline-none transition-colors focus:border-[#c79a59]/50 placeholder:text-[#e8dcc8]/20"
       />
     </label>
   );
@@ -195,18 +195,18 @@ function ContactItem({
 }) {
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-[0.58rem] uppercase tracking-[0.3em] text-[#171513]/45">{label}</span>
+      <span className="text-[0.54rem] uppercase tracking-[0.3em] text-[#e8dcc8]/30">{label}</span>
       {href ? (
         <a
           href={href}
           target={href.startsWith("http") ? "_blank" : undefined}
           rel="noopener noreferrer"
-          className="text-sm text-[#171513]/84 transition-colors hover:text-[#171513] md:text-base"
+          className="text-sm text-[#e8dcc8]/70 transition-colors hover:text-[#c79a59] md:text-base"
         >
           {value}
         </a>
       ) : (
-        <span className="text-sm text-[#171513]/84 md:text-base">{value}</span>
+        <span className="text-sm text-[#e8dcc8]/70 md:text-base">{value}</span>
       )}
     </div>
   );

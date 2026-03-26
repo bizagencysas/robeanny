@@ -62,20 +62,20 @@ export default function BookPage() {
 
   if (formState === "success") {
     return (
-      <div className="dark-stage flex min-h-screen items-center justify-center px-6 py-20">
+      <div className="flex min-h-screen items-center justify-center bg-black px-6 py-20">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-2xl border border-[#efe9de]/16 bg-[rgba(17,15,13,0.56)] p-8 text-center md:p-12"
+          className="w-full max-w-2xl luxury-panel p-8 text-center md:p-12"
         >
           <p className="label-kicker mb-5 justify-center">Booking Confirmed</p>
-          <h2 className="brand-display text-[clamp(2.3rem,7vw,5.2rem)] leading-[0.88] tracking-[0.07em] text-[#efe9de]">
+          <h2 className="brand-display text-[clamp(2.3rem,7vw,5.2rem)] leading-[0.88] tracking-[0.07em] text-[#e8dcc8]">
             {t("thankYou")}
           </h2>
-          <p className="mx-auto mt-6 max-w-xl text-sm leading-relaxed text-[#efe9de]/64 md:text-base">
+          <p className="mx-auto mt-6 max-w-xl text-sm leading-relaxed text-[#e8dcc8]/50 md:text-base">
             {t("thankYouMsg")}
           </p>
-          <Link href={toLocalePath("/")} className="mt-8 inline-flex border border-[#efe9de]/35 px-6 py-3 text-[0.64rem] uppercase tracking-[0.28em] text-[#efe9de] transition-colors hover:bg-[#efe9de] hover:text-[#171513]">
+          <Link href={toLocalePath("/")} className="luxury-button-secondary mt-8 inline-flex">
             {t("backHome")}
           </Link>
         </motion.div>
@@ -84,21 +84,22 @@ export default function BookPage() {
   }
 
   return (
-    <div className="min-h-screen pb-24 pt-24 md:pt-32">
+    <div className="min-h-screen bg-black pb-24 pt-24 md:pt-32">
       <div className="page-shell max-w-[980px]">
-        <div className="luxury-panel border-black/8 p-5 md:border-0 md:bg-transparent md:p-0">
+        <div>
           <p className="label-kicker mb-5">Booking Direction</p>
-          <h1 className="brand-display text-[clamp(2.5rem,7vw,6rem)] leading-[0.88] tracking-[0.05em] text-[#171513]">
+          <h1 className="brand-display text-[clamp(2.5rem,7vw,6rem)] leading-[0.88] tracking-[0.05em] text-[#e8dcc8]">
             {t("pageTitle")}
           </h1>
-          <p className="mt-5 max-w-2xl text-sm leading-relaxed text-[#171513]/62 md:text-base">{t("subtitle")}</p>
+          <p className="mt-5 max-w-2xl text-sm leading-relaxed text-[#e8dcc8]/45 md:text-base">{t("subtitle")}</p>
         </div>
 
+        {/* Progress Steps */}
         <div className="mt-10 grid grid-cols-4 gap-3">
           {[1, 2, 3, 4].map((s) => (
-            <div key={s} className="h-1 bg-black/12">
+            <div key={s} className="h-[2px] bg-[#e8dcc8]/10">
               <div
-                className="h-full bg-black transition-all duration-500"
+                className="h-full bg-[#c79a59] transition-all duration-500"
                 style={{ width: step >= s ? "100%" : "0%" }}
               />
             </div>
@@ -118,12 +119,12 @@ export default function BookPage() {
                     }}
                     className={`group rounded-xl border p-5 text-left transition-all md:rounded-none md:p-6 ${
                       projectType === key
-                        ? "border-black bg-black text-[#f8f3ea]"
-                        : "border-black/10 bg-white/45 hover:border-black/30"
+                        ? "border-[#c79a59] bg-[#c79a59]/10 text-[#e8dcc8]"
+                        : "border-[#e8dcc8]/10 text-[#e8dcc8]/50 hover:border-[#e8dcc8]/25"
                     }`}
                   >
                     <span className="mb-3 block text-2xl">{typeEmojis[key]}</span>
-                    <span className="text-[0.64rem] uppercase tracking-[0.28em]">
+                    <span className="text-[0.62rem] uppercase tracking-[0.28em]">
                       {t(`types.${key}`)}
                     </span>
                   </button>
@@ -209,7 +210,7 @@ export default function BookPage() {
 
           {step === 4 && (
             <StepContainer key="step-4" title={t("step4Title")}>
-              <div className="border border-black/14 bg-white/55 p-5 md:p-6">
+              <div className="luxury-panel p-5 md:p-6">
                 <SummaryRow label="Type" value={t(`types.${projectType || "other"}`)} />
                 <SummaryRow label="Name" value={formData.name} />
                 <SummaryRow label="Email" value={formData.email} />
@@ -220,7 +221,7 @@ export default function BookPage() {
               </div>
 
               {formState === "error" && (
-                <p className="mt-4 text-xs uppercase tracking-[0.2em] text-red-600">
+                <p className="mt-4 text-xs uppercase tracking-[0.2em] text-red-400">
                   {t("error")} {personalData.email}
                 </p>
               )}
@@ -228,14 +229,14 @@ export default function BookPage() {
               <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
                 <button
                   onClick={() => setStep(3)}
-                  className="text-[0.64rem] uppercase tracking-[0.3em] text-[#171513]/55 transition-colors hover:text-[#171513]"
+                  className="text-[0.62rem] uppercase tracking-[0.3em] text-[#e8dcc8]/40 transition-colors hover:text-[#e8dcc8]"
                 >
                   {t("back")}
                 </button>
                 <button
                   onClick={handleSubmit}
                   disabled={formState === "submitting"}
-                  className="border border-black bg-black px-7 py-3 text-[0.64rem] uppercase tracking-[0.28em] text-[#f8f3ea] transition-colors hover:bg-transparent hover:text-[#171513] disabled:cursor-not-allowed disabled:opacity-45"
+                  className="luxury-button disabled:cursor-not-allowed disabled:opacity-45"
                 >
                   {formState === "submitting" ? t("submitting") : t("submit")}
                 </button>
@@ -261,9 +262,9 @@ function StepContainer({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -16 }}
       transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-      className="mt-9 rounded-2xl border border-black/10 bg-[rgba(255,255,255,0.52)] p-5 md:rounded-none md:p-8"
+      className="mt-9 rounded-2xl luxury-panel p-5 md:rounded-none md:p-8"
     >
-      <p className="mb-6 text-[0.64rem] uppercase tracking-[0.3em] text-[#171513]/52">{title}</p>
+      <p className="mb-6 text-[0.62rem] uppercase tracking-[0.3em] text-[#e8dcc8]/35">{title}</p>
       {children}
     </motion.div>
   );
@@ -286,14 +287,14 @@ function WizardActions({
     <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
       <button
         onClick={onBack}
-        className="text-[0.64rem] uppercase tracking-[0.3em] text-[#171513]/55 transition-colors hover:text-[#171513]"
+        className="text-[0.62rem] uppercase tracking-[0.3em] text-[#e8dcc8]/40 transition-colors hover:text-[#e8dcc8]"
       >
         {backLabel}
       </button>
       <button
         onClick={onNext}
         disabled={nextDisabled}
-        className="border border-black px-7 py-3 text-[0.64rem] uppercase tracking-[0.28em] text-[#171513] transition-colors hover:bg-black hover:text-[#f8f3ea] disabled:cursor-not-allowed disabled:opacity-30"
+        className="luxury-button-secondary disabled:cursor-not-allowed disabled:opacity-30"
       >
         {nextLabel}
       </button>
@@ -316,13 +317,13 @@ function FieldInput({
 }) {
   return (
     <label className="flex flex-col gap-2">
-      <span className="text-[0.58rem] uppercase tracking-[0.3em] text-[#171513]/48">{label}</span>
+      <span className="text-[0.54rem] uppercase tracking-[0.3em] text-[#e8dcc8]/35">{label}</span>
       <input
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         required={required}
-        className="rounded-[1rem] md:rounded-none border border-black/18 bg-white/70 px-4 py-3 text-sm text-[#171513] outline-none transition-colors focus:border-black/45"
+        className="rounded-xl md:rounded-none border border-[#e8dcc8]/12 bg-[#0a0a0a] px-4 py-3 text-sm text-[#e8dcc8] outline-none transition-colors focus:border-[#c79a59]/50 placeholder:text-[#e8dcc8]/20"
       />
     </label>
   );
@@ -341,11 +342,11 @@ function FieldSelect({
 }) {
   return (
     <label className="flex flex-col gap-2">
-      <span className="text-[0.58rem] uppercase tracking-[0.3em] text-[#171513]/48">{label}</span>
+      <span className="text-[0.54rem] uppercase tracking-[0.3em] text-[#e8dcc8]/35">{label}</span>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="rounded-[1rem] md:rounded-none border border-black/18 bg-white/70 px-4 py-3 text-sm text-[#171513] outline-none transition-colors focus:border-black/45"
+        className="rounded-xl md:rounded-none border border-[#e8dcc8]/12 bg-[#0a0a0a] px-4 py-3 text-sm text-[#e8dcc8] outline-none transition-colors focus:border-[#c79a59]/50"
       >
         <option value="">{label}</option>
         {options.map((option) => (
@@ -371,12 +372,12 @@ function FieldTextarea({
 }) {
   return (
     <label className="flex flex-col gap-2">
-      <span className="text-[0.58rem] uppercase tracking-[0.3em] text-[#171513]/48">{label}</span>
+      <span className="text-[0.54rem] uppercase tracking-[0.3em] text-[#e8dcc8]/35">{label}</span>
       <textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
         rows={rows}
-        className="resize-none rounded-[1rem] md:rounded-none border border-black/18 bg-white/70 px-4 py-3 text-sm text-[#171513] outline-none transition-colors focus:border-black/45"
+        className="resize-none rounded-xl md:rounded-none border border-[#e8dcc8]/12 bg-[#0a0a0a] px-4 py-3 text-sm text-[#e8dcc8] outline-none transition-colors focus:border-[#c79a59]/50"
       />
     </label>
   );
@@ -384,9 +385,9 @@ function FieldTextarea({
 
 function SummaryRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex flex-col gap-1 border-b border-black/10 py-3 md:flex-row md:items-center md:justify-between">
-      <span className="text-[0.58rem] uppercase tracking-[0.3em] text-[#171513]/50">{label}</span>
-      <span className="text-sm text-[#171513]/82">{value}</span>
+    <div className="flex flex-col gap-1 border-b border-[#e8dcc8]/8 py-3 md:flex-row md:items-center md:justify-between">
+      <span className="text-[0.54rem] uppercase tracking-[0.3em] text-[#e8dcc8]/35">{label}</span>
+      <span className="text-sm text-[#e8dcc8]/70">{value}</span>
     </div>
   );
 }

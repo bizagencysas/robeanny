@@ -30,28 +30,32 @@ export default function Footer() {
   };
 
   return (
-    <footer className="dark-stage border-t border-[#efe9de]/10">
-      <div className="page-shell py-14 md:py-24">
-        <div className="mb-10 grid gap-6 md:mb-14 md:gap-14 lg:grid-cols-[1.2fr_1fr] lg:items-end">
-          <div className="luxury-panel border-[#efe9de]/8 bg-[rgba(17,14,11,0.56)] p-5 md:border-0 md:bg-transparent md:p-0">
-            <p className="label-kicker mb-4 md:mb-6">Editorial Signature</p>
-            <h2 className="brand-display text-[clamp(2.2rem,6.8vw,5.5rem)] leading-[0.88] tracking-[0.09em] text-[#efe9de]">
+    <footer className="relative border-t border-[#e8dcc8]/6 bg-black">
+      <div className="page-shell py-16 md:py-28">
+        {/* Top: Large Brand + Navigation */}
+        <div className="mb-12 grid gap-10 md:mb-20 md:gap-16 lg:grid-cols-[1.3fr_1fr] lg:items-end">
+          <div>
+            <p className="label-kicker mb-5">Editorial Signature</p>
+            <h2 className="brand-display text-[clamp(2.8rem,8vw,6.5rem)] leading-[0.84] tracking-[0.1em] text-[#e8dcc8]">
               ROBEANNY
             </h2>
-            <p className="mt-5 max-w-xl text-sm leading-relaxed text-[#efe9de]/58">
-              Fashion editorials, campaign direction, and booking experiences crafted with precision and a modern high-fashion perspective.
+            <p className="mt-6 max-w-xl text-sm leading-relaxed text-[#e8dcc8]/35">
+              Fashion editorials, campaign direction, and booking experiences
+              crafted with precision and a modern high-fashion perspective.
             </p>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 md:gap-6">
-            <div className="luxury-panel border-[#efe9de]/8 bg-[rgba(17,14,11,0.56)] p-4 md:border-0 md:bg-transparent md:p-0">
-              <p className="mb-4 text-[0.62rem] uppercase tracking-[0.3em] text-[#efe9de]/45">Navigation</p>
+          <div className="grid gap-6 sm:grid-cols-2 md:gap-8">
+            <div>
+              <p className="mb-4 text-[0.56rem] uppercase tracking-[0.32em] text-[#e8dcc8]/25">
+                Navigation
+              </p>
               <nav className="flex flex-col gap-2.5">
                 {footerNavKeys.map((link) => (
                   <Link
                     key={link.href}
                     href={withLocale(link.href)}
-                    className="text-sm text-[#efe9de]/62 transition-colors hover:text-[#efe9de]"
+                    className="text-sm text-[#e8dcc8]/45 transition-colors duration-300 hover:text-[#c79a59]"
                   >
                     {tNav(link.key)}
                   </Link>
@@ -59,8 +63,10 @@ export default function Footer() {
               </nav>
             </div>
 
-            <div className="luxury-panel border-[#efe9de]/8 bg-[rgba(17,14,11,0.56)] p-4 md:border-0 md:bg-transparent md:p-0">
-              <p className="mb-4 text-[0.62rem] uppercase tracking-[0.3em] text-[#efe9de]/45">Social</p>
+            <div>
+              <p className="mb-4 text-[0.56rem] uppercase tracking-[0.32em] text-[#e8dcc8]/25">
+                Social
+              </p>
               <div className="flex flex-col gap-2.5">
                 {socialLinks.map((link) => (
                   <a
@@ -68,7 +74,7 @@ export default function Footer() {
                     href={link.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-[#efe9de]/62 transition-colors hover:text-[#efe9de]"
+                    className="text-sm text-[#e8dcc8]/45 transition-colors duration-300 hover:text-[#c79a59]"
                   >
                     {link.label}
                   </a>
@@ -78,21 +84,23 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="h-px w-full bg-[#efe9de]/12" />
+        {/* Divider */}
+        <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-[#e8dcc8]/10 to-transparent" />
 
-        <div className="mt-8 flex flex-col gap-4 text-[0.62rem] uppercase tracking-[0.24em] text-[#efe9de]/45 md:flex-row md:items-center md:justify-between">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-6">
+        {/* Bottom Row */}
+        <div className="mt-8 flex flex-col gap-4 text-[0.56rem] uppercase tracking-[0.24em] text-[#e8dcc8]/25 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-8">
             <a
               href="https://love.robeanny.com/"
               target="_blank"
               rel="noopener noreferrer"
-              className="transition-colors hover:text-[#efe9de]"
+              className="transition-colors hover:text-[#c79a59]"
             >
               {tFooter("support")}
             </a>
             <a
               href="mailto:me@robeanny.com"
-              className="transition-colors hover:text-[#efe9de]"
+              className="transition-colors hover:text-[#c79a59]"
             >
               me@robeanny.com
             </a>

@@ -47,18 +47,20 @@ export default function CustomCursor() {
 
   return (
     <>
+      {/* Dot */}
       <div
-        className="pointer-events-none fixed left-0 top-0 z-[9998] h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#141312] transition-transform duration-200"
+        className="pointer-events-none fixed left-0 top-0 z-[9998] h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#c79a59] transition-transform duration-200"
         style={{ left: position.x, top: position.y }}
       />
+      {/* Ring */}
       <div
-        className="pointer-events-none fixed left-0 top-0 z-[9997] h-9 w-9 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#141312]/40 transition-all duration-300"
+        className="pointer-events-none fixed left-0 top-0 z-[9997] h-9 w-9 -translate-x-1/2 -translate-y-1/2 rounded-full border transition-all duration-300"
         style={{
           left: position.x,
           top: position.y,
-          transform: `translate(-50%, -50%) scale(${isHovering ? 1.5 : 1})`,
-          background: isHovering ? "rgba(20, 19, 18, 0.08)" : "transparent",
-          borderColor: isHovering ? "rgba(20, 19, 18, 0.8)" : "rgba(20, 19, 18, 0.35)",
+          transform: `translate(-50%, -50%) scale(${isHovering ? 1.6 : 1})`,
+          background: isHovering ? "rgba(199, 154, 89, 0.08)" : "transparent",
+          borderColor: isHovering ? "rgba(199, 154, 89, 0.6)" : "rgba(232, 220, 200, 0.2)",
         }}
       />
     </>
