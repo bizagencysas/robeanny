@@ -556,6 +556,7 @@ async function generateWithVertexGeminiImage({
           imageConfig: {
             aspectRatio:
               aspectRatio === "3:4" ? aspectRatio : VERTEX_GOOGLE_IMAGE_ASPECT_RATIO,
+            imageSize: VERTEX_GOOGLE_IMAGE_SIZE,
             personGeneration: "allow_all",
             imageOutputOptions: {
               mimeType: "image/jpeg",
