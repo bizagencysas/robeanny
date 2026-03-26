@@ -118,7 +118,7 @@ const VERTEX_GOOGLE_IMAGE_MODEL =
 const VERTEX_GOOGLE_IMAGE_LOCATION =
   process.env.VERTEX_GOOGLE_IMAGE_LOCATION || "global";
 const VERTEX_GOOGLE_IMAGE_ASPECT_RATIO = "3:4";
-const VERTEX_GOOGLE_IMAGE_SIZE = "4K";
+const VERTEX_GOOGLE_IMAGE_SIZE = "1536x1536"; // Reducido de 4K a resolución estándar para la tarifa base comercial
 const DEFAULT_CLOUDINARY_CLOUD_NAME = "dwpbbjp1d";
 const DEFAULT_CLOUDINARY_UPLOAD_PRESET = "robeanny_unsigned";
 const DEFAULT_CLOUDINARY_FOLDER = "robeanny";
@@ -556,7 +556,6 @@ async function generateWithVertexGeminiImage({
           imageConfig: {
             aspectRatio:
               aspectRatio === "3:4" ? aspectRatio : VERTEX_GOOGLE_IMAGE_ASPECT_RATIO,
-            imageSize: VERTEX_GOOGLE_IMAGE_SIZE,
             personGeneration: "allow_all",
             imageOutputOptions: {
               mimeType: "image/jpeg",
