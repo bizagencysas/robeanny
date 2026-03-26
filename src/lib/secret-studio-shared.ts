@@ -60,18 +60,18 @@ export const STUDIO_PRESETS: StudioPreset[] = [
     label: "White Seamless",
     description: "Estudio blanco limpio, sombras suaves, look editorial real.",
     notes:
-      "Clean white seamless studio, controlled commercial lighting, elegant beauty finish, dark-brown eyes, grounded studio atmosphere.",
+      "Same woman from the references in a clean white seamless studio, neutral studio light, natural skin texture, dark-brown eyes, no corporate portrait vibe.",
     plan: {
-      creativeDirection: "clean white seamless studio portrait",
+      creativeDirection: "same woman from the references on a clean white seamless studio set",
       wardrobe:
-        "a fitted studio editorial look with a feminine silhouette, clean long lines, and minimal accessories",
+        "a youthful model-test studio look with soft feminine lines, believable styling, and explicitly no officewear or executive portrait energy",
       location: "a clean white seamless studio with subtle sculpted shadows",
       lighting:
-        "controlled studio softbox lighting with natural highlight rolloff and believable skin texture",
+        "neutral studio softbox lighting with natural highlight rolloff, believable skin texture, and no headshot-corporate polish",
       lens:
         "captured like a real professional studio photograph with natural depth of field and believable lens behavior",
       stylingNotes:
-        "clean studio atmosphere, polished beauty finish, restrained retouching",
+        "clean studio atmosphere, young model-test energy, restrained retouching, never executive-portrait styling",
     },
   },
   {
@@ -79,16 +79,16 @@ export const STUDIO_PRESETS: StudioPreset[] = [
     label: "Warm Beige Studio",
     description: "Fondo beige cálido, editorial limpio, piel luminosa.",
     notes:
-      "Warm beige studio, refined editorial portraiture, luminous skin, dark-brown eyes.",
+      "Same woman from the references in a warm beige studio, luminous skin, dark-brown eyes, grounded youthful editorial realism.",
     plan: {
-      creativeDirection: "warm beige editorial portrait",
+      creativeDirection: "same woman from the references in a warm beige editorial portrait",
       wardrobe:
-        "a soft body-skimming studio look with elegant proportions and restrained accessories",
+        "a soft body-skimming studio look with youthful editorial styling and restrained accessories",
       location: "a refined beige editorial set with textured walls",
       lighting:
         "soft diffused studio lighting with elegant skin highlights and believable shadow falloff",
       stylingNotes:
-        "warm neutral palette, polished beauty finish, editorial softness",
+        "warm neutral palette, editorial softness, youthful beauty realism",
     },
   },
   {
@@ -96,9 +96,9 @@ export const STUDIO_PRESETS: StudioPreset[] = [
     label: "Beauty Close Crop",
     description: "Close-up potente de rostro, piel, ojos y pelo.",
     notes:
-      "Beauty close crop, detailed skin texture, close-up portraiture, dark-brown eyes, controlled studio light.",
+      "Same woman from the references in a beauty close crop, detailed skin texture, dark-brown eyes, controlled studio light.",
     plan: {
-      creativeDirection: "beauty editorial portrait",
+      creativeDirection: "same woman from the references in a beauty editorial portrait",
       wardrobe:
         "a clean beauty-studio top with minimal distraction, refined neckline, and model-test styling",
       albumPose: "close beauty crop with a soft head tilt and direct gaze",
@@ -115,11 +115,11 @@ export const STUDIO_PRESETS: StudioPreset[] = [
     label: "Full-Body Catalogue",
     description: "Fotos de cuerpo completo, claras, útiles y comerciales.",
     notes:
-      "Full-body catalogue clarity, clean commercial posing, dark-brown eyes.",
+      "Same woman from the references in a full-body studio frame, dark-brown eyes, clean full-look visibility, no corporate posing.",
     plan: {
-      creativeDirection: "modern catalogue portrait",
+      creativeDirection: "same woman from the references in a full-body studio fashion frame",
       wardrobe:
-        "a fitted editorial studio set with long legs, clean silhouette, and model-test energy",
+        "a fitted editorial studio look with long clean lines, believable fashion styling, and no officewear energy",
       albumPose: "standing with one shoulder angled toward camera, confident posture, subtle movement in the hips",
       lighting:
         "clean white seamless studio lighting with subtle but believable shadow definition",
@@ -132,9 +132,9 @@ export const STUDIO_PRESETS: StudioPreset[] = [
     label: "Seated Studio",
     description: "Retratos sentados, elegantes y controlados.",
     notes:
-      "Seated studio portraits, refined posture, dark-brown eyes.",
+      "Same woman from the references in seated studio portraits, dark-brown eyes, refined posture, grounded youthful realism.",
     plan: {
-      creativeDirection: "minimal studio fashion story",
+      creativeDirection: "same woman from the references in a minimal seated studio fashion story",
       wardrobe:
         "a body-skimming seated studio look with elegant structure and a strong feminine silhouette",
       albumPose: "seated on a clean studio cube with elegant posture and relaxed hands",
@@ -148,9 +148,9 @@ export const STUDIO_PRESETS: StudioPreset[] = [
     label: "Commercial Denim",
     description: "Tanque blanco y denim limpio, look comercial poderoso.",
     notes:
-      "Commercial denim session, white tank, polished jeans styling, studio realism, dark-brown eyes.",
+      "Same woman from the references in a white tank and denim studio session, dark-brown eyes, youthful studio realism.",
     plan: {
-      creativeDirection: "commercial denim portrait",
+      creativeDirection: "same woman from the references in a denim studio portrait",
       wardrobe:
         "a crisp white tank with clean denim, a polished belt, and pointed heels",
       location: "a clean white seamless studio with subtle sculpted shadows",
@@ -166,9 +166,9 @@ export const STUDIO_PRESETS: StudioPreset[] = [
     description:
       "Sesión de estudio más sensual y fashion, siempre no explícita y totalmente vestida.",
     notes:
-      "Sensual studio editorial, confident model energy, dark-brown eyes, strong feminine silhouette, fully clothed, non-explicit.",
+      "Same woman from the references in a sensual studio editorial, dark-brown eyes, strong feminine silhouette, fully clothed, non-explicit, youthful and believable.",
     plan: {
-      creativeDirection: "sensual studio editorial",
+      creativeDirection: "same woman from the references in a sensual studio editorial",
       wardrobe:
         "an opaque black bodysuit or a body-skimming editorial look with a sharp blazer, sleek boots, and refined accessories",
       albumPose:

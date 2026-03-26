@@ -35,14 +35,14 @@ const disallowedPromptTerms = [
 
 const creativeDirections = [
   "grounded studio fashion portrait",
-  "clean commercial studio editorial",
+  "clean studio model portrait",
   "real beauty portrait session",
   "minimal studio fashion story",
   "modern catalogue portrait",
   "neutral daylight studio editorial",
   "soft contemporary studio frame",
   "refined lookbook realism",
-  "commercial portrait session",
+  "high-fidelity studio model portrait",
 ];
 
 const wardrobeIdeas = [
@@ -416,6 +416,8 @@ export function buildSecretStudioPrompt({
         "Match the same apparent age visible in the references and keep her clearly young-adult. Never age her up, mature her features, or add older facial lines.",
         "Preserve youthful cheek fullness, smooth under-eyes, soft facial contours, and the exact same feminine facial balance from the references.",
         "Maintain exact facial geometry and lip shape from the high-resolution reference.",
+        "Do not enlarge the lips, do not create filler-like lips, and do not increase lip volume beyond what is visible in the references.",
+        "Do not sharpen, hollow, or age the cheeks, jawline, mouth area, or under-eyes.",
         "Do not average, blend, or generalize identity across references. The primary face anchor defines who she is.",
         "Her eyes must remain dark brown, never hazel, green, blue, or gray.",
         "Maintain dark-brown irises consistently across every image in the album.",
@@ -456,6 +458,8 @@ export function buildSecretStudioPrompt({
     "Eye color must be dark brown.",
     "Use grounded realism over stylized glamour.",
     "Keep facial proportions natural, skin pores visible, studio shadows believable, and clothing construction realistic.",
+    "Keep the lips at their exact natural volume from the references. No lip filler effect, no inflated mouth shape, no overlined-lip look.",
+    "Keep the face young-adult, soft, and faithful to the references. No mature beauty campaign face and no executive portrait face.",
     "Avoid generic AI fashion look, waxy skin, over-designed wardrobe, fake facial symmetry, and synthetic background gradients.",
     "Only the pose, framing, expression, and camera crop may change from shot to shot. Do not change haircut, hair styling, wardrobe, set concept, or beauty styling within the album.",
     "Every photo in the album must be recognizably different from the others in pose, angle, crop, and gesture. Never duplicate a previous frame.",
