@@ -112,7 +112,7 @@ type StreamEvent =
   };
 
 const maxReferencesByProvider: Record<StudioProvider, number> = {
-  google: 3,
+  google: 4,
   openai: 3,
 };
 
@@ -542,17 +542,21 @@ async function generateWithVertexGeminiImage({
             {
               text: [
                 "Generate a realistic studio fashion photograph.",
-                "Treat facial identity preservation as a hard constraint.",
-                "The woman must remain the exact same real adult woman shown in the references.",
+                "ABSOLUTE RULE: facial identity preservation is the #1 non-negotiable constraint, above all creative direction.",
+                "The woman in the output MUST be the exact same real adult woman shown in the reference images — not a lookalike, not a similar model, not an inspired-by version, not a twin, not a blend.",
+                "Her face is her face. Do not reinterpret, generalize, soften, sharpen, age, rejuvenate, or blend her facial features in any way.",
                 "Match the same apparent age visible in the references and keep her clearly young-adult. Never age her up or mature her facial features.",
-                "Keep dark-brown eyes, real skin texture, believable pores, natural asymmetry, and non-waxy skin.",
-                "Preserve youthful cheek fullness, smooth under-eyes, soft feminine facial contours, and recognizable beauty details from the references.",
-                "Do not average identity across the references. Do not invent a blended face. Do not reinterpret the woman.",
+                "Keep dark-brown eyes in every single frame — never hazel, green, blue, or gray.",
+                "Preserve real skin texture, believable pores, natural facial asymmetry, and non-waxy skin.",
+                "Preserve youthful cheek fullness, smooth under-eyes, soft feminine facial contours, and every recognizable beauty detail from the references.",
+                "Preserve exact nose bridge, nose tip, lip shape, lip volume, brow shape, eyelid shape, jawline, chin shape, cheek volume, hairline, and smile line.",
+                "Do not average identity across references. Do not invent a blended face. Do not create a generic model face.",
+                "If there is any conflict between creative direction and identity fidelity, identity fidelity ALWAYS wins.",
                 "Avoid CGI look, waxy skin, mannequin posture, distorted anatomy, extra fingers, extra limbs, generic beauty-face, and fake gradient backgrounds.",
                 "Prefer grounded studio realism over stylized glamour.",
                 hasAlbumAnchor
-                  ? "The first attached image is the high-resolution facial identity anchor — identity comes from this image above all. The second image is the album continuity anchor for styling and set. The third image is the body proportion anchor."
-                  : "The first attached image is the high-resolution facial identity anchor. The second image is secondary face context. The third image is the body proportion anchor.",
+                  ? "The first attached image is the high-resolution facial identity anchor — identity comes from this image above all others. The second image is the album continuity anchor for styling and set. Additional images provide body proportion and angle context."
+                  : "The first attached image is the high-resolution facial identity anchor — this defines who the woman is. The second image provides secondary face angle context. Additional images provide body proportion reference.",
               ].join(" "),
             },
           ],
@@ -571,11 +575,12 @@ async function generateWithVertexGeminiImage({
                 text: [
                   prompt,
                   hasAlbumAnchor
-                    ? "Use the first attached image as the primary facial identity source — her face defines who this woman is. Use the second attached image as the continuity anchor for outfit, set, and styling. Use the third attached image only for body proportions and styling scale."
-                    : "Use the first attached image as the primary facial identity source, the second for face support, and the third only for body proportions.",
-                  "Maintain exact facial geometry and lip shape from the high-resolution reference.",
+                    ? "Use the first attached image as the primary facial identity source — her face defines who this woman is. Use the second attached image as the continuity anchor for outfit, set, and styling. Use additional images for body proportions and styling scale."
+                    : "Use the first attached image as the primary facial identity source. Use the second image for secondary face angle. Use additional images for body proportions.",
+                  "CRITICAL IDENTITY RULE: The output face must be a pixel-level match to the first reference. Maintain exact facial geometry, lip shape, lip volume, nose shape, brow arch, eyelid shape, jawline, chin, and cheek volume.",
                   "Preserve her exact face, skin tone, hairline, jawline, nose, lips, and dark-brown eyes.",
-                  "Do not blend, average, or generalize the face from multiple references. The first facial anchor defines who she is.",
+                  "Do not blend, average, or generalize the face from multiple references. The first facial anchor defines who she is. If in doubt, copy the face more literally.",
+                  "Do not create a different woman who merely looks similar. This must be recognizably, unmistakably the same person.",
                   hasAlbumAnchor
                     ? "Match the same exact outfit pieces, same hair styling, same makeup, same studio set, and same light quality from the anchor image. Only change pose, crop, and expression."
                     : "Lock one single outfit, one single hair setup, one single makeup direction, and one single studio lighting setup for the whole album.",
@@ -803,12 +808,15 @@ async function generateCreativePlan({
   recentRecipes: Array<Record<string, string>>;
 }) {
   const plannerPrompt = [
-    "Create a distinct fashion album recipe for a real adult female model based on photo references.",
+    "Create a distinct fashion album recipe for the same real adult female model shown in photo references.",
+    "CRITICAL: Every field you generate must describe styling for THE SAME WOMAN from the references. She must remain the exact same person, not a lookalike or reinterpretation.",
     "Return JSON only with these keys: creativeDirection, wardrobe, albumPose, hair, lighting, location, lens, stylingNotes.",
+    "The creativeDirection MUST start with 'same woman from the references' followed by the creative concept.",
     "Make the album feel meaningfully different from the recent recipes while staying inside the preset direction.",
     "Keep it grounded, commercial, elegant, wearable, and fully clothed.",
-    "The same woman must remain recognizable, with dark-brown eyes.",
+    "The same woman must remain recognizable, with dark-brown eyes, same face shape, same age, same skin tone.",
     "Strong preference: polished studio imagery, clean backdrop, believable lighting, real skin texture, and natural human anatomy.",
+    "Do not describe a generic model. Describe styling FOR the specific woman in the references.",
     `Freshness token: ${albumSeed}-${attempt}.`,
     `Requested preset direction: ${direction}.`,
     `Preset description: ${presetDescription}.`,
@@ -875,7 +883,7 @@ async function generateCreativePlan({
               },
             ],
             generationConfig: {
-              temperature: 0.8,
+              temperature: 0.5,
               responseMimeType: "application/json",
               maxOutputTokens: 2048,
             },
@@ -1068,6 +1076,8 @@ export async function POST(request: NextRequest) {
       SECRET_STUDIO_PRIMARY_FACE_REFERENCES[0],
       SECRET_STUDIO_PRIMARY_FACE_REFERENCES[1] ||
       SECRET_STUDIO_SECONDARY_FACE_REFERENCES[0],
+      SECRET_STUDIO_SECONDARY_FACE_REFERENCES[0] ||
+      SECRET_STUDIO_PRIMARY_FACE_REFERENCES[1],
       SECRET_STUDIO_BODY_SUPPORT_REFERENCES[0],
     ].filter((value): value is string => Boolean(value));
 
@@ -1174,7 +1184,7 @@ export async function POST(request: NextRequest) {
           ? await (async () => {
             const googleBaseReferences = preparedReferences.slice(
               0,
-              Math.min(preparedReferences.length, 2)
+              Math.min(preparedReferences.length, 3)
             );
             const results: Array<{
               index: number;
@@ -1230,8 +1240,9 @@ export async function POST(request: NextRequest) {
                 const activeReferences = [
                   googleBaseReferences[0],
                   albumAnchorReference,
-                  googleBaseReferences[1],
-                ].filter(Boolean);
+                  googleBaseReferences[1] || googleBaseReferences[0],
+                  googleBaseReferences[2],
+                ].filter(Boolean).slice(0, 4);
 
                 try {
                   const generatedDataUrl = await generateWithVertexGeminiImageWithRetry({
@@ -1293,8 +1304,9 @@ export async function POST(request: NextRequest) {
                 const fallbackReferences = [
                   googleBaseReferences[0],
                   albumAnchorReference,
-                  googleBaseReferences[1],
-                ].filter(Boolean);
+                  googleBaseReferences[1] || googleBaseReferences[0],
+                  googleBaseReferences[2],
+                ].filter(Boolean).slice(0, 4);
                 const generatedDataUrl = await generateWithVertexGeminiImageWithRetry({
                   prompt: missingShot.item.prompt,
                   aspectRatio: effectiveAspectRatio,

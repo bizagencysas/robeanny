@@ -34,15 +34,15 @@ const disallowedPromptTerms = [
 ];
 
 const creativeDirections = [
-  "grounded studio fashion portrait",
-  "clean studio model portrait",
-  "real beauty portrait session",
-  "minimal studio fashion story",
-  "modern catalogue portrait",
-  "neutral daylight studio editorial",
-  "soft contemporary studio frame",
-  "refined lookbook realism",
-  "high-fidelity studio model portrait",
+  "same woman from the references in a grounded studio fashion portrait",
+  "same woman from the references in a clean studio model portrait",
+  "same woman from the references in a real beauty portrait session",
+  "same woman from the references in a minimal studio fashion story",
+  "same woman from the references in a modern catalogue portrait",
+  "same woman from the references in a neutral daylight studio editorial",
+  "same woman from the references in a soft contemporary studio frame",
+  "same woman from the references in a refined lookbook realism",
+  "same woman from the references in a high-fidelity studio model portrait",
 ];
 
 const wardrobeIdeas = [
@@ -485,6 +485,7 @@ export function buildSecretStudioPrompt({
   const albumSlotInstruction = getAlbumSlotInstruction(shotIndex);
   const identityLockInstructions = faceLockStrong
     ? [
+      "ABSOLUTE PRIORITY: Facial identity preservation is the #1 constraint, above all creative or styling direction.",
       "Treat facial identity preservation as the top priority.",
       "This must be the exact same real woman from the references, not a reinterpretation or inspired-by version.",
       "Preserve her exact face shape, brow structure, eyelid shape, nose bridge, nose tip, lip shape, smile line, cheek volume, jawline, chin, hairline, and skin tone.",
@@ -496,6 +497,7 @@ export function buildSecretStudioPrompt({
       "Do not enlarge the lips, do not create filler-like lips, and do not increase lip volume beyond what is visible in the references.",
       "Do not sharpen, hollow, or age the cheeks, jawline, mouth area, or under-eyes.",
       "Do not average, blend, or generalize identity across references. The primary face anchor defines who she is.",
+      "If you cannot match the identity exactly, err on the side of copying the face more literally rather than less.",
       "Her eyes must remain dark brown, never hazel, green, blue, or gray.",
       "Maintain dark-brown irises consistently across every image in the album.",
     ].join(" ")
@@ -504,16 +506,18 @@ export function buildSecretStudioPrompt({
     provider === "openai"
       ? [
         "Use the first reference image as the primary face identity anchor and treat the remaining references as support for angle and consistency.",
-        "Identity accuracy is more important than styling creativity.",
+        "Identity accuracy is MORE IMPORTANT than styling creativity. When in doubt, copy the face more literally.",
         "This must be the exact same real woman from the references, not a lookalike, twin, or inspired-by version.",
         "Do not change her face shape, eyes, nose, lips, smile line, brow structure, cheek volume, jawline, hairline, or skin tone.",
         "Preserve recognizable beauty details and subtle asymmetries whenever visible in the references.",
         "Keep the face highly faithful across all images in the album even when pose, framing, or camera angle changes.",
+        "If any creative instruction conflicts with facial identity, always prioritize the face from the reference.",
       ].join(" ")
       : "";
 
   const prompt = [
     "Create a believable professional studio fashion photo of the same adult woman shown in the reference images.",
+    "IDENTITY IS THE #1 PRIORITY. The output must be unmistakably, recognizably the same person from the references.",
     "Preserve her exact identity, facial structure, skin tone, body proportions, smile, and beauty details so she remains unmistakably the same person.",
     identityLockInstructions,
     openAiIdentityLock,
