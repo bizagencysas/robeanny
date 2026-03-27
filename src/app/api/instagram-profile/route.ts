@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
+export const revalidate = 86400; // Cache API response for 24 hours (ISR)
 
 type InstagramProfile = {
   username: string;
@@ -634,7 +634,9 @@ export async function GET(request: NextRequest) {
       reason: webProfile ? "instagram_web_profile_fallback" : "missing_rapidapi_key",
       diagnostics: debug ? diagnostics : undefined,
     };
-    return NextResponse.json(response);
+    return NextResponse.json(response, {
+      headers: { "Cache-Control": "public, s-maxage=86400, stale-while-revalidate=604800" },
+    });
   }
 
   try {
@@ -725,7 +727,9 @@ export async function GET(request: NextRequest) {
       source: "rapidapi",
       diagnostics: debug ? { ...diagnostics, attempts } : undefined,
     };
-    return NextResponse.json(result);
+    return NextResponse.json(result, {
+      headers: { "Cache-Control": "public, s-maxage=86400, stale-while-revalidate=604800" },
+    });
   } catch (error) {
     console.error("Instagram profile sync error:", error);
     const reason = error instanceof Error ? error.message : "unknown_error";
@@ -736,6 +740,8 @@ export async function GET(request: NextRequest) {
       reason: reason.slice(0, 280),
       diagnostics: debug ? { ...diagnostics, attempts } : undefined,
     };
-    return NextResponse.json(response);
+    return NextResponse.json(response, {
+      headers: { "Cache-Control": "public, s-maxage=86400, stale-while-revalidate=604800" },
+    });
   }
 }

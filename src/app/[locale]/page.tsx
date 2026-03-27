@@ -643,13 +643,14 @@ export default function HomePage() {
           </div>
 
           <div className="grid gap-3 md:gap-4 lg:grid-cols-2">
-            <div className="luxury-panel h-[400px] overflow-hidden p-0 sm:h-[480px] md:h-[520px]">
+            <div className="luxury-panel h-[400px] overflow-hidden p-0 sm:h-[480px] md:h-[520px] bg-black">
               <iframe
                 src="https://www.tiktok.com/embed/@robeannybbl"
                 className="h-full w-full border-0"
                 loading="lazy"
                 title="TikTok de Robeanny"
                 allow="encrypted-media"
+                style={{ background: "#000", colorScheme: "dark" }}
               />
             </div>
             <div className="luxury-panel h-[480px] overflow-hidden p-0 sm:h-[500px] md:h-[520px]">

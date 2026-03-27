@@ -86,8 +86,8 @@ export default function InstagramWidget() {
       try {
         const response = await fetch("/api/instagram-profile?username=robeannybl", {
           signal: controller.signal,
-          cache: "no-store",
-        });
+          next: { revalidate: 86400 }, // Cache for 24h — avoid calling RapidAPI on every page load
+        } as RequestInit);
         const data = (await response.json()) as ApiResponse;
 
         if (data.profile) {
