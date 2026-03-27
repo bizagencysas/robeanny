@@ -86,7 +86,7 @@ export const STUDIO_PRESETS: StudioPreset[] = [
     plan: {
       creativeDirection: "same woman from the references in a warm beige editorial portrait",
       wardrobe:
-        "a soft body-skimming studio look with youthful editorial styling and restrained accessories",
+        "a soft body-skimming studio look with trendy Gen-Z cool casual fashion and cute youth accessories",
       location: "a warm beige studio set with textured walls",
       lighting:
         "soft diffused studio lighting with clean skin highlights and believable shadow falloff",
