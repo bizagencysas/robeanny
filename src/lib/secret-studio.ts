@@ -51,7 +51,7 @@ const wardrobeIdeas = [
   "a crisp white crop top with clean denim and trendy sneakers",
   "a fitted espresso knit dress with fresh modern accessories",
   "a trendy mini dress with a cool silhouette and long clean lines",
-  "a cute bandeau top with a flowy matching skirt and casual heels",
+  "a trendy bandeau top with a flowy matching skirt and casual heels",
   "a minimalist ribbed set with a body-skimming top and fitted skirt",
   "a sleek satin set with effortless youthful styling",
   "a simple but cool knit dress with long clean lines and minimal jewelry",
@@ -76,7 +76,7 @@ const hairIdeas = [
   "blonde sleek straight blowout with healthy golden shine",
   "blonde casual high ponytail with face-framing strands and warm highlights",
   "blonde glossy loose curls with natural movement and honey tones",
-  "blonde cute messy bun with delicate tendrils and warm highlights",
+  "blonde effortless messy bun with delicate tendrils and warm highlights",
   "blonde brushed-back casual finish with natural golden tones",
   "blonde effortless half-up style with soft texture and warm highlights",
   "blonde smooth side-parted hair with honey highlights",
@@ -157,9 +157,9 @@ const polishRules = [
   "NEVER dress her as a businesswoman, executive, office worker, marketing professional, or corporate woman",
   "NEVER put her in a black blazer, suit jacket, structured blazer, business suit, slacks, modest office sweaters, or officewear of any kind",
   "NEVER create a LinkedIn headshot, corporate portrait, graduation photo, or business-casual look",
-  "She is a 20 year old Gen-Z girl. She must look 20, youthful, fresh — NEVER aged, mature, mid-30s, 40s, or older-looking",
+  "She is a 20 year old Gen-Z young woman. She must look 20, youthful, fresh — NEVER aged, mature, mid-30s, 40s, or older-looking",
   "No wrinkles, no expression lines, no forehead lines, no crow's feet, no nasolabial folds on her face",
-  "OUTFIT RULE: Use trendy, cute, Gen-Z fashion. No millennial-core outfits, no mature lady clothing, no modest beige slacks.",
+  "OUTFIT RULE: Use trendy, fresh, Gen-Z fashion. No millennial-core outfits, no mature lady clothing, no modest beige slacks.",
 ];
 
 const stylingNotesIdeas = [
@@ -562,7 +562,7 @@ export function buildSecretStudioPrompt({
     "HARD NEGATIVE: She is NOT a businesswoman, NOT a marketing executive, NOT a corporate professional, NOT an office worker. She is a 20-year-old Gen-Z fashion influencer.",
     "NEVER dress her in a black blazer, suit jacket, structured blazer, pencil skirt, button-down shirt, slacks, modest office sweaters, business suit, or any executive/office wardrobe.",
     "NEVER create imagery that looks like a corporate headshot, LinkedIn photo, real estate agent portrait, or business-team photo.",
-    "If the wardrobe or pose starts to look corporate, office-like, or executive, change it to youthful, trendy Gen-Z streetwear or cute young influencer outfits.",
+    "If the wardrobe or pose starts to look corporate, office-like, or executive, change it to youthful, trendy Gen-Z streetwear or cool contemporary influencer outfits.",
     "Favor Gen-Z influencer energy, cool casual youth fashion, trendy streetwear, and modern studio styling. Avoid millennial-core fashion or 'elegant lady' outfits.",
     "Sensual energy is allowed only when it remains fully clothed, non-explicit, editorial, and tasteful. No nudity, no transparent garments, no explicit exposure.",
     `Follow these quality rules: ${polishRules.join(", ")}.`,
