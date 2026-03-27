@@ -650,7 +650,7 @@ export default function HomePage() {
                 loading="lazy"
                 title="TikTok de Robeanny"
                 allow="encrypted-media"
-                style={{ background: "#000", colorScheme: "dark" }}
+                style={{ filter: "invert(1) hue-rotate(180deg)", background: "#000" }}
               />
             </div>
             <div className="luxury-panel h-[480px] overflow-hidden p-0 sm:h-[500px] md:h-[520px]">
