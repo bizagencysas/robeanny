@@ -74,15 +74,15 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
             locale: isEn ? "en_US" : "es_CO",
             alternateLocale: isEn ? ["es_CO"] : ["en_US"],
             images: [{
-                url: "https://res.cloudinary.com/dwpbbjp1d/image/upload/v1761421297/F60474B0-B2D3-4D05-99FC-C1CA8C1C8372_kdyq7e.png",
-                width: 1200, height: 630, alt: "Robeanny Bastardo Liconte", type: "image/png",
+                url: "https://res.cloudinary.com/dwpbbjp1d/image/upload/v1761417059/4A7B7C7A-3996-4840-BA95-3F048815B38E_q0axou.jpg",
+                width: 1200, height: 630, alt: "Robeanny Bastardo Liconte", type: "image/jpeg",
             }]
         },
         twitter: {
             card: "summary_large_image",
             title: isEn ? "Robeanny — Professional Model Colombia" : "Robeanny — Modelo Profesional Colombia",
             description: isEn ? "Professional model in Medellín. Portfolio, booking and photo sessions." : "Modelo profesional en Medellín. Portfolio, booking y sesiones fotográficas.",
-            images: ["https://res.cloudinary.com/dwpbbjp1d/image/upload/v1761421297/F60474B0-B2D3-4D05-99FC-C1CA8C1C8372_kdyq7e.png"],
+            images: ["https://res.cloudinary.com/dwpbbjp1d/image/upload/v1761417059/4A7B7C7A-3996-4840-BA95-3F048815B38E_q0axou.jpg"],
             creator: "@robeannybl",
         },
         other: {
