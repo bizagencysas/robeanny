@@ -39,71 +39,71 @@ const creativeDirections = [
   "same woman from the references in a real beauty portrait session",
   "same woman from the references in a minimal studio fashion story",
   "same woman from the references in a modern catalogue portrait",
-  "same woman from the references in a neutral daylight studio editorial",
+  "same woman from the references in a neutral daylight studio shoot",
   "same woman from the references in a soft contemporary studio frame",
-  "same woman from the references in a refined lookbook realism",
+  "same woman from the references in a fresh lookbook session",
   "same woman from the references in a high-fidelity studio model portrait",
 ];
 
 const wardrobeIdeas = [
-  "a fitted monochrome bodysuit with sharp heels and minimal jewelry",
-  "a soft champagne slip dress with delicate gold jewelry and elegant sandals",
-  "a crisp white tank with clean denim, a polished belt, and pointed heels",
-  "a fitted espresso knit dress with clean modern accessories",
-  "a sculpted mini dress with a sleek silhouette and long clean lines",
-  "a refined bandeau top with a fluid matching skirt and elegant heels",
+  "a fitted monochrome bodysuit with cool sneakers and minimal jewelry",
+  "a soft champagne slip dress with delicate gold jewelry and casual sandals",
+  "a crisp white crop top with clean denim and trendy sneakers",
+  "a fitted espresso knit dress with fresh modern accessories",
+  "a trendy mini dress with a cool silhouette and long clean lines",
+  "a cute bandeau top with a flowy matching skirt and casual heels",
   "a minimalist ribbed set with a body-skimming top and fitted skirt",
-  "a sleek after-dark satin set with understated styling",
-  "a velvet evening dress with long clean lines and restrained jewelry",
-  "a polished leather editorial look with sleek studio styling",
-  "a silk slip-inspired look with elegant heels and minimal accessories",
-  "a high-fashion studio look with a body-conscious silhouette and clean styling",
+  "a sleek satin set with effortless youthful styling",
+  "a simple but cool knit dress with long clean lines and minimal jewelry",
+  "a trendy leather-accent look with youthful studio styling",
+  "a simple slip-inspired look with casual heels and minimal accessories",
+  "a cool studio look with a body-conscious silhouette and fresh styling",
 ];
 
 const poseIdeas = [
   "standing with one shoulder angled toward camera, confident posture, subtle movement in the hips",
-  "seated on a clean studio cube with elegant posture and relaxed hands",
+  "seated on a clean studio cube with relaxed youthful posture and relaxed hands",
   "walking mid-step as if captured during a real studio session",
   "close beauty crop with a soft head tilt and direct gaze",
-  "leaning lightly against a textured wall with effortless confidence",
-  "three-quarter pose emphasizing long lines and graceful posture",
-  "editorial floor pose that remains tasteful, elegant, and fully clothed",
+  "leaning lightly against a textured wall with effortless cool confidence",
+  "three-quarter pose emphasizing long lines and natural posture",
+  "casual floor pose that remains tasteful, cool, and fully clothed",
   "natural candid pose adjusting the jacket while looking past the lens",
 ];
 
 const hairIdeas = [
-  "blonde soft polished waves with clean volume and warm honey highlights",
+  "blonde soft natural waves with clean volume and warm honey highlights",
   "blonde sleek straight blowout with healthy golden shine",
-  "blonde refined high ponytail with face-framing strands and warm highlights",
+  "blonde casual high ponytail with face-framing strands and warm highlights",
   "blonde glossy loose curls with natural movement and honey tones",
-  "blonde sculpted bun with delicate tendrils and warm highlights",
-  "blonde brushed-back editorial finish with natural golden tones",
-  "blonde elevated half-up style with soft texture and warm highlights",
-  "blonde smooth side-parted glamour hair with honey highlights",
+  "blonde cute messy bun with delicate tendrils and warm highlights",
+  "blonde brushed-back casual finish with natural golden tones",
+  "blonde effortless half-up style with soft texture and warm highlights",
+  "blonde smooth side-parted hair with honey highlights",
 ];
 
 const lightingIdeas = [
   "controlled studio softbox lighting with natural highlight rolloff and believable skin texture",
   "soft diffused studio lighting with clean facial highlights and realistic shadow falloff",
-  "bright editorial daylight entering from one side",
+  "bright daylight entering from one side",
   "cinematic golden-hour light with gentle contrast",
   "clean white seamless studio lighting with subtle but believable shadow definition",
   "warm interior studio lighting with restrained specular highlights",
   "beauty-dish lighting with realistic skin texture and precise facial definition",
-  "moody but refined side lighting with accurate skin tones and natural contrast",
+  "moody but clean side lighting with accurate skin tones and natural contrast",
   "sunset rim light with balanced facial exposure",
 ];
 
 const locationIdeas = [
   "a clean white seamless studio with subtle sculpted shadows",
   "a clean white cyc studio",
-  "a refined beige editorial set with textured walls",
+  "a warm beige studio set with textured walls",
   "a bright contemporary penthouse interior",
-  "a refined hotel-style interior with restrained styling",
+  "a cool modern interior with restrained styling",
   "a minimal concrete rooftop at blue hour",
   "a softly lit dressing room with restrained styling",
   "a sunlit Mediterranean-inspired terrace",
-  "a polished neutral backdrop with subtle shadows",
+  "a clean neutral backdrop with subtle shadows",
 ];
 
 const lensIdeas = [
@@ -115,23 +115,23 @@ const lensIdeas = [
 ];
 
 const framingIdeas = [
-  "full-body frame with elegant posture and clean negative space",
+  "full-body frame with natural posture and clean negative space",
   "three-quarter portrait emphasizing silhouette and styling",
-  "waist-up fashion portrait with direct editorial presence",
+  "waist-up fashion portrait with direct youthful presence",
   "beauty close-up centered on face, hair, and makeup",
   "seated composition with full outfit clearly visible",
   "walking fashion frame with movement in fabric and hair",
-  "side profile editorial crop with strong jawline and posture",
+  "side profile crop with strong jawline and posture",
   "over-the-shoulder portrait with grounded studio energy",
 ];
 
 const expressionIdeas = [
   "soft confident gaze",
   "subtle half-smile",
-  "serious editorial expression",
-  "fresh luminous beauty expression",
-  "playful but refined attitude",
-  "calm poised confidence",
+  "serious cool expression",
+  "fresh natural beauty expression",
+  "playful but cool attitude",
+  "calm natural confidence",
   "quiet confident energy",
   "magazine-cover presence",
 ];
@@ -162,13 +162,13 @@ const polishRules = [
 ];
 
 const stylingNotesIdeas = [
-  "clean studio set, restrained retouching, believable beauty finish, polished but real commercial result",
-  "refined jewelry, clean manicure, polished studio realism",
+  "clean studio set, restrained retouching, believable beauty finish, natural but real commercial result",
+  "minimal jewelry, clean manicure, natural studio realism",
   "minimalist styling, clean silhouette, grounded catalogue energy",
-  "soft glam makeup, restrained accessories, modern editorial realism",
+  "soft glam makeup, restrained accessories, modern youthful realism",
   "sleek fashion styling, restrained palette, believable beauty detail",
-  "high-end commercial styling with real fabric texture and crisp finish",
-  "editorial sophistication, elegant textures, and believable studio realism",
+  "cool commercial styling with real fabric texture and crisp finish",
+  "youthful fresh textures and believable studio realism",
 ];
 
 const openAiSizeByAspectRatio: Record<StudioAspectRatio, "1024x1024" | "1024x1536" | "1536x1024"> = {
@@ -553,9 +553,10 @@ export function buildSecretStudioPrompt({
     "Avoid generic AI fashion look, waxy skin, over-designed wardrobe, fake facial symmetry, and synthetic background gradients.",
     "Only the pose, framing, expression, and camera crop may change from shot to shot. Do not change haircut, hair styling, wardrobe, set concept, or beauty styling within the album.",
     "Every photo in the album must be recognizably different from the others in pose, angle, crop, and gesture. Never duplicate a previous frame.",
-    "Prefer a polished studio environment, clean seamless backdrop, controlled shadows, restrained contrast, crisp facial detail, and realistic beauty finish.",
-    "The final image must look like a real contemporary editorial photoshoot, fully clothed, tasteful, elegant, and commercially usable.",
-    "Keep the styling elevated but believable. Add natural micro-details in skin, hair, fabric texture, seams, folds, and lighting falloff.",
+    "Prefer a clean studio environment, clean seamless backdrop, controlled shadows, restrained contrast, crisp facial detail, and realistic beauty finish.",
+    "The final image must look like a real contemporary fashion photoshoot, fully clothed, tasteful, youthful, and commercially usable.",
+    "Keep the styling youthful and believable. Add natural micro-details in skin, hair, fabric texture, seams, folds, and lighting falloff.",
+    "HARD NEGATIVE ON STYLING: Never make her look elegant, refined, sophisticated, luxurious, or polished. She is a young casual trendy woman, not a sophisticated mature woman. Think Instagram influencer, not Vogue cover.",
     "Avoid corporate wardrobe, officewear, business-casual styling, graduation-photo energy, or LinkedIn portrait vibes unless the user explicitly asks for that.",
     "HARD NEGATIVE: She is NOT a businesswoman, NOT a marketing executive, NOT a corporate professional, NOT an office worker. She is a young fashion model in an editorial session.",
     "NEVER dress her in a black blazer, suit jacket, structured blazer, pencil skirt, button-down shirt, business suit, or any executive/office wardrobe.",

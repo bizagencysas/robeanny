@@ -14,7 +14,6 @@ import {
   sessionsTeaser,
 } from "@/lib/data";
 import InstagramWidget from "@/components/ui/InstagramWidget";
-import TikTokWidget from "@/components/ui/TikTokWidget";
 import TextScramble from "@/components/ui/TextScramble";
 
 if (typeof window !== "undefined") {
@@ -645,7 +644,13 @@ export default function HomePage() {
 
           <div className="grid gap-3 md:gap-4 lg:grid-cols-2">
             <div className="luxury-panel h-[400px] overflow-hidden p-0 sm:h-[480px] md:h-[520px]">
-              <TikTokWidget />
+              <iframe
+                src="https://www.tiktok.com/embed/@robeannybbl"
+                className="h-full w-full border-0"
+                loading="lazy"
+                title="TikTok de Robeanny"
+                allow="encrypted-media"
+              />
             </div>
             <div className="luxury-panel h-[480px] overflow-hidden p-0 sm:h-[500px] md:h-[520px]">
               <InstagramWidget />

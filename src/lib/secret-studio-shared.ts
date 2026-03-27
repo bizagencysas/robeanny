@@ -87,11 +87,11 @@ export const STUDIO_PRESETS: StudioPreset[] = [
       creativeDirection: "same woman from the references in a warm beige editorial portrait",
       wardrobe:
         "a soft body-skimming studio look with youthful editorial styling and restrained accessories",
-      location: "a refined beige editorial set with textured walls",
+      location: "a warm beige studio set with textured walls",
       lighting:
-        "soft diffused studio lighting with elegant skin highlights and believable shadow falloff",
+        "soft diffused studio lighting with clean skin highlights and believable shadow falloff",
       stylingNotes:
-        "warm neutral palette, editorial softness, youthful beauty realism",
+        "warm neutral palette, youthful softness, fresh beauty realism, young and casual — never elegant or refined",
     },
   },
   {
@@ -103,14 +103,14 @@ export const STUDIO_PRESETS: StudioPreset[] = [
     plan: {
       creativeDirection: "same woman from the references in a beauty editorial portrait",
       wardrobe:
-        "a clean beauty-studio top with minimal distraction, refined neckline, and model-test styling",
+        "a clean beauty-studio top with minimal distraction, simple neckline, and model-test styling",
       albumPose: "close beauty crop with a soft head tilt and direct gaze",
       lighting:
         "beauty-dish lighting with realistic skin texture and precise facial definition",
       lens:
         "captured like a high-end portrait session with detailed skin texture and believable optics",
       stylingNotes:
-        "close beauty crop, skin detail, elegant facial presence",
+        "close beauty crop, skin detail, fresh youthful facial presence — never elegant or refined",
     },
   },
   {
@@ -133,17 +133,17 @@ export const STUDIO_PRESETS: StudioPreset[] = [
   {
     id: "seated_studio",
     label: "Seated Studio",
-    description: "Retratos sentados, elegantes y controlados.",
+    description: "Retratos sentados, frescos y controlados.",
     notes:
-      "MUST be the exact same woman from the references — not a different person, not a lookalike. She is in her 20s but looks very young and youthful, baby-faced. Dark-brown eyes. Blonde hair with warm honey highlights. Seated studio portraits, refined posture, grounded youthful realism. Never age her past mid-20s. No corporate styling.",
+      "MUST be the exact same woman from the references — not a different person, not a lookalike. She is in her 20s but looks very young and youthful, baby-faced. Dark-brown eyes. Blonde hair with warm honey highlights. Seated studio portraits, relaxed youthful posture, grounded youthful realism. Never age her past mid-20s. No corporate styling.",
     plan: {
       creativeDirection: "same woman from the references in a minimal seated studio fashion story",
       wardrobe:
-        "a body-skimming seated studio look with elegant structure and a strong feminine silhouette",
-      albumPose: "seated on a clean studio cube with elegant posture and relaxed hands",
+        "a body-skimming seated studio look with cool structure and a strong feminine silhouette",
+      albumPose: "seated on a clean studio cube with relaxed youthful posture and relaxed hands",
       location: "a clean white cyc studio",
       stylingNotes:
-        "elegant seated portrait series, polished posture, restrained studio styling",
+        "cool seated portrait series, natural youthful posture, restrained studio styling — never elegant or refined",
     },
   },
   {
@@ -155,12 +155,12 @@ export const STUDIO_PRESETS: StudioPreset[] = [
     plan: {
       creativeDirection: "same woman from the references in a denim studio portrait",
       wardrobe:
-        "a crisp white tank with clean denim, a polished belt, and pointed heels",
+        "a crisp white tank with clean denim and casual cool heels or sneakers",
       location: "a clean white seamless studio with subtle sculpted shadows",
       lighting:
-        "soft diffused studio lighting with elegant skin highlights and believable shadow falloff",
+        "soft diffused studio lighting with clean skin highlights and believable shadow falloff",
       stylingNotes:
-        "clean denim studio shoot, polished basics, restrained finish",
+        "clean denim studio shoot, casual trendy basics, restrained finish — never elegant or polished",
     },
   },
   {
@@ -173,9 +173,9 @@ export const STUDIO_PRESETS: StudioPreset[] = [
     plan: {
       creativeDirection: "same woman from the references in a sensual studio editorial",
       wardrobe:
-        "an opaque black bodysuit or a body-skimming editorial look with sleek boots and refined accessories, never a blazer or suit jacket",
+        "an opaque black bodysuit or a body-skimming look with sleek boots and cool accessories, never a blazer or suit jacket",
       albumPose:
-        "confident studio pose with elongated legs, elegant posture, and restrained sensual energy",
+        "confident studio pose with elongated legs, natural youthful posture, and restrained sensual energy",
       location: "a clean studio set with soft warm neutrals and minimal distractions",
       lighting:
         "controlled studio light with smooth shadow shaping, realistic skin texture, and confident editorial definition",
