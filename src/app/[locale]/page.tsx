@@ -292,7 +292,7 @@ export default function HomePage() {
   return (
     <div ref={mainRef} className="w-full overflow-hidden bg-black">
       {/* ===== HERO ===== */}
-      <section ref={heroRef} className="relative h-[100svh] min-h-[700px] overflow-hidden flex items-center justify-center">
+      <section ref={heroRef} className="relative h-[100svh] min-h-[550px] md:min-h-[700px] overflow-hidden flex items-center justify-center">
         {/* Background */}
         <div ref={heroImageContainerRef} className="absolute inset-[-10%] w-[120%] h-[120%]">
           {heroImages.map((image, index) => (
@@ -331,7 +331,7 @@ export default function HomePage() {
           {/* Giant Title — mix-blend-mode so it interacts with the photo */}
           <h1
             ref={heroTitleRef}
-            className="brand-display text-[clamp(5rem,22vw,20rem)] leading-[0.78] tracking-[0.06em] text-[#e8dcc8] will-change-transform mix-blend-difference"
+            className="brand-display text-[clamp(2.8rem,14vw,20rem)] md:text-[clamp(5rem,22vw,20rem)] leading-[0.78] tracking-[0.06em] text-[#e8dcc8] will-change-transform mix-blend-difference"
             style={{ clipPath: "inset(100% 0 0 0)", transformStyle: "preserve-3d" }}
           >
             ROBEANNY
