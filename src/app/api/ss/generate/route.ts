@@ -560,7 +560,7 @@ async function generateWithVertexGeminiImage({
                 "Prefer grounded studio realism over stylized glamour.",
                 hasAlbumAnchor
                   ? "The first attached image is the high-resolution facial identity anchor — identity comes from this image above all others. The second image is the album continuity anchor for styling and set. The remaining images provide additional face angles and body proportion context."
-                  : "The first attached image is the high-resolution facial identity anchor — this defines who the woman is. The second image provides a secondary face angle. The third image provides another face angle or body proportion. All face references show THE SAME woman.",
+                  : "The first attached image is the high-resolution facial identity anchor. The other images provide secondary face angles and body proportions. DO NOT COPY THEIR CLOTHING. You must generate entirely new clothing based on the text prompt.",
               ].join(" "),
             },
           ],
@@ -577,6 +577,8 @@ async function generateWithVertexGeminiImage({
                     : "Use the first attached image as the primary facial identity source. Use the second image for secondary face angle. Use additional images for body proportions.",
                   "CRITICAL IDENTITY RULE: The output face must be a pixel-level match to the first reference. Maintain exact facial geometry, lip shape, lip volume, nose shape, brow arch, eyelid shape, jawline, chin, and cheek volume.",
                   "Preserve her exact face, skin tone, hairline, jawline, nose, lips, and dark-brown eyes.",
+                  "DO NOT COPY THE CLOTHING, WARDROBE, OR OUTFITS FROM THE REFERENCE IMAGES. The reference images are ONLY for facial identity and body proportions. You MUST generate the explicit new Wardrobe requested in the prompt.",
+                  "Copying the beige sweater, pants, or any clothing from the reference images is a complete failure.",
                   "Do not blend, average, or generalize the face from multiple references. The first facial anchor defines who she is. If in doubt, copy the face more literally.",
                   "Do not create a different woman who merely looks similar. This must be recognizably, unmistakably the same person.",
                   hasAlbumAnchor
