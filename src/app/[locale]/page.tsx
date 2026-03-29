@@ -20,7 +20,16 @@ if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-const heroImages = [
+// Portrait images (vertical) — work great on mobile
+const heroImagesPortrait = [
+  "/he.jpg",
+  "/he2.jpg",
+  "/he3.jpg",
+  "/he4.jpg",
+];
+
+// All images including landscape — for desktop
+const heroImagesAll = [
   "/014A7144-2.jpg",
   "/014A7221-2.jpg",
   "/014A7227-2.jpg",
@@ -46,6 +55,7 @@ export default function HomePage() {
   const tCta = useTranslations("cta");
 
   const [activeSlide, setActiveSlide] = useState(0);
+  const [heroImages, setHeroImages] = useState<string[]>(heroImagesAll); // Default to all images
   const mainRef = useRef<HTMLDivElement>(null);
 
   // Hero refs
@@ -69,11 +79,30 @@ export default function HomePage() {
   const socialSectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
+    // Detect screen width and pick image array
+    const checkWidth = () => {
+      setHeroImages(window.innerWidth < 768 ? heroImagesPortrait : heroImagesAll);
+    };
+    
+    // Initial check
+    checkWidth();
+
+    // Listen to resize
+    window.addEventListener("resize", checkWidth);
+    return () => window.removeEventListener("resize", checkWidth);
+  }, []);
+
+  useEffect(() => {
+    // Ensure activeSlide doesn't go out of bounds if heroImages changes and is shorter
+    setActiveSlide((prev) => (prev >= heroImages.length ? 0 : prev));
+
+    if (heroImages.length === 0) return;
+
     const interval = setInterval(() => {
       setActiveSlide((prev) => (prev + 1) % heroImages.length);
     }, 4500);
     return () => clearInterval(interval);
-  }, []);
+  }, [heroImages]);
 
   const toLocalePath = useMemo(
     () => (href: string) => {
