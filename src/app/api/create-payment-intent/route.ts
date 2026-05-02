@@ -9,12 +9,11 @@ export async function POST(req: NextRequest) {
   try {
     const { amount } = await req.json();
 
-    // amount comes in as dollars, Stripe needs cents
     const amountInCents = Math.round(Number(amount) * 100);
 
     if (!amountInCents || amountInCents < 100) {
       return NextResponse.json(
-        { error: "El monto mínimo es $1.00 USD" },
+        { error: "Minimum amount is $1.00 USD" },
         { status: 400 }
       );
     }
@@ -22,17 +21,24 @@ export async function POST(req: NextRequest) {
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amountInCents,
       currency: "usd",
-      // Link the payment to the original donation link metadata
+      // Explicit payment method types — card covers Apple Pay & Google Pay
+      // Using explicit list instead of automatic_payment_methods so Apple Pay
+      // is always included regardless of redirect-based method conflicts
+      payment_method_types: [
+        "card",      // covers Apple Pay, Google Pay, regular cards
+        "us_bank_account",
+        "cashapp",
+        "link",
+      ],
       metadata: {
         source: "robeanny_website",
-        donation_link: "https://donate.stripe.com/28E8wP3fvg7b5Uz9P0gMw00",
+        type: "donation",
       },
-      automatic_payment_methods: { enabled: true },
     });
 
     return NextResponse.json({ clientSecret: paymentIntent.client_secret });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Error desconocido";
+    const message = err instanceof Error ? err.message : "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

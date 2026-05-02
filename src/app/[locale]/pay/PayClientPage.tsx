@@ -73,8 +73,16 @@ function DonationForm({
       <div className="pay-element-wrapper">
         <PaymentElement
           options={{
-            layout: "tabs",
-            wallets: { applePay: "auto", googlePay: "auto" },
+            layout: {
+              type: "accordion",
+              defaultCollapsed: false,
+              radios: false,
+              spacedAccordionItems: true,
+            },
+            wallets: {
+              applePay: "always",
+              googlePay: "always",
+            },
           }}
         />
       </div>
