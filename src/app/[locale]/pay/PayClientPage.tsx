@@ -284,7 +284,7 @@ export default function PayClientPage({
       <div className="flex min-h-screen flex-col lg:flex-row">
 
         {/* ===== LEFT — Photo + identity ===== */}
-        <div className="relative flex flex-col justify-end overflow-hidden lg:sticky lg:top-0 lg:h-screen lg:w-[42%]">
+        <div className="relative flex w-full flex-col justify-end overflow-hidden aspect-[3/4] lg:aspect-auto lg:sticky lg:top-0 lg:h-screen lg:w-[42%]">
           {/* Cycling photo */}
           {PHOTOS.map((src, i) => (
             <Image
@@ -292,7 +292,7 @@ export default function PayClientPage({
               src={src}
               alt="Robeanny"
               fill
-              className={`object-cover object-top transition-opacity duration-1000 ${
+              className={`object-cover object-center transition-opacity duration-1000 ${
                 i === activePhoto ? "opacity-100" : "opacity-0"
               }`}
               priority={i === 0}
