@@ -12,10 +12,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const isEn = locale === "en";
 
   return {
-    title: isEn ? "Support — Robeanny" : "Apoyo — Robeanny",
-    description: isEn
-      ? "Support Robeanny's creative work. Secure donations via Stripe."
-      : "Apoya el trabajo creativo de Robeanny. Donaciones seguras vía Stripe.",
+    title: "Support Robeanny",
+    description:
+      "Support Robeanny's creative work. Independent editorial projects, photo sessions, and content creation. Secure donations powered by Stripe.",
     robots: { index: false, follow: false },
   };
 }

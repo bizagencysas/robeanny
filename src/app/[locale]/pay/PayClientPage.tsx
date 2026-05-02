@@ -15,28 +15,25 @@ const stripePromise = loadStripe(
 
 /* ------------------------------------------------------------------ */
 /*  Fee calculation — Stripe card rate: 2.9% + $0.30                  */
-/*  Formula to gross up so Robeanny receives 100% of intended amount:  */
-/*    chargeAmount = (intended + 0.30) / (1 - 0.029)                  */
+/*  gross = (intended + 0.30) / (1 - 0.029)                           */
 /* ------------------------------------------------------------------ */
 const STRIPE_PCT = 0.029;
-const STRIPE_FIXED = 0.30;
+const STRIPE_FIXED = 0.3;
 
-function calcFees(intendedUSD: number): {
-  fee: number;
-  total: number;
-} {
-  if (!intendedUSD || intendedUSD <= 0) return { fee: 0, total: 0 };
-  const total = (intendedUSD + STRIPE_FIXED) / (1 - STRIPE_PCT);
-  const fee = total - intendedUSD;
-  return { fee: Math.round(fee * 100) / 100, total: Math.round(total * 100) / 100 };
+function calcFees(intended: number): { fee: number; total: number } {
+  if (!intended || intended <= 0) return { fee: 0, total: 0 };
+  const total = (intended + STRIPE_FIXED) / (1 - STRIPE_PCT);
+  const fee = total - intended;
+  return {
+    fee: Math.round(fee * 100) / 100,
+    total: Math.round(total * 100) / 100,
+  };
 }
 
-function fmt(n: number) {
-  return n.toFixed(2);
-}
+const fmt = (n: number) => n.toFixed(2);
 
 /* ------------------------------------------------------------------ */
-/*  Inner form — must be inside <Elements>                             */
+/*  Inner form                                                         */
 /* ------------------------------------------------------------------ */
 function DonationForm({
   intendedAmount,
@@ -66,13 +63,13 @@ function DonationForm({
     });
 
     if (error) {
-      setErrorMsg(error.message ?? "Ocurrió un error.");
+      setErrorMsg(error.message ?? "An unexpected error occurred.");
       setStatus("error");
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-5">
       <div className="pay-element-wrapper">
         <PaymentElement
           options={{
@@ -96,15 +93,15 @@ function DonationForm({
         {status === "processing" ? (
           <span className="flex items-center justify-center gap-3">
             <span className="pay-spinner" />
-            Procesando…
+            Processing…
           </span>
         ) : (
-          `Donar $${totalAmount} USD`
+          `Donate $${totalAmount} USD`
         )}
       </button>
 
-      <p className="text-center text-[0.5rem] uppercase tracking-[0.3em] text-[#e8dcc8]/25">
-        Pago seguro procesado por Stripe · TLS 256-bit
+      <p className="text-center text-[0.48rem] uppercase tracking-[0.3em] text-[#e8dcc8]/22">
+        Secured by Stripe · 256-bit TLS encryption
       </p>
     </form>
   );
@@ -113,7 +110,65 @@ function DonationForm({
 /* ------------------------------------------------------------------ */
 /*  Presets                                                            */
 /* ------------------------------------------------------------------ */
-const PRESETS = ["5", "10", "25", "50", "100"];
+const PRESETS = ["50", "100", "250", "500", "1000"];
+
+/* ------------------------------------------------------------------ */
+/*  Stripe appearance                                                  */
+/* ------------------------------------------------------------------ */
+const appearance = {
+  theme: "night" as const,
+  variables: {
+    colorPrimary: "#c79a59",
+    colorBackground: "#0d0d0d",
+    colorText: "#e8dcc8",
+    colorTextSecondary: "rgba(232,220,200,0.45)",
+    colorTextPlaceholder: "rgba(232,220,200,0.25)",
+    colorIconTab: "#e8dcc8",
+    colorIconTabHover: "#c79a59",
+    colorIconTabSelected: "#c79a59",
+    borderRadius: "0px",
+    fontFamily: "Manrope, sans-serif",
+    fontSizeSm: "0.75rem",
+    spacingUnit: "5px",
+  },
+  rules: {
+    ".Input": {
+      border: "1px solid rgba(232,220,200,0.1)",
+      backgroundColor: "#0a0a0a",
+      color: "#e8dcc8",
+      boxShadow: "none",
+      outline: "none",
+      padding: "12px 16px",
+    },
+    ".Input:focus": {
+      border: "1px solid rgba(199,154,89,0.5)",
+      boxShadow: "0 0 0 1px rgba(199,154,89,0.15)",
+    },
+    ".Label": {
+      fontSize: "0.52rem",
+      letterSpacing: "0.3em",
+      textTransform: "uppercase",
+      color: "rgba(232,220,200,0.35)",
+      marginBottom: "8px",
+    },
+    ".Tab": {
+      border: "1px solid rgba(232,220,200,0.08)",
+      backgroundColor: "#0d0d0d",
+      color: "rgba(232,220,200,0.55)",
+    },
+    ".Tab:hover": { backgroundColor: "#141414", color: "#e8dcc8" },
+    ".Tab--selected": {
+      border: "1px solid rgba(199,154,89,0.4)",
+      backgroundColor: "rgba(199,154,89,0.08)",
+      color: "#c79a59",
+      boxShadow: "none",
+    },
+    ".Block": {
+      border: "1px solid rgba(232,220,200,0.06)",
+      backgroundColor: "#0d0d0d",
+    },
+  },
+};
 
 /* ------------------------------------------------------------------ */
 /*  Main page                                                          */
@@ -125,20 +180,16 @@ export default function PayClientPage({
   success: boolean;
   paidAmount?: string;
 }) {
-  const [preset, setPreset] = useState("10");
+  const [preset, setPreset] = useState("");
   const [customAmount, setCustomAmount] = useState("");
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState("");
 
-  // The "intended" donation amount (what Robeanny will receive)
   const intendedRaw = customAmount || preset;
   const intended = parseFloat(intendedRaw) || 0;
-
-  // Live fee breakdown
   const { fee, total } = useMemo(() => calcFees(intended), [intended]);
 
-  // Send the TOTAL (intended + fee) to the API — Robeanny nets the full intended
   const fetchIntent = useCallback(async (totalUSD: number) => {
     setClientSecret(null);
     setApiError("");
@@ -148,82 +199,24 @@ export default function PayClientPage({
       const res = await fetch("/api/create-payment-intent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // We pass the total (including fee) — Stripe charges this amount
         body: JSON.stringify({ amount: fmt(totalUSD) }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setClientSecret(data.clientSecret);
     } catch (e) {
-      setApiError(e instanceof Error ? e.message : "Error al cargar Stripe");
+      setApiError(e instanceof Error ? e.message : "Failed to load Stripe");
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // Debounced fetch whenever fee/total changes
   useEffect(() => {
     const timer = setTimeout(() => {
       if (total >= 1.01) fetchIntent(total);
     }, 650);
     return () => clearTimeout(timer);
   }, [total, fetchIntent]);
-
-  /* Stripe Elements appearance */
-  const appearance = {
-    theme: "night" as const,
-    variables: {
-      colorPrimary: "#c79a59",
-      colorBackground: "#0d0d0d",
-      colorText: "#e8dcc8",
-      colorTextSecondary: "rgba(232,220,200,0.45)",
-      colorTextPlaceholder: "rgba(232,220,200,0.25)",
-      colorIconTab: "#e8dcc8",
-      colorIconTabHover: "#c79a59",
-      colorIconTabSelected: "#c79a59",
-      borderRadius: "0px",
-      fontFamily: "Manrope, sans-serif",
-      fontSizeSm: "0.75rem",
-      spacingUnit: "5px",
-    },
-    rules: {
-      ".Input": {
-        border: "1px solid rgba(232,220,200,0.1)",
-        backgroundColor: "#0a0a0a",
-        color: "#e8dcc8",
-        boxShadow: "none",
-        outline: "none",
-        padding: "12px 16px",
-      },
-      ".Input:focus": {
-        border: "1px solid rgba(199,154,89,0.5)",
-        boxShadow: "0 0 0 1px rgba(199,154,89,0.15)",
-      },
-      ".Label": {
-        fontSize: "0.52rem",
-        letterSpacing: "0.3em",
-        textTransform: "uppercase",
-        color: "rgba(232,220,200,0.35)",
-        marginBottom: "8px",
-      },
-      ".Tab": {
-        border: "1px solid rgba(232,220,200,0.08)",
-        backgroundColor: "#0d0d0d",
-        color: "rgba(232,220,200,0.55)",
-      },
-      ".Tab:hover": { backgroundColor: "#141414", color: "#e8dcc8" },
-      ".Tab--selected": {
-        border: "1px solid rgba(199,154,89,0.4)",
-        backgroundColor: "rgba(199,154,89,0.08)",
-        color: "#c79a59",
-        boxShadow: "none",
-      },
-      ".Block": {
-        border: "1px solid rgba(232,220,200,0.06)",
-        backgroundColor: "#0d0d0d",
-      },
-    },
-  };
 
   /* ---- Success screen ---- */
   if (success) {
@@ -245,21 +238,21 @@ export default function PayClientPage({
             />
           </svg>
         </div>
-        <p className="label-kicker mb-4">Confirmado</p>
+        <p className="label-kicker mb-4">Confirmed</p>
         <h1 className="brand-display text-[clamp(2.4rem,7vw,5rem)] leading-[0.9] text-[#e8dcc8]">
-          ¡Gracias!
+          Thank you.
         </h1>
         {paidAmount && (
-          <p className="mt-3 text-[#c79a59] brand-display text-2xl">
+          <p className="mt-3 brand-display text-2xl text-[#c79a59]">
             ${paidAmount} USD
           </p>
         )}
-        <p className="mt-5 max-w-sm text-sm leading-relaxed text-[#e8dcc8]/50">
-          Tu apoyo significa mucho. Recibirás un correo de confirmación de
-          Stripe en breve.
+        <p className="mt-5 max-w-xs text-sm leading-relaxed text-[#e8dcc8]/50">
+          Your support means everything. A confirmation email from Stripe is on
+          its way.
         </p>
         <a href="/" className="luxury-button mt-10">
-          Volver al inicio
+          Back to home
         </a>
       </div>
     );
@@ -267,50 +260,85 @@ export default function PayClientPage({
 
   /* ---- Main page ---- */
   return (
-    <div className="min-h-screen bg-black pb-24 pt-24 md:pt-32">
+    <div className="min-h-screen bg-black pb-24 pt-20 md:pt-32">
       {/* Ambient glow */}
       <div
-        className="pointer-events-none fixed left-1/2 top-0 -translate-x-1/2 opacity-30"
+        className="pointer-events-none fixed left-1/2 top-0 -translate-x-1/2 opacity-25"
         style={{
           width: "600px",
           height: "400px",
           background:
-            "radial-gradient(ellipse, rgba(199,154,89,0.12) 0%, transparent 70%)",
+            "radial-gradient(ellipse, rgba(199,154,89,0.14) 0%, transparent 70%)",
           filter: "blur(60px)",
         }}
       />
 
       <div className="page-shell">
-        {/* Header */}
-        <div>
-          <p className="label-kicker mb-5">Support</p>
-          <h1 className="brand-display text-[clamp(2.4rem,7vw,6rem)] leading-[0.88] tracking-[0.05em] text-[#e8dcc8]">
-            Apoya mi
+        {/* ---- Header ---- */}
+        <div className="mb-10 md:mb-12">
+          <p className="label-kicker mb-4">Support</p>
+          <h1 className="brand-display text-[clamp(2.6rem,8vw,6rem)] leading-[0.88] tracking-[0.04em] text-[#e8dcc8]">
+            Back my
             <br />
-            <em>trabajo</em>
+            <em>work</em>
           </h1>
-          <p className="mt-5 max-w-md text-sm leading-relaxed text-[#e8dcc8]/45">
-            Cada contribución me ayuda a seguir creando contenido, proyectos
-            editoriales y sesiones independientes. Gracias por estar aquí.
+          <p className="mt-4 max-w-sm text-sm leading-relaxed text-[#e8dcc8]/40">
+            Every contribution helps me keep creating independent editorial
+            projects, photo sessions, and content. Thank you for being here.
           </p>
         </div>
 
-        <div className="mt-12 grid gap-8 lg:grid-cols-[1fr_1.1fr]">
+        {/* ---- Two-column on desktop, stacked on mobile ---- */}
+        <div className="grid gap-6 lg:grid-cols-[1fr_1.1fr]">
 
-          {/* ---- Left panel: amount + fee breakdown ---- */}
-          <aside className="luxury-panel h-fit p-6 md:p-8">
-            <h2 className="brand-display text-[clamp(1.4rem,3vw,2.2rem)] leading-[0.9] text-[#e8dcc8]">
-              Elige un monto
-            </h2>
+          {/* ===== LEFT / TOP: Amount selector ===== */}
+          <aside className="luxury-panel p-5 md:p-8">
 
-            {/* Preset amounts */}
-            <div className="mt-6 grid grid-cols-3 gap-2">
+            {/* Custom amount — MOST PROMINENT */}
+            <label className="block">
+              <span className="text-[0.52rem] uppercase tracking-[0.35em] text-[#e8dcc8]/40">
+                Custom amount (USD)
+              </span>
+              <div className="relative mt-2">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 brand-display text-2xl text-[#c79a59]/60">
+                  $
+                </span>
+                <input
+                  type="number"
+                  min="1"
+                  step="0.01"
+                  value={customAmount}
+                  onChange={(e) => {
+                    setCustomAmount(e.target.value);
+                    setPreset("");
+                  }}
+                  placeholder="0"
+                  className="w-full border border-[#e8dcc8]/12 bg-[#0a0a0a] py-4 pl-10 pr-4 brand-display text-3xl text-[#e8dcc8] outline-none transition-colors focus:border-[#c79a59]/60 placeholder:text-[#e8dcc8]/15"
+                  autoFocus
+                />
+              </div>
+            </label>
+
+            {/* Divider */}
+            <div className="my-5 flex items-center gap-3">
+              <div className="h-px flex-1 bg-[#e8dcc8]/8" />
+              <span className="text-[0.46rem] uppercase tracking-[0.35em] text-[#e8dcc8]/25">
+                or choose
+              </span>
+              <div className="h-px flex-1 bg-[#e8dcc8]/8" />
+            </div>
+
+            {/* Preset chips */}
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
               {PRESETS.map((p) => (
                 <button
                   key={p}
-                  onClick={() => { setPreset(p); setCustomAmount(""); }}
+                  onClick={() => {
+                    setPreset(p);
+                    setCustomAmount("");
+                  }}
                   className={`pay-preset-btn ${
-                    intendedRaw === p && !customAmount
+                    preset === p && !customAmount
                       ? "pay-preset-btn--active"
                       : ""
                   }`}
@@ -320,62 +348,33 @@ export default function PayClientPage({
               ))}
             </div>
 
-            {/* Custom amount */}
-            <div className="mt-4">
-              <label className="flex flex-col gap-2">
-                <span className="text-[0.52rem] uppercase tracking-[0.3em] text-[#e8dcc8]/30">
-                  Monto personalizado (USD)
-                </span>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-[#e8dcc8]/40">
-                    $
-                  </span>
-                  <input
-                    type="number"
-                    min="1"
-                    step="0.01"
-                    value={customAmount}
-                    onChange={(e) => {
-                      setCustomAmount(e.target.value);
-                      setPreset("");
-                    }}
-                    placeholder="0.00"
-                    className="w-full border border-[#e8dcc8]/10 bg-[#0a0a0a] py-3 pl-8 pr-4 text-sm text-[#e8dcc8] outline-none transition-colors focus:border-[#c79a59]/50 placeholder:text-[#e8dcc8]/20"
-                  />
-                </div>
-              </label>
-            </div>
-
-            {/* Fee breakdown — live */}
+            {/* Fee breakdown — shown only when amount is set */}
             {intended > 0 && (
-              <div className="mt-6 space-y-0 border border-[#e8dcc8]/8">
-                {/* Row: Donation */}
-                <div className="flex items-center justify-between px-4 py-3 border-b border-[#e8dcc8]/6">
-                  <span className="text-[0.52rem] uppercase tracking-[0.3em] text-[#e8dcc8]/40">
-                    Tu donación
+              <div className="mt-6 border border-[#e8dcc8]/8">
+                <div className="flex items-center justify-between border-b border-[#e8dcc8]/6 px-4 py-3">
+                  <span className="text-[0.5rem] uppercase tracking-[0.3em] text-[#e8dcc8]/38">
+                    Your donation
                   </span>
-                  <span className="text-sm text-[#e8dcc8]/70">
+                  <span className="tabular-nums text-sm text-[#e8dcc8]/65">
                     ${fmt(intended)}
                   </span>
                 </div>
-                {/* Row: Processing fee */}
-                <div className="flex items-start justify-between px-4 py-3 border-b border-[#e8dcc8]/6">
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-[0.52rem] uppercase tracking-[0.3em] text-[#e8dcc8]/40">
-                      Fee de procesamiento
-                    </span>
-                    <span className="text-[0.46rem] text-[#e8dcc8]/25 tracking-wider">
-                      Tarjeta · Apple Pay · Google Pay · ACH
-                    </span>
+                <div className="flex items-start justify-between border-b border-[#e8dcc8]/6 px-4 py-3">
+                  <div>
+                    <p className="text-[0.5rem] uppercase tracking-[0.3em] text-[#e8dcc8]/38">
+                      Processing fee
+                    </p>
+                    <p className="mt-0.5 text-[0.44rem] tracking-wider text-[#e8dcc8]/22">
+                      Card · Apple Pay · Google Pay · ACH
+                    </p>
                   </div>
-                  <span className="text-sm text-[#e8dcc8]/50 tabular-nums">
+                  <span className="tabular-nums text-sm text-[#e8dcc8]/45">
                     +${fmt(fee)}
                   </span>
                 </div>
-                {/* Row: Total charged */}
                 <div className="flex items-center justify-between bg-[#c79a59]/6 px-4 py-4">
-                  <span className="text-[0.52rem] uppercase tracking-[0.3em] text-[#e8dcc8]/50">
-                    Total a cobrar
+                  <span className="text-[0.5rem] uppercase tracking-[0.3em] text-[#e8dcc8]/45">
+                    Total charged
                   </span>
                   <span className="brand-display text-2xl text-[#c79a59]">
                     ${fmt(total)} USD
@@ -384,33 +383,20 @@ export default function PayClientPage({
               </div>
             )}
 
-            {intended <= 0 && (
-              <div className="mt-6 border border-[#e8dcc8]/6 bg-[#c79a59]/4 p-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-[0.52rem] uppercase tracking-[0.3em] text-[#e8dcc8]/40">
-                    Total
-                  </span>
-                  <span className="brand-display text-2xl text-[#c79a59]/40">
-                    $0.00 USD
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {/* What you're supporting */}
-            <div className="mt-7 border-t border-[#e8dcc8]/8 pt-6 space-y-3">
-              <p className="text-[0.52rem] uppercase tracking-[0.3em] text-[#e8dcc8]/30">
-                Tu apoyo incluye
+            {/* What you support */}
+            <div className="mt-6 space-y-2.5 border-t border-[#e8dcc8]/8 pt-5">
+              <p className="mb-3 text-[0.5rem] uppercase tracking-[0.35em] text-[#e8dcc8]/28">
+                Your support fuels
               </p>
               {[
-                "Sesiones fotográficas independientes",
-                "Contenido editorial exclusivo",
-                "Proyectos artísticos personales",
-                "Desarrollo de marca y contenido",
+                "Independent photo sessions",
+                "Exclusive editorial content",
+                "Personal art projects",
+                "Brand & content development",
               ].map((item) => (
-                <div key={item} className="flex items-start gap-3">
-                  <span className="mt-0.5 h-1 w-3 flex-shrink-0 bg-[#c79a59]/50" />
-                  <span className="text-xs text-[#e8dcc8]/55 leading-relaxed">
+                <div key={item} className="flex items-center gap-3">
+                  <span className="h-px w-3 flex-shrink-0 bg-[#c79a59]/45" />
+                  <span className="text-xs leading-relaxed text-[#e8dcc8]/48">
                     {item}
                   </span>
                 </div>
@@ -418,20 +404,20 @@ export default function PayClientPage({
             </div>
           </aside>
 
-          {/* ---- Right panel: Stripe Payment Element ---- */}
-          <section className="luxury-panel p-6 md:p-8">
-            <h2 className="brand-display text-[clamp(1.4rem,3vw,2.2rem)] leading-[0.9] text-[#e8dcc8] mb-6">
-              Método de pago
+          {/* ===== RIGHT / BOTTOM: Stripe Payment Element ===== */}
+          <section className="luxury-panel p-5 md:p-8">
+            <h2 className="brand-display mb-6 text-[clamp(1.4rem,3vw,2.2rem)] leading-[0.9] text-[#e8dcc8]">
+              Payment method
             </h2>
 
             {apiError && (
-              <div className="mb-4 border border-red-500/20 bg-red-500/5 p-4 text-xs text-red-400 uppercase tracking-[0.2em]">
+              <div className="mb-4 border border-red-500/20 bg-red-500/5 p-4 text-xs uppercase tracking-[0.2em] text-red-400">
                 {apiError}
               </div>
             )}
 
             {loading && (
-              <div className="flex min-h-[320px] items-center justify-center">
+              <div className="flex min-h-[300px] items-center justify-center">
                 <div className="pay-spinner-lg" />
               </div>
             )}
@@ -439,8 +425,8 @@ export default function PayClientPage({
             {!loading && clientSecret && (
               <Elements
                 stripe={stripePromise}
-                options={{ clientSecret, appearance, locale: "es" }}
-                key={clientSecret} // remount when secret changes (new amount)
+                options={{ clientSecret, appearance, locale: "en" }}
+                key={clientSecret}
               >
                 <DonationForm
                   intendedAmount={fmt(intended)}
@@ -450,9 +436,22 @@ export default function PayClientPage({
             )}
 
             {!loading && !clientSecret && !apiError && (
-              <div className="flex min-h-[320px] items-center justify-center">
-                <p className="text-xs uppercase tracking-[0.3em] text-[#e8dcc8]/25">
-                  Selecciona un monto para continuar
+              <div className="flex min-h-[300px] flex-col items-center justify-center gap-3 text-center">
+                <svg
+                  className="h-8 w-8 text-[#c79a59]/25"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={1}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                  />
+                </svg>
+                <p className="text-xs uppercase tracking-[0.3em] text-[#e8dcc8]/22">
+                  Enter an amount to continue
                 </p>
               </div>
             )}
