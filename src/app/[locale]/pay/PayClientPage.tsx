@@ -93,7 +93,7 @@ function DonationForm({
             radios: "never",
             spacedAccordionItems: true,
           },
-          wallets: { applePay: "always", googlePay: "always" },
+          wallets: { applePay: "auto", googlePay: "auto" },
         }}
       />
 
