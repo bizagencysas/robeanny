@@ -90,7 +90,7 @@ function DonationForm({
           layout: {
             type: "accordion",
             defaultCollapsed: false,
-            radios: false,
+            radios: "never",
             spacedAccordionItems: true,
           },
           wallets: { applePay: "always", googlePay: "always" },
@@ -284,7 +284,7 @@ export default function PayClientPage({
       <div className="flex min-h-screen flex-col lg:flex-row">
 
         {/* ===== LEFT — Photo + identity ===== */}
-        <div className="relative flex w-full flex-col justify-end overflow-hidden aspect-[3/4] lg:aspect-auto lg:sticky lg:top-0 lg:h-screen lg:w-[42%]">
+        <div className="relative flex w-full flex-col justify-end overflow-hidden h-[42vh] lg:h-screen lg:aspect-auto lg:sticky lg:top-0 lg:w-[42%]">
           {/* Cycling photo */}
           {PHOTOS.map((src, i) => (
             <Image
