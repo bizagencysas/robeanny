@@ -83,7 +83,7 @@ export default function Footer() {
             </p>
           </div>
 
-          <div className="grid gap-8 sm:grid-cols-2 md:gap-10">
+          <div className="grid grid-cols-2 gap-8 md:gap-10">
             <div>
               <p className="mb-5 text-[0.48rem] uppercase tracking-[0.35em] text-[#e8dcc8]/20">
                 Navigation
@@ -126,16 +126,14 @@ export default function Footer() {
         <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-[#c79a59]/15 to-transparent" />
 
         {/* Bottom Row */}
-        <div className="mt-8 flex flex-col gap-4 text-[0.48rem] uppercase tracking-[0.28em] text-[#e8dcc8]/18 md:flex-row md:items-center md:justify-between">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-8">
-            <a href="https://love.robeanny.com/" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-[#c79a59]">
-              {tFooter("support")}
-            </a>
-            <a href="mailto:me@robeanny.com" className="transition-colors hover:text-[#c79a59]">
-              me@robeanny.com
-            </a>
-          </div>
-          <p>{tFooter("rights")}</p>
+        <div className="mt-8 grid grid-cols-2 items-center gap-y-3 text-[0.48rem] uppercase tracking-[0.28em] text-[#e8dcc8]/18 md:flex md:flex-row md:justify-between">
+          <a href="https://love.robeanny.com/" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-[#c79a59]">
+            {tFooter("support")}
+          </a>
+          <p className="text-right md:text-left md:order-last">{tFooter("rights")}</p>
+          <a href="mailto:me@robeanny.com" className="transition-colors hover:text-[#c79a59] col-span-2 md:col-span-1">
+            me@robeanny.com
+          </a>
         </div>
       </div>
     </footer>
