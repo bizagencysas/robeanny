@@ -201,7 +201,7 @@ export default function SecretStudioClient({
         googleQualityMode,
       })
     : null;
-  const styleReferenceLimit = 3;
+  const styleReferenceLimit = provider === "openai" ? 4 : 3;
   const effectiveStyleReferences = styleReferences.slice(0, styleReferenceLimit);
 
   const providerDescription = useMemo(() => {
@@ -922,7 +922,7 @@ export default function SecretStudioClient({
                 </div>
               ) : (
                 <div className="mt-5 rounded-[1.4rem] border border-dashed border-white/12 bg-white/3 px-4 py-8 text-center text-sm leading-6 text-[#f7efe4]/58">
-                  Sin referencias todavía. Sube 1-3 fotos del look, o describe el look en las notas de abajo.
+                  Sin referencias todavía. Sube varias fotos del look, o describe el look en las notas de abajo.
                 </div>
               )}
             </section>

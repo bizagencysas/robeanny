@@ -25,8 +25,10 @@ export type StudioCostEstimate = {
   providerNote: string;
 };
 
-const DEFAULT_SECRET_STUDIO_REMOTE_API_BASE =
-  process.env.NODE_ENV === "production" ? "https://robeanny.onrender.com" : "";
+// Mismo origen por defecto: el frontend llama a su propia API (/api/ss/*).
+// En Vercel eso significa la API de Vercel (código nuevo + su OPENAI_API_KEY).
+// Para apuntar a un backend externo, define NEXT_PUBLIC_SS_API_BASE.
+const DEFAULT_SECRET_STUDIO_REMOTE_API_BASE = "";
 
 /**
  * Fotos viejas (pre-operación). Solo se usan como fallback si la carpeta
@@ -70,7 +72,7 @@ export function getStudioEstimatedCost({
       amountUsd,
       label: `~US$${amountUsd.toFixed(2)}`,
       providerNote:
-        "Estimado para GPT Image 1.5 en calidad alta. No incluye casi nada del planner, pero ese costo suele ser menor que el render de imagen.",
+        "Estimado aproximado para GPT Image 2 en calidad alta. El costo real depende del tamaño y del número de referencias enviadas.",
     };
   }
 

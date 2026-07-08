@@ -108,7 +108,16 @@ type StreamEvent =
 
 const maxStyleReferencesByProvider: Record<StudioProvider, number> = {
   google: 3,
-  openai: 3,
+  openai: 4,
+};
+
+// Máximo de imágenes (identidad + ancla de álbum + estilo) por llamada al
+// modelo de imagen. GPT Image 2 acepta hasta 16; mantenemos un tope sano para
+// no disparar latencia/costo (importante por el timeout de Vercel) y para no
+// promediar demasiado la identidad al mezclar muchas caras.
+const maxImagesPerCall: Record<StudioProvider, number> = {
+  google: 5,
+  openai: 6,
 };
 
 // Modelo de imagen de OpenAI: por defecto el último estable (GPT Image 2 /
@@ -1011,9 +1020,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 1) Identidad de Robeanny (rostro) desde la carpeta pública.
+    // 1) Identidad de Robeanny (rostro + cuerpo) desde la carpeta pública.
     const identity = getRobeannyIdentityReferences();
-    const identityReferences = Array.from(new Set(identity.references)).slice(0, 3);
+    const identityReferences = Array.from(new Set(identity.references)).slice(0, 5);
 
     // 2) Referencias de estilo (el look) que subió el usuario.
     const styleSources = Array.from(new Set(incomingStyleReferences)).slice(
@@ -1066,11 +1075,13 @@ export async function POST(request: NextRequest) {
 
     // Anclas de identidad (rostro + cuerpo real) y de estilo para el modelo.
     // Las primeras fotos de la carpeta son: 01 rostro, 02 cuerpo, 03 ángulo.
-    const identityAnchors = preparedIdentity.slice(0, 2);
-    const styleAnchors = preparedStyle.slice(0, 2);
+    // Usamos varias (no solo la cara) para que respete su cuerpo real.
+    const perCallCap = maxImagesPerCall[requestedProvider];
+    const identityAnchors = preparedIdentity.slice(0, 3);
+    const styleAnchors = preparedStyle.slice(0, 3);
 
     const buildFirstBundle = (): ReferenceBundle => {
-      const references = [...identityAnchors, ...styleAnchors].slice(0, 4);
+      const references = [...identityAnchors, ...styleAnchors].slice(0, perCallCap);
       return {
         references,
         identityCount: Math.min(identityAnchors.length, references.length),
@@ -1084,11 +1095,11 @@ export async function POST(request: NextRequest) {
       // Mantiene rostro + cuerpo en cada toma, más el frame ancla de continuidad.
       const references = [...identityAnchors, albumAnchor, ...styleAnchors].slice(
         0,
-        4
+        perCallCap
       );
       return {
         references,
-        identityCount: Math.min(identityAnchors.length, 2),
+        identityCount: identityAnchors.length,
         hasAlbumAnchor: true,
       };
     };
