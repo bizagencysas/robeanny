@@ -447,7 +447,7 @@ export function buildSecretStudioPrompt({
     "Never copy the FACE, nose or head identity from the STYLE references — those images are only for wardrobe, set, lighting, color and mood.",
     "Never copy the CLOTHING from the IDENTITY references — those images are only for her face and body identity.",
     "Prefer grounded realism: believable skin texture with visible pores, natural studio/scene shadows, realistic clothing construction and natural human anatomy.",
-    "Sensual energy is allowed only when it stays fully clothed, non-explicit, editorial and tasteful. No nudity, no transparent garments, no explicit exposure.",
+    "Keep it a fully clothed, tasteful, non-explicit editorial fashion photograph at all times. No nudity, no transparent garments, no explicit exposure.",
     "The final image must look like a real contemporary fashion photograph, fully clothed, youthful and commercially usable.",
     `Follow these quality rules: ${qualityRules.join(", ")}.`,
     notes ? `Extra creative notes from the user: ${notes.trim()}.` : "",

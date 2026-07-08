@@ -126,10 +126,14 @@ const OPENAI_IMAGE_MODEL =
   process.env.SS_OPENAI_IMAGE_MODEL || "gpt-image-2";
 // Alias de respaldo por si el ID fijo no está habilitado en la cuenta.
 const OPENAI_IMAGE_MODEL_FALLBACK = "chatgpt-image-latest";
-// Calidad de imagen. "high" es la que se veía bien; si vuelve a haber timeouts,
+// Calidad de imagen. Default "high" (la que se ve bien). Si hubiera timeouts,
 // se puede bajar a "medium" (más rápida) con SS_OPENAI_IMAGE_QUALITY=medium.
 const OPENAI_IMAGE_QUALITY = (
   process.env.SS_OPENAI_IMAGE_QUALITY || "high"
+).toLowerCase();
+// Moderación menos restrictiva: evita falsos "sexual" en moda editorial vestida.
+const OPENAI_MODERATION = (
+  process.env.SS_OPENAI_MODERATION || "low"
 ).toLowerCase();
 
 const VERTEX_GEMINI_MODEL =
@@ -485,6 +489,7 @@ async function generateWithOpenAi({
       prompt: [prompt, bucketNote].join(" "),
       size: getOpenAiImageSize(aspectRatio),
       quality: OPENAI_IMAGE_QUALITY,
+      moderation: OPENAI_MODERATION,
       output_format: "jpeg",
       output_compression: 90,
       images: references.map((reference) => ({
