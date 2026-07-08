@@ -551,6 +551,38 @@ async function generateWithOpenAi({
   throw new Error("OpenAI respondió sin imagen utilizable.");
 }
 
+async function generateWithOpenAiWithRetry(
+  params: {
+    prompt: string;
+    aspectRatio: StudioAspectRatio;
+    bundle: ReferenceBundle;
+  },
+  attempts = 3
+) {
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    try {
+      return await generateWithOpenAi(params);
+    } catch (error) {
+      lastError = error;
+
+      if (attempt < attempts - 1) {
+        const waitMs = Math.min(
+          15000,
+          1500 * 2 ** attempt + Math.floor(Math.random() * 800)
+        );
+        await sleep(waitMs);
+        continue;
+      }
+    }
+  }
+
+  throw lastError instanceof Error
+    ? lastError
+    : new Error("OpenAI no pudo generar la imagen en este momento.");
+}
+
 async function generateWithVertexGeminiImage({
   prompt,
   aspectRatio,
@@ -1305,8 +1337,15 @@ export async function POST(request: NextRequest) {
             ) as typeof results;
           })()
           : await (async () => {
+            const results: Array<{
+              index: number;
+              imageUrl: string;
+              cloudinaryPublicId: string;
+              cloudinaryFolder: string;
+              prompt: string;
+            }> = [];
             const firstPrompt = prompts[0];
-            const firstDataUrl = await generateWithOpenAi({
+            const firstDataUrl = await generateWithOpenAiWithRetry({
               prompt: firstPrompt.prompt,
               aspectRatio: effectiveAspectRatio,
               bundle: buildFirstBundle(),
@@ -1331,6 +1370,7 @@ export async function POST(request: NextRequest) {
               cloudinaryFolder: firstUploaded.folder,
               prompt: firstPrompt.prompt,
             };
+            results.push(firstResult);
 
             send({
               type: "image",
@@ -1349,7 +1389,7 @@ export async function POST(request: NextRequest) {
                 const index = offset + 1;
 
                 try {
-                  const generatedDataUrl = await generateWithOpenAi({
+                  const generatedDataUrl = await generateWithOpenAiWithRetry({
                     prompt: item.prompt,
                     aspectRatio: effectiveAspectRatio,
                     bundle: buildFollowupBundle(albumAnchorReference),
@@ -1373,10 +1413,11 @@ export async function POST(request: NextRequest) {
                   return null;
                 }
               }),
-              2,
+              3,
               (result) => {
                 if (!result) return;
                 completed += 1;
+                results.push(result);
                 send({
                   type: "image",
                   index: result.index,
@@ -1391,9 +1432,60 @@ export async function POST(request: NextRequest) {
               }
             );
 
-            return [firstResult, ...remainingResults.filter(Boolean)].sort(
+            // Rescate: reintenta en serie las tomas que fallaron, para no
+            // terminar en 3/4 cuando una llamada falla de forma transitoria.
+            const missingShots = prompts
+              .slice(1)
+              .map((item, offset) => ({ item, index: offset + 1 }))
+              .filter((_, offset) => !remainingResults[offset]);
+
+            for (const missingShot of missingShots) {
+              try {
+                const generatedDataUrl = await generateWithOpenAiWithRetry(
+                  {
+                    prompt: missingShot.item.prompt,
+                    aspectRatio: effectiveAspectRatio,
+                    bundle: buildFollowupBundle(albumAnchorReference),
+                  },
+                  3
+                );
+                const uploaded = await uploadGeneratedImageToCloudinary({
+                  file: generatedDataUrl,
+                  filename: `shot-${missingShot.index + 1}-${Date.now()}-${Math.random()
+                    .toString(36)
+                    .slice(2, 8)}`,
+                  folderOverride: albumFolder,
+                });
+
+                const rescuedResult = {
+                  index: missingShot.index,
+                  imageUrl: uploaded.secureUrl,
+                  cloudinaryPublicId: uploaded.publicId,
+                  cloudinaryFolder: uploaded.folder,
+                  prompt: missingShot.item.prompt,
+                };
+
+                completed += 1;
+                results.push(rescuedResult);
+                send({
+                  type: "image",
+                  index: rescuedResult.index,
+                  imageUrl: rescuedResult.imageUrl,
+                  cloudinaryPublicId: rescuedResult.cloudinaryPublicId,
+                  cloudinaryFolder: rescuedResult.cloudinaryFolder,
+                  prompt: rescuedResult.prompt,
+                  completed,
+                  total: albumSize,
+                  stage: `Foto ${completed} de ${albumSize} lista.`,
+                });
+              } catch {
+                // Dejamos el álbum parcial si ni el rescate funciona.
+              }
+            }
+
+            return results.sort(
               (left, right) => left!.index - right!.index
-            ) as typeof firstResult[];
+            ) as typeof results;
           })();
 
       if (!images.length) {
