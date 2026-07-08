@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 import SecretStudioClient from "./SecretStudioClient";
 import {
   SECRET_STUDIO_COOKIE,
-  SECRET_STUDIO_FALLBACK_REFERENCES,
   getAvailableStudioProviders,
+  getRobeannyIdentityReferences,
   hasSecretStudioAccess,
   isSecretStudioAuthDisabled,
 } from "@/lib/secret-studio";
@@ -41,15 +41,17 @@ export default function SecretStudioPage() {
     availableProviders.length > 0
       ? availableProviders
       : externalApiEnabled
-        ? (["google"] as const)
+        ? (["openai", "google"] as const)
         : availableProviders;
+  const identity = getRobeannyIdentityReferences();
 
   return (
     <SecretStudioClient
       initialUnlocked={authDisabled || unlocked}
       authRequired={!authDisabled}
       availableProviders={[...effectiveProviders]}
-      fallbackReferences={SECRET_STUDIO_FALLBACK_REFERENCES}
+      identityReferences={identity.references}
+      identitySource={identity.source}
     />
   );
 }

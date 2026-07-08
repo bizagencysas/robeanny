@@ -2,6 +2,52 @@
 
 Este documento explica qué es la ruta privada `/ss`, cómo funciona, qué archivos toca, qué motores usa, qué decisiones se tomaron, y qué cosas conviene saber si otra persona o IA necesita continuar el trabajo.
 
+## Actualización: estudio por referencias de estilo + OpenAI GPT Image 2
+
+> Esta sección refleja el modelo ACTUAL. Las secciones más abajo que hablan de
+> "presets" y de "Google como motor principal" quedan como historial; el motor
+> real ya no funciona así.
+
+Cambios clave:
+
+- **Motor por referencias de estilo.** Ya no hay presets ni recetas de vestuario
+  hardcodeadas. El usuario sube "Referencias de estilo" (el look que quiere:
+  ropa, set, luz, vibra) y el motor recrea ese look con la identidad de Robeanny.
+- **Dos tipos de referencia, separadas:**
+  - *Identidad* (rostro + cuerpo): salen de la carpeta `public/robeanny-face/`.
+    Se leen automáticamente en cada generación (orden alfabético; la primera es
+    el ancla facial principal, la segunda `02-cuerpo` fija sus proporciones). El
+    motor NUNCA copia la ropa de estas fotos, solo su cara y cuerpo.
+  - *Estilo*: las que sube el usuario en la UI. El motor copia su look pero
+    NUNCA su cara/cuerpo.
+- **Re-entreno de rostro (nariz nueva).** No hay training de ML; la identidad es
+  por referencia. Para actualizar el rostro (p. ej. tras cirugía), se reemplazan
+  las fotos en `public/robeanny-face/`. El prompt ahora ancla la nariz a esas
+  fotos ("reproduce the nose as in the identity references"), sin describir una
+  nariz vieja. Si la carpeta está vacía, cae a las fotos viejas (`FotoPrueba*`) y
+  la UI muestra un aviso de "rostro viejo".
+- **Motor principal: OpenAI GPT Image 2** (`gpt-image-2`, "ChatGPT Images 2.0"),
+  con fallback automático a `chatgpt-image-latest` si el ID fijo no está
+  habilitado en la cuenta. Configurable con `SS_OPENAI_IMAGE_MODEL`. Nota:
+  `gpt-image-2` no acepta `input_fidelity` (se omite). Google Vertex (Gemini 3
+  Pro Image) queda como alternativa secundaria.
+- **Planner de estilo (visión):** cuando el proveedor es Google, un pase de
+  Gemini analiza las referencias de estilo y devuelve un brief
+  (wardrobe/set/lighting/mood/colorPalette/styling + 4 tomas). Con OpenAI se pasa
+  el estilo directo al modelo de imagen (GPT Image 2 razona sobre las fotos).
+- **Proporciones reales:** el prompt y las system instructions piden explícitamente
+  respetar el cuerpo real de las referencias y NO inventar que es más gorda,
+  curvy, delgada, alta o baja.
+
+Archivos nuevos/relevantes de esta versión:
+
+- `public/robeanny-face/` — fotos de identidad (rostro + cuerpo).
+- `src/lib/secret-studio-shared.ts` — tipo `StudioStyleBrief`, sin presets.
+- `src/lib/secret-studio.ts` — `getRobeannyIdentityReferences`,
+  `normalizeStyleBrief`, `buildSecretStudioPrompt` (réplica de estilo).
+- `src/app/api/ss/generate/route.ts` — buckets identidad/estilo, GPT Image 2.
+- `src/app/ss/SecretStudioClient.tsx` — subida de estilo + panel de rostro base.
+
 ## Resumen rápido
 
 `/ss` es una ruta privada dentro del sitio de Robeanny para generar álbumes editoriales con IA a partir de fotos reales de referencia.

@@ -1,0 +1,18 @@
+ROSTRO BASE DE ROBEANNY (identidad)
+===================================
+
+Pon aquí las fotos NUEVAS del rostro de Robeanny (post-operación de nariz).
+Estas imágenes son el ancla de identidad: de aquí sale su cara, su nariz,
+sus ojos, etc. El estudio NUNCA copia la ropa de estas fotos, solo la cara.
+
+Recomendado:
+- 3 a 5 fotos nítidas, buena luz, cara despejada.
+- Frente, 3/4 y perfil ayudan a fijar mejor la nariz nueva.
+- Formatos aceptados: .jpg .jpeg .png .webp
+- El orden es alfabético; la PRIMERA foto (por nombre) se usa como ancla
+  facial principal. Nómbrala p.ej. 01-frente.jpg, 02-tresquartos.jpg, 03-perfil.jpg
+
+Mientras esta carpeta esté vacía, el motor cae a las fotos viejas
+(FotoPrueba*) y la UI avisa que todavía está usando la nariz vieja.
+
+Este archivo .txt se ignora (solo se leen imágenes).

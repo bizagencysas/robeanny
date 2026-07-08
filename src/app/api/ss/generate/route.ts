@@ -5,28 +5,24 @@ import path from "path";
 import { GoogleAuth } from "google-auth-library";
 import {
   GoogleQualityMode,
-  SECRET_STUDIO_BODY_SUPPORT_REFERENCES,
-  StudioPresetId,
-  SECRET_STUDIO_PRIMARY_FACE_REFERENCES,
-  SECRET_STUDIO_SECONDARY_FACE_REFERENCES,
-  getStudioPreset,
+  StudioAspectRatio,
+  StudioProvider,
+  StudioStyleBrief,
 } from "@/lib/secret-studio-shared";
 import {
   SECRET_STUDIO_COOKIE,
-  SECRET_STUDIO_FALLBACK_REFERENCES,
-  SecretStudioCreativePlan,
-  StudioAspectRatio,
-  StudioProvider,
   assertVertexAiConfiguration,
   assertSafeCreativeNotes,
   buildSecretStudioPrompt,
   createRecipeSignature,
   getAvailableStudioProviders,
+  getRobeannyIdentityReferences,
   getVertexAiConfigurationError,
   getOpenAiImageSize,
   getStudioProviderLabel,
   getSecretStudioCorsHeaders,
   hasSecretStudioAccess,
+  normalizeStyleBrief,
 } from "@/lib/secret-studio";
 
 export const runtime = "nodejs";
@@ -34,18 +30,16 @@ export const maxDuration = 300;
 
 type GenerateBody = {
   provider?: StudioProvider;
-  presetId?: StudioPresetId;
   notes?: string;
-  direction?: string;
   aspectRatio?: StudioAspectRatio;
   iteration?: number;
   albumSize?: number;
   faceLockStrong?: boolean;
   albumSeed?: string;
-  excludedRecipeSignatures?: string[];
   recentRecipes?: Array<Record<string, string>>;
   googleQualityMode?: GoogleQualityMode;
-  references?: string[];
+  /** Referencias de estilo que sube el usuario: el look a reproducir. */
+  styleReferences?: string[];
 };
 
 type PreparedReference = {
@@ -82,7 +76,8 @@ type StreamEvent =
     albumSize: number;
     googleQualityMode: GoogleQualityMode | null;
     note: string | null;
-    presetId: StudioPresetId;
+    identitySource: "folder" | "legacy";
+    styleReferenceCount: number;
   }
   | {
     type: "progress";
@@ -111,10 +106,17 @@ type StreamEvent =
     error: string;
   };
 
-const maxReferencesByProvider: Record<StudioProvider, number> = {
-  google: 4,
+const maxStyleReferencesByProvider: Record<StudioProvider, number> = {
+  google: 3,
   openai: 3,
 };
+
+// Modelo de imagen de OpenAI: por defecto el último estable (GPT Image 2 /
+// "ChatGPT Images 2.0"). Configurable por si cambia el ID en el futuro.
+const OPENAI_IMAGE_MODEL =
+  process.env.SS_OPENAI_IMAGE_MODEL || "gpt-image-2";
+// Alias de respaldo por si el ID fijo no está habilitado en la cuenta.
+const OPENAI_IMAGE_MODEL_FALLBACK = "chatgpt-image-latest";
 
 const VERTEX_GEMINI_MODEL =
   process.env.VERTEX_GEMINI_MODEL || "gemini-2.5-flash";
@@ -136,18 +138,6 @@ let cloudinaryPresetEnsured = false;
 
 function isAspectRatio(value: string): value is StudioAspectRatio {
   return ["1:1", "3:4", "4:5", "9:16", "16:9"].includes(value);
-}
-
-function isPresetId(value: string): value is StudioPresetId {
-  return [
-    "white_seamless",
-    "warm_beige",
-    "beauty_crop",
-    "full_body_catalogue",
-    "seated_studio",
-    "commercial_denim",
-    "sensual_editorial",
-  ].includes(value);
 }
 
 function getVertexGoogleImageSize(): VertexGoogleImageSize {
@@ -228,17 +218,17 @@ async function publicFileToReference(
   };
 }
 
-async function prepareReference(source: string, index: number) {
+async function prepareReference(source: string, filenameBase: string) {
   if (source.startsWith("data:")) {
-    return dataUrlToReference(source, `reference-${index + 1}`);
+    return dataUrlToReference(source, filenameBase);
   }
 
   if (source.startsWith("http://") || source.startsWith("https://")) {
-    return urlToReference(source, `reference-${index + 1}`);
+    return urlToReference(source, filenameBase);
   }
 
   if (source.startsWith("/")) {
-    return publicFileToReference(source, `reference-${index + 1}`);
+    return publicFileToReference(source, filenameBase);
   }
 
   throw new Error("Solo se aceptan referencias en data URL, URL absoluta o rutas de `public/`.");
@@ -439,43 +429,88 @@ async function uploadGeneratedImageToCloudinary({
   };
 }
 
+/**
+ * Ensambla las referencias que se envían al modelo de imagen: primero las
+ * anclas de identidad (rostro), luego las de estilo (look). `identityCount`
+ * le dice al modelo cuántas de las primeras imágenes son identidad.
+ */
+type ReferenceBundle = {
+  references: PreparedReference[];
+  identityCount: number;
+  hasAlbumAnchor: boolean;
+};
+
 async function generateWithOpenAi({
   prompt,
   aspectRatio,
-  references,
-  hasAlbumAnchor = false,
+  bundle,
 }: {
   prompt: string;
   aspectRatio: StudioAspectRatio;
-  references: PreparedReference[];
-  hasAlbumAnchor?: boolean;
+  bundle: ReferenceBundle;
 }) {
-  const response = await fetch("https://api.openai.com/v1/images/edits", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: "gpt-image-1.5",
-      prompt: [
-        prompt,
-        hasAlbumAnchor
-          ? "Use the first reference as the album anchor and preserve its exact same woman, same styling, same face, and same set continuity."
-          : "Use the first reference as the primary face anchor with the highest fidelity.",
-      ].join(" "),
+  const { references, identityCount, hasAlbumAnchor } = bundle;
+  const bucketNote = hasAlbumAnchor
+    ? `The first ${identityCount} image(s) are IDENTITY references of the real woman: image 1 is her FACE (copy it exactly, including her nose); any other identity image shows her REAL BODY and proportions — match her actual figure and body shape, do NOT make her heavier, curvier, thinner or taller than she is. The next image is the previous album frame — match its exact outfit, hair, makeup and set. Any remaining images are STYLE references (wardrobe/set/lighting/mood only) — never copy their faces or bodies.`
+    : `The first ${identityCount} image(s) are IDENTITY references of the real woman: image 1 is her FACE (copy it exactly, including her nose); any other identity image shows her REAL BODY and proportions — match her actual figure and body shape, do NOT make her heavier, curvier, thinner or taller than she is. The remaining images are STYLE references: copy their wardrobe, set, lighting, color and mood, but never their faces or bodies.`;
+
+  // GPT Image 2 procesa cada entrada en alta fidelidad y NO acepta
+  // `input_fidelity`; los gpt-image-1.x sí. Lo incluimos solo en ese caso.
+  const isGptImage2 =
+    OPENAI_IMAGE_MODEL.startsWith("gpt-image-2") ||
+    OPENAI_IMAGE_MODEL === OPENAI_IMAGE_MODEL_FALLBACK;
+
+  const callOpenAi = async (model: string) => {
+    const body: Record<string, unknown> = {
+      model,
+      prompt: [prompt, bucketNote].join(" "),
       size: getOpenAiImageSize(aspectRatio),
       quality: "high",
-      input_fidelity: "high",
       output_format: "jpeg",
       output_compression: 90,
       images: references.map((reference) => ({
         image_url: `data:${reference.mimeType};base64,${reference.base64}`,
       })),
-    }),
-  });
+    };
 
-  const payload = await response.json().catch(() => null);
+    if (!isGptImage2) {
+      body.input_fidelity = "high";
+    }
+
+    const res = await fetch("https://api.openai.com/v1/images/edits", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify(body),
+    });
+
+    return { res, payload: await res.json().catch(() => null) };
+  };
+
+  const isInvalidModelError = (payload: { error?: { message?: string; code?: string } } | null) => {
+    const message = (payload?.error?.message || "").toLowerCase();
+    const code = (payload?.error?.code || "").toLowerCase();
+    return (
+      code.includes("model") ||
+      message.includes("model") ||
+      message.includes("does not exist") ||
+      message.includes("not found") ||
+      message.includes("unknown")
+    );
+  };
+
+  let { res: response, payload } = await callOpenAi(OPENAI_IMAGE_MODEL);
+
+  // Si el ID fijo no está habilitado en la cuenta, reintenta con el alias.
+  if (
+    !response.ok &&
+    OPENAI_IMAGE_MODEL !== OPENAI_IMAGE_MODEL_FALLBACK &&
+    isInvalidModelError(payload)
+  ) {
+    ({ res: response, payload } = await callOpenAi(OPENAI_IMAGE_MODEL_FALLBACK));
+  }
 
   if (!response.ok) {
     const message =
@@ -510,16 +545,15 @@ async function generateWithOpenAi({
 async function generateWithVertexGeminiImage({
   prompt,
   aspectRatio,
-  references,
+  bundle,
   seed,
-  hasAlbumAnchor = false,
 }: {
   prompt: string;
   aspectRatio: StudioAspectRatio;
-  references: PreparedReference[];
+  bundle: ReferenceBundle;
   seed: number;
-  hasAlbumAnchor?: boolean;
 }) {
+  const { references, identityCount, hasAlbumAnchor } = bundle;
   const { projectId } = getVertexSession();
   const token = await getVertexAccessToken();
   const location = VERTEX_GOOGLE_IMAGE_LOCATION;
@@ -528,6 +562,10 @@ async function generateWithVertexGeminiImage({
     location === "global"
       ? "https://aiplatform.googleapis.com"
       : `https://${location}-aiplatform.googleapis.com`;
+  const bucketNote = hasAlbumAnchor
+    ? `The first ${identityCount} attached image(s) are IDENTITY references of the real woman: image 1 is her FACE (her face, including her nose, comes from it above all others); any other identity image shows her REAL BODY and proportions — match her actual figure, do NOT make her heavier, curvier, thinner or taller. The next attached image is the previous album frame: match its exact outfit, hair, makeup, set and lighting. Any remaining images are STYLE references (wardrobe/set/mood only).`
+    : `The first ${identityCount} attached image(s) are IDENTITY references of the real woman: image 1 is her FACE (her face, including her nose, comes only from it); any other identity image shows her REAL BODY and proportions — match her actual figure, do NOT make her heavier, curvier, thinner or taller. Any remaining images are STYLE references: copy their wardrobe, set, lighting, color and mood, but never their faces, bodies or identity.`;
+
   const response = await fetch(
     `${endpointHost}/v1/projects/${projectId}/locations/${location}/publishers/google/models/${VERTEX_GOOGLE_IMAGE_MODEL}:generateContent`,
     {
@@ -541,26 +579,22 @@ async function generateWithVertexGeminiImage({
           parts: [
             {
               text: [
-                "Generate a realistic studio fashion photograph.",
+                "Generate a realistic fashion photograph.",
                 "ABSOLUTE RULE: facial identity preservation is the #1 non-negotiable constraint, above all creative direction.",
-                "The woman in the output MUST be the exact same real adult woman shown in the reference images — not a lookalike, not a similar model, not an inspired-by version, not a twin, not a blend.",
-                "Her face is her face. Do not reinterpret, generalize, soften, sharpen, age, rejuvenate, or blend her facial features in any way.",
-                "Match the same apparent age visible in the references — she is in her 20s but looks very young, baby-faced, like late teens / early 20s. Never age her up or mature her facial features.",
-                "HARD NEGATIVE ON AGE: She looks like a very young woman. The output must NEVER make her look 30, 35, 40, or older. No wrinkles, no expression lines, no forehead lines, no crow's feet, no nasolabial folds, no sagging skin, no hollow cheeks. Keep her skin smooth, plump, and baby-faced.",
-                "Keep her body proportions youthful and toned. No mature body language or middle-aged woman energy.",
-                "Keep dark-brown eyes in every single frame — never hazel, green, blue, or gray.",
-                "Keep blonde hair with warm honey/golden highlights in every frame — never dark brown, black, red, or any non-blonde color.",
-                "Preserve real skin texture, believable pores, natural facial asymmetry, and non-waxy skin.",
-                "Preserve youthful cheek fullness, smooth under-eyes, soft feminine facial contours, and every recognizable beauty detail from the references.",
-                "Preserve exact nose bridge, nose tip, lip shape, lip volume, brow shape, eyelid shape, jawline, chin shape, cheek volume, hairline, and smile line.",
-                "Do not average identity across references. Do not invent a blended face. Do not create a generic model face.",
+                "The woman in the output MUST be the exact same real adult woman shown in the FACE IDENTITY reference images — not a lookalike, not a similar model, not an inspired-by version, not a twin, not a blend.",
+                "Her face is her face. Reproduce it exactly from the identity references. Do not reinterpret, generalize, soften, sharpen, age, rejuvenate or blend her facial features.",
+                "Reproduce the exact shape of her NOSE (bridge, tip, nostrils) as it appears in the FACE IDENTITY references. Do NOT use any generic, remembered or averaged nose. Never take the nose from the style references.",
+                "She is in her early 20s and looks very young and baby-faced. Never age her: no wrinkles, no expression lines, no forehead lines, no crow's feet, no nasolabial folds, no hollow cheeks.",
+                "Keep dark-brown eyes in every frame — never hazel, green, blue or gray.",
+                "Keep her hair color, length and texture consistent with the identity references (or with the hairstyle described in the prompt); do not invent a different hair color.",
+                "Preserve real skin texture, believable pores, natural facial asymmetry and non-waxy skin.",
+                "Match her REAL body shape and proportions from the identity references — keep her actual figure and weight. Do NOT make her look heavier, curvier, thinner, taller or shorter than she is, and do not exaggerate any body part.",
+                "STYLE references are ONLY for wardrobe, set, location, lighting, color and mood — copy that look faithfully, but never copy their faces, bodies, noses or identity.",
+                "Never copy clothing from the FACE IDENTITY references; never copy the face from the STYLE references.",
                 "If there is any conflict between creative direction and identity fidelity, identity fidelity ALWAYS wins.",
-                "Avoid CGI look, waxy skin, mannequin posture, distorted anatomy, extra fingers, extra limbs, generic beauty-face, and fake gradient backgrounds.",
-                "HARD NEGATIVE: Never dress her as a businesswoman, corporate executive, office worker, or marketing professional. Never put her in a black blazer, suit jacket, business suit, or officewear. She is a young fashion model, not a corporate woman.",
-                "Prefer grounded studio realism over stylized glamour.",
-                hasAlbumAnchor
-                  ? "The first attached image is the high-resolution facial identity anchor — identity comes from this image above all others. The second image is the album continuity anchor for styling and set. The remaining images provide additional face angles and body proportion context."
-                  : "The first attached image is the high-resolution facial identity anchor. The other images provide secondary face angles and body proportions. DO NOT COPY THEIR CLOTHING. You must generate entirely new clothing based on the text prompt.",
+                "Avoid CGI look, waxy skin, mannequin posture, distorted anatomy, extra fingers, extra limbs and fake gradient backgrounds.",
+                "Prefer grounded realism over stylized glamour.",
+                bucketNote,
               ].join(" "),
             },
           ],
@@ -572,19 +606,15 @@ async function generateWithVertexGeminiImage({
               {
                 text: [
                   prompt,
-                  hasAlbumAnchor
-                    ? "Use the first attached image as the primary facial identity source — her face defines who this woman is. Use the second attached image as the continuity anchor for outfit, set, and styling. Use additional images for body proportions and styling scale."
-                    : "Use the first attached image as the primary facial identity source. Use the second image for secondary face angle. Use additional images for body proportions.",
-                  "CRITICAL IDENTITY RULE: The output face must be a pixel-level match to the first reference. Maintain exact facial geometry, lip shape, lip volume, nose shape, brow arch, eyelid shape, jawline, chin, and cheek volume.",
-                  "Preserve her exact face, skin tone, hairline, jawline, nose, lips, and dark-brown eyes.",
-                  "DO NOT COPY THE CLOTHING, WARDROBE, OR OUTFITS FROM THE REFERENCE IMAGES. The reference images are ONLY for facial identity and body proportions. You MUST generate the explicit new Wardrobe requested in the prompt.",
-                  "Copying the beige sweater, pants, or any clothing from the reference images is a complete failure.",
-                  "Do not blend, average, or generalize the face from multiple references. The first facial anchor defines who she is. If in doubt, copy the face more literally.",
+                  bucketNote,
+                  "CRITICAL IDENTITY RULE: the output face must be a faithful match to the IDENTITY reference(s). Maintain exact facial geometry, nose shape, lip shape, brow arch, eyelid shape, jawline, chin and cheek volume.",
+                  "Match her real body shape and proportions from the identity references — do not make her heavier, curvier, thinner, taller or shorter than she really is.",
+                  "Do not blend, average or generalize her face. If in doubt, copy her face — including her nose — more literally.",
                   "Do not create a different woman who merely looks similar. This must be recognizably, unmistakably the same person.",
                   hasAlbumAnchor
-                    ? "Match the same exact outfit pieces, same hair styling, same makeup, same studio set, and same light quality from the anchor image. Only change pose, crop, and expression."
-                    : "Lock one single outfit, one single hair setup, one single makeup direction, and one single studio lighting setup for the whole album.",
-                  "Create one single highly realistic studio photo with believable lighting, believable clothing construction, and natural human anatomy.",
+                    ? "Match the exact outfit, hair, makeup, set and lighting from the previous album frame. Only change pose, crop, angle and expression."
+                    : "Lock one single outfit, one single hair setup, one makeup direction and one lighting setup for the whole album, reproduced from the style references.",
+                  "Create one single highly realistic photo with believable lighting, believable clothing construction and natural human anatomy.",
                 ].join(" "),
               },
               ...references.map((reference) => ({
@@ -685,16 +715,14 @@ async function generateWithVertexGeminiImage({
 async function generateWithVertexGeminiImageWithRetry({
   prompt,
   aspectRatio,
-  references,
+  bundle,
   seed,
-  hasAlbumAnchor = false,
   attempts = 2,
 }: {
   prompt: string;
   aspectRatio: StudioAspectRatio;
-  references: PreparedReference[];
+  bundle: ReferenceBundle;
   seed: number;
-  hasAlbumAnchor?: boolean;
   attempts?: number;
 }) {
   let lastError: unknown;
@@ -704,9 +732,8 @@ async function generateWithVertexGeminiImageWithRetry({
       return await generateWithVertexGeminiImage({
         prompt,
         aspectRatio,
-        references,
+        bundle,
         seed: createVertexSeed(`${seed}-${attempt}`, prompt, attempt),
-        hasAlbumAnchor,
       });
     } catch (error) {
       lastError = error;
@@ -738,35 +765,6 @@ function extractJsonObject(text: string) {
   return JSON.parse(text.slice(start, end + 1));
 }
 
-function normalizeCreativePlan(
-  value: unknown
-): Partial<SecretStudioCreativePlan> | null {
-  if (!value || typeof value !== "object") return null;
-
-  const candidate = value as Record<string, unknown>;
-
-  return {
-    creativeDirection:
-      typeof candidate.creativeDirection === "string"
-        ? candidate.creativeDirection
-        : undefined,
-    wardrobe:
-      typeof candidate.wardrobe === "string" ? candidate.wardrobe : undefined,
-    albumPose:
-      typeof candidate.albumPose === "string" ? candidate.albumPose : undefined,
-    hair: typeof candidate.hair === "string" ? candidate.hair : undefined,
-    lighting:
-      typeof candidate.lighting === "string" ? candidate.lighting : undefined,
-    location:
-      typeof candidate.location === "string" ? candidate.location : undefined,
-    lens: typeof candidate.lens === "string" ? candidate.lens : undefined,
-    stylingNotes:
-      typeof candidate.stylingNotes === "string"
-        ? candidate.stylingNotes
-        : undefined,
-  };
-}
-
 async function runWithConcurrency<T>(
   tasks: Array<() => Promise<T>>,
   concurrency: number,
@@ -792,126 +790,98 @@ async function runWithConcurrency<T>(
   return results;
 }
 
-async function generateCreativePlan({
+/**
+ * Planner de ESTILO: mira las referencias de estilo (con Gemini visión cuando
+ * el proveedor es Google) y devuelve un brief del look a reproducir. Nunca
+ * describe el rostro. Si no hay visión disponible o falla, cae a un brief
+ * derivado de las notas del usuario.
+ */
+async function analyzeStyleReferences({
   provider,
-  direction,
-  presetDescription,
+  styleReferences,
   notes,
-  aspectRatio,
-  faceLockStrong,
+  albumSize,
   albumSeed,
-  attempt,
   recentRecipes,
 }: {
   provider: StudioProvider;
-  direction: string;
-  presetDescription: string;
+  styleReferences: PreparedReference[];
   notes: string;
-  aspectRatio: StudioAspectRatio;
-  faceLockStrong: boolean;
+  albumSize: number;
   albumSeed: string;
-  attempt: number;
   recentRecipes: Array<Record<string, string>>;
-}) {
+}): Promise<StudioStyleBrief> {
+  const fallback = () => normalizeStyleBrief({}, albumSize, notes);
+
+  if (provider !== "google" || !styleReferences.length) {
+    return fallback();
+  }
+
   const plannerPrompt = [
-    "Create a distinct fashion album recipe for the same real adult female model shown in photo references.",
-    "CRITICAL: Every field you generate must describe styling for THE SAME WOMAN from the references. She must remain the exact same person, not a lookalike or reinterpretation.",
-    "Return JSON only with these keys: creativeDirection, wardrobe, albumPose, hair, lighting, location, lens, stylingNotes.",
-    "The creativeDirection MUST start with 'same woman from the references' followed by the creative concept.",
-    "Make the album feel meaningfully different from the recent recipes while staying inside the preset direction.",
-    "Keep it grounded, commercial, elegant, wearable, and fully clothed.",
-    "The same woman must remain recognizable, with dark-brown eyes, blonde hair with warm honey highlights, same face shape, same age, same skin tone.",
-    "Strong preference: polished studio imagery, clean backdrop, believable lighting, real skin texture, and natural human anatomy.",
-    "Do not describe a generic model. Describe styling FOR the specific woman in the references.",
-    "HARD NEGATIVE: Never describe businesswoman styling, corporate wardrobe, office looks, black blazers, suit jackets, executive portraits, or LinkedIn headshot energy. She is a young fashion model in an editorial session, not a corporate professional.",
-    `Freshness token: ${albumSeed}-${attempt}.`,
-    `Requested preset direction: ${direction}.`,
-    `Preset description: ${presetDescription}.`,
-    `Aspect ratio: ${aspectRatio}.`,
-    `Face lock strong: ${faceLockStrong ? "yes" : "no"}.`,
+    "You are the art director of a private fashion photo studio.",
+    "Look ONLY at the attached STYLE reference images (and the user notes) and describe the exact look to reproduce for a photo album of one specific, already-known female model.",
+    "Return JSON ONLY with these keys: wardrobe, setDesign, lighting, mood, colorPalette, styling, shots.",
+    "wardrobe: the garments, cut, fabric and colors seen in the references. setDesign: the location/backdrop/set. lighting: the lighting quality and direction. mood: the overall vibe. colorPalette: the dominant colors. styling: the hair, makeup and accessory styling.",
+    "Describe all of that EXACTLY as seen in the style references. Do NOT describe the person's face, nose, ethnicity, age or identity — only the look, clothes, scene and vibe.",
+    `shots: an array of EXACTLY ${albumSize} short shot directions (pose / crop / angle / expression). Keep wardrobe/set/lighting/mood identical across all shots; vary only pose, crop, angle and expression.`,
+    "If the references show several different looks, pick the single strongest coherent look and stay consistent.",
     notes ? `User notes: ${notes}.` : "",
     recentRecipes.length
-      ? `Avoid repeating these recent album recipes: ${JSON.stringify(
-        recentRecipes
-      )}.`
+      ? `Try to vary the poses/shots versus these recent albums: ${JSON.stringify(recentRecipes)}.`
       : "",
+    `Freshness token: ${albumSeed}.`,
   ]
     .filter(Boolean)
     .join(" ");
 
   try {
-    if (provider === "openai" && process.env.OPENAI_API_KEY) {
-      const response = await fetch("https://api.openai.com/v1/responses", {
+    const { projectId, location } = getVertexSession();
+    const token = await getVertexAccessToken();
+    const response = await fetch(
+      `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/${VERTEX_GEMINI_MODEL}:generateContent`,
+      {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          model: process.env.SS_OPENAI_PROMPT_MODEL || "gpt-5-pro",
-          reasoning: {
-            effort: "high",
-          },
-          input: plannerPrompt,
-        }),
-      });
-
-      const payload = await response.json().catch(() => null);
-      const text =
-        payload?.output_text ||
-        payload?.output?.flatMap(
-          (item: { content?: Array<{ text?: string }> }) => item.content || []
-        )
-          ?.map((item: { text?: string }) => item.text || "")
-          .join("") ||
-        "";
-
-      if (response.ok && text) {
-        return normalizeCreativePlan(extractJsonObject(text));
-      }
-    }
-
-    if (provider === "google") {
-      const { projectId, location } = getVertexSession();
-      const token = await getVertexAccessToken();
-      const response = await fetch(
-        `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/${VERTEX_GEMINI_MODEL}:generateContent`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            contents: [
-              {
-                role: "user",
-                parts: [{ text: plannerPrompt }],
-              },
-            ],
-            generationConfig: {
-              temperature: 0.5,
-              responseMimeType: "application/json",
-              maxOutputTokens: 2048,
+          contents: [
+            {
+              role: "user",
+              parts: [
+                { text: plannerPrompt },
+                ...styleReferences.map((reference) => ({
+                  inlineData: {
+                    mimeType: reference.mimeType,
+                    data: reference.base64,
+                  },
+                })),
+              ],
             },
-          }),
-        }
-      );
-      const payload = await response.json().catch(() => null);
-      const text =
-        payload?.candidates?.[0]?.content?.parts
-          ?.map((part: { text?: string }) => part.text || "")
-          .join("") || "";
-
-      if (response.ok && text) {
-        return normalizeCreativePlan(extractJsonObject(text));
+          ],
+          generationConfig: {
+            temperature: 0.5,
+            responseMimeType: "application/json",
+            maxOutputTokens: 2048,
+          },
+        }),
       }
+    );
+    const payload = await response.json().catch(() => null);
+    const text =
+      payload?.candidates?.[0]?.content?.parts
+        ?.map((part: { text?: string }) => part.text || "")
+        .join("") || "";
+
+    if (response.ok && text) {
+      return normalizeStyleBrief(extractJsonObject(text), albumSize, notes);
     }
   } catch {
-    return null;
+    return fallback();
   }
 
-  return null;
+  return fallback();
 }
 
 function streamHeaders(request: Request) {
@@ -1005,28 +975,13 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const presetId =
-    typeof body.presetId === "string" && isPresetId(body.presetId)
-      ? body.presetId
-      : "white_seamless";
-  const preset = getStudioPreset(presetId);
   const userNotes = typeof body.notes === "string" ? body.notes.trim() : "";
-  const notes = [preset.notes, userNotes].filter(Boolean).join(" ");
-  const direction =
-    typeof body.direction === "string" && body.direction.trim()
-      ? body.direction.trim()
-      : preset.label;
   const rawAspectRatio =
     typeof body.aspectRatio === "string" ? body.aspectRatio : "";
-  const aspectRatio = isAspectRatio(rawAspectRatio)
-    ? rawAspectRatio
-    : "4:5";
+  const aspectRatio = isAspectRatio(rawAspectRatio) ? rawAspectRatio : "4:5";
   const effectiveAspectRatio: StudioAspectRatio =
     requestedProvider === "google" ? "3:4" : aspectRatio;
   const iteration = Number.isFinite(body.iteration) ? Number(body.iteration) : 0;
-  const requestedAlbumSize = Number.isFinite(body.albumSize)
-    ? Number(body.albumSize)
-    : 4;
   const albumSize = 4;
   const faceLockStrong = body.faceLockStrong !== false;
   const googleQualityMode =
@@ -1035,130 +990,119 @@ export async function POST(request: NextRequest) {
     typeof body.albumSeed === "string" && body.albumSeed.trim()
       ? body.albumSeed.trim()
       : `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-  const excludedRecipeSignatures = Array.isArray(body.excludedRecipeSignatures)
-    ? body.excludedRecipeSignatures.filter(
-      (item): item is string => typeof item === "string" && item.length > 0
-    )
-    : [];
   const recentRecipes = Array.isArray(body.recentRecipes)
     ? body.recentRecipes.filter(
       (item): item is Record<string, string> =>
         !!item && typeof item === "object" && !Array.isArray(item)
     )
     : [];
-  const incomingReferences = Array.isArray(body.references)
-    ? body.references.filter((item): item is string => typeof item === "string")
+  const incomingStyleReferences = Array.isArray(body.styleReferences)
+    ? body.styleReferences.filter(
+      (item): item is string => typeof item === "string" && item.length > 0
+    )
     : [];
 
   try {
-    assertSafeCreativeNotes(notes);
+    assertSafeCreativeNotes(userNotes);
 
-    const fallbackReferenceSet = new Set(SECRET_STUDIO_FALLBACK_REFERENCES);
-    const primaryFaceReferenceSet = new Set(SECRET_STUDIO_PRIMARY_FACE_REFERENCES);
-    const secondaryFaceReferenceSet = new Set(SECRET_STUDIO_SECONDARY_FACE_REFERENCES);
-    const bodySupportReferenceSet = new Set(SECRET_STUDIO_BODY_SUPPORT_REFERENCES);
-    const uniqueReferences = Array.from(
-      new Set(
-        incomingReferences.length
-          ? incomingReferences
-          : SECRET_STUDIO_FALLBACK_REFERENCES
-      )
-    ).sort((left, right) => {
-      const getPriority = (value: string) => {
-        if (value.startsWith("data:")) return 0;
-        if (!fallbackReferenceSet.has(value)) return 1;
-        if (primaryFaceReferenceSet.has(value)) return 2;
-        if (secondaryFaceReferenceSet.has(value)) return 3;
-        if (bodySupportReferenceSet.has(value)) return 4;
-        return 5;
-      };
-
-      return getPriority(left) - getPriority(right);
-    });
-
-    const uploadedReferences = uniqueReferences.filter((reference) =>
-      reference.startsWith("data:")
-    );
-    const preferredGoogleFallbackReferences = [
-      SECRET_STUDIO_PRIMARY_FACE_REFERENCES[0],
-      SECRET_STUDIO_PRIMARY_FACE_REFERENCES[1] ||
-      SECRET_STUDIO_SECONDARY_FACE_REFERENCES[0],
-      SECRET_STUDIO_SECONDARY_FACE_REFERENCES[0] ||
-      SECRET_STUDIO_PRIMARY_FACE_REFERENCES[0],
-      SECRET_STUDIO_BODY_SUPPORT_REFERENCES[0],
-    ].filter((value, index, self): value is string =>
-      Boolean(value) && self.indexOf(value) === index
-    );
-
-    const references =
-      requestedProvider === "google" && !uploadedReferences.length
-        ? preferredGoogleFallbackReferences.filter((value) =>
-          uniqueReferences.includes(value)
-        )
-        : (uploadedReferences.length ? uploadedReferences : uniqueReferences).slice(
-          0,
-          maxReferencesByProvider[requestedProvider]
-        );
-
-    if (!references.length) {
-      throw new Error("Sube al menos una foto de referencia para arrancar.");
+    if (!incomingStyleReferences.length && !userNotes) {
+      throw new Error(
+        "Sube al menos una referencia de imagen (el look que quieres) o escribe una nota de dirección."
+      );
     }
 
-    const preparedReferences = await Promise.all(
-      references.map((reference, index) => prepareReference(reference, index))
+    // 1) Identidad de Robeanny (rostro) desde la carpeta pública.
+    const identity = getRobeannyIdentityReferences();
+    const identityReferences = Array.from(new Set(identity.references)).slice(0, 3);
+
+    // 2) Referencias de estilo (el look) que subió el usuario.
+    const styleSources = Array.from(new Set(incomingStyleReferences)).slice(
+      0,
+      maxStyleReferencesByProvider[requestedProvider]
     );
+
+    const [preparedIdentity, preparedStyle] = await Promise.all([
+      Promise.all(
+        identityReferences.map((reference, index) =>
+          prepareReference(reference, `identity-${index + 1}`)
+        )
+      ),
+      Promise.all(
+        styleSources.map((reference, index) =>
+          prepareReference(reference, `style-${index + 1}`)
+        )
+      ),
+    ]);
+
+    if (!preparedIdentity.length) {
+      throw new Error(
+        "No encontré fotos de identidad de Robeanny. Agrega imágenes en `public/robeanny-face/`."
+      );
+    }
+
     const albumFolder = `${getCloudinaryConfig().folder}/albums/${albumSeed}`;
 
-    let prompts: Array<ReturnType<typeof buildSecretStudioPrompt>> = [];
-    let recipeSignature = "";
+    // 3) Brief de estilo a partir de las referencias (o de las notas).
+    const styleBrief = await analyzeStyleReferences({
+      provider: requestedProvider,
+      styleReferences: preparedStyle,
+      notes: userNotes,
+      albumSize,
+      albumSeed,
+      recentRecipes,
+    });
 
-    for (let attempt = 0; attempt < 8; attempt += 1) {
-      const creativePlan = await generateCreativePlan({
+    const prompts = Array.from({ length: albumSize }, (_, shotIndex) =>
+      buildSecretStudioPrompt({
         provider: requestedProvider,
-        direction,
-        presetDescription: preset.description,
-        notes,
-        aspectRatio: effectiveAspectRatio,
         faceLockStrong,
-        albumSeed,
-        attempt,
-        recentRecipes,
-      });
+        brief: styleBrief,
+        notes: userNotes,
+        aspectRatio: effectiveAspectRatio,
+        shotIndex,
+      })
+    );
+    const recipeSignature = createRecipeSignature(prompts[0]?.recipe || {});
 
-      const mergedPlan = {
-        ...(creativePlan || {}),
-        ...preset.plan,
+    // Anclas de identidad (rostro + cuerpo real) y de estilo para el modelo.
+    // Las primeras fotos de la carpeta son: 01 rostro, 02 cuerpo, 03 ángulo.
+    const identityAnchors = preparedIdentity.slice(0, 2);
+    const styleAnchors = preparedStyle.slice(0, 2);
+
+    const buildFirstBundle = (): ReferenceBundle => {
+      const references = [...identityAnchors, ...styleAnchors].slice(0, 4);
+      return {
+        references,
+        identityCount: Math.min(identityAnchors.length, references.length),
+        hasAlbumAnchor: false,
       };
+    };
 
-      const candidatePrompts = Array.from({ length: albumSize }, (_, shotIndex) =>
-        buildSecretStudioPrompt({
-          provider: requestedProvider,
-          faceLockStrong,
-          plan: mergedPlan,
-          notes,
-          direction,
-          aspectRatio: effectiveAspectRatio,
-          iteration,
-          albumSeed,
-          variantOffset: attempt,
-          shotIndex,
-        })
+    const buildFollowupBundle = (
+      albumAnchor: PreparedReference
+    ): ReferenceBundle => {
+      // Mantiene rostro + cuerpo en cada toma, más el frame ancla de continuidad.
+      const references = [...identityAnchors, albumAnchor, ...styleAnchors].slice(
+        0,
+        4
       );
-
-      const candidateSignature = createRecipeSignature(
-        candidatePrompts[0]?.recipe || {}
-      );
-
-      prompts = candidatePrompts;
-      recipeSignature = candidateSignature;
-
-      if (!excludedRecipeSignatures.includes(candidateSignature)) {
-        break;
-      }
-    }
+      return {
+        references,
+        identityCount: Math.min(identityAnchors.length, 2),
+        hasAlbumAnchor: true,
+      };
+    };
 
     return createStreamResponse(request, async (send) => {
       await ensureCloudinaryPresetServer();
+
+      const identityNote =
+        identity.source === "legacy"
+          ? "OJO: todavía estás usando las fotos VIEJAS del rostro (nariz previa). Agrega las nuevas en `public/robeanny-face/` para re-anclar la nariz."
+          : `Rostro anclado desde public/${"robeanny-face"} (${preparedIdentity.length} foto${preparedIdentity.length === 1 ? "" : "s"}).`;
+      const styleNote = preparedStyle.length
+        ? `Reproduciendo el look de ${preparedStyle.length} referencia${preparedStyle.length === 1 ? "" : "s"} de estilo.`
+        : "Sin referencias de estilo: el look sale solo de tus notas.";
 
       send({
         type: "meta",
@@ -1173,27 +1117,22 @@ export async function POST(request: NextRequest) {
         albumSize,
         googleQualityMode:
           requestedProvider === "google" ? googleQualityMode : null,
-        note: `${requestedProvider === "google"
-          ? "Google Vertex usa Gemini 3 Pro Image con referencias múltiples y foco total en realismo facial."
-          : "OpenAI queda marcado como experimental."} [DEBUG: ${preparedReferences.length} refs enviadas, fuentes: ${references.map(r => r.startsWith('data:') ? 'upload' : r.startsWith('http') ? 'url' : r).join(', ')}]`,
-        presetId,
+        note: `${identityNote} ${styleNote}`,
+        identitySource: identity.source,
+        styleReferenceCount: preparedStyle.length,
       });
 
       send({
         type: "progress",
         completed: 0,
         total: albumSize,
-        stage: "Receta lista. Empezando a renderizar el álbum...",
+        stage: "Brief de estilo listo. Empezando a renderizar el álbum...",
       });
 
       let completed = 0;
       const images =
         requestedProvider === "google"
           ? await (async () => {
-            const googleBaseReferences = preparedReferences.slice(
-              0,
-              Math.min(preparedReferences.length, 3)
-            );
             const results: Array<{
               index: number;
               imageUrl: string;
@@ -1205,9 +1144,8 @@ export async function POST(request: NextRequest) {
             const firstDataUrl = await generateWithVertexGeminiImageWithRetry({
               prompt: firstPrompt.prompt,
               aspectRatio: effectiveAspectRatio,
-              references: googleBaseReferences,
+              bundle: buildFirstBundle(),
               seed: createVertexSeed(albumSeed, firstPrompt.prompt, 0),
-              hasAlbumAnchor: false,
             });
             const albumAnchorReference = dataUrlToReference(
               firstDataUrl,
@@ -1245,20 +1183,13 @@ export async function POST(request: NextRequest) {
             const remainingResults = await runWithConcurrency(
               prompts.slice(1).map((item, offset) => async () => {
                 const index = offset + 1;
-                const activeReferences = [
-                  googleBaseReferences[0],
-                  albumAnchorReference,
-                  googleBaseReferences[1] || googleBaseReferences[0],
-                  googleBaseReferences[2],
-                ].filter(Boolean).slice(0, 4);
 
                 try {
                   const generatedDataUrl = await generateWithVertexGeminiImageWithRetry({
                     prompt: item.prompt,
                     aspectRatio: effectiveAspectRatio,
-                    references: activeReferences,
+                    bundle: buildFollowupBundle(albumAnchorReference),
                     seed: createVertexSeed(albumSeed, item.prompt, index),
-                    hasAlbumAnchor: true,
                   });
 
                   const uploaded = await uploadGeneratedImageToCloudinary({
@@ -1309,22 +1240,15 @@ export async function POST(request: NextRequest) {
 
             for (const missingShot of missingShots) {
               try {
-                const fallbackReferences = [
-                  googleBaseReferences[0],
-                  albumAnchorReference,
-                  googleBaseReferences[1] || googleBaseReferences[0],
-                  googleBaseReferences[2],
-                ].filter(Boolean).slice(0, 4);
                 const generatedDataUrl = await generateWithVertexGeminiImageWithRetry({
                   prompt: missingShot.item.prompt,
                   aspectRatio: effectiveAspectRatio,
-                  references: fallbackReferences,
+                  bundle: buildFollowupBundle(albumAnchorReference),
                   seed: createVertexSeed(
                     `${albumSeed}-recovery`,
                     missingShot.item.prompt,
                     missingShot.index
                   ),
-                  hasAlbumAnchor: true,
                   attempts: 3,
                 });
 
@@ -1358,7 +1282,7 @@ export async function POST(request: NextRequest) {
                   stage: `Foto ${completed} de ${albumSize} lista.`,
                 });
               } catch {
-                // Leave the album partial if even the rescue pass fails.
+                // Dejamos el álbum parcial si ni el rescate funciona.
               }
             }
 
@@ -1367,16 +1291,11 @@ export async function POST(request: NextRequest) {
             ) as typeof results;
           })()
           : await (async () => {
-            const openAiBaseReferences = preparedReferences.slice(
-              0,
-              Math.min(preparedReferences.length, 3)
-            );
             const firstPrompt = prompts[0];
             const firstDataUrl = await generateWithOpenAi({
               prompt: firstPrompt.prompt,
               aspectRatio: effectiveAspectRatio,
-              references: openAiBaseReferences,
-              hasAlbumAnchor: false,
+              bundle: buildFirstBundle(),
             });
             const albumAnchorReference = dataUrlToReference(
               firstDataUrl,
@@ -1414,17 +1333,12 @@ export async function POST(request: NextRequest) {
             const remainingResults = await runWithConcurrency(
               prompts.slice(1).map((item, offset) => async () => {
                 const index = offset + 1;
-                const activeReferences = [albumAnchorReference, ...openAiBaseReferences].slice(
-                  0,
-                  4
-                );
 
                 try {
                   const generatedDataUrl = await generateWithOpenAi({
                     prompt: item.prompt,
                     aspectRatio: effectiveAspectRatio,
-                    references: activeReferences,
-                    hasAlbumAnchor: true,
+                    bundle: buildFollowupBundle(albumAnchorReference),
                   });
                   const uploaded = await uploadGeneratedImageToCloudinary({
                     file: generatedDataUrl,

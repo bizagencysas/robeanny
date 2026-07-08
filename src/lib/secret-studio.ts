@@ -1,17 +1,21 @@
 import { createHash, timingSafeEqual } from "crypto";
+import { readdirSync } from "fs";
+import path from "path";
 import {
-  SECRET_STUDIO_FALLBACK_REFERENCES,
-  SecretStudioCreativePlan,
+  SECRET_STUDIO_LEGACY_FACE_FALLBACK,
   StudioAspectRatio,
   StudioProvider,
+  StudioStyleBrief,
   getStudioProviderLabel,
 } from "@/lib/secret-studio-shared";
 
 export const SECRET_STUDIO_COOKIE = "__robeanny_ss";
 export const SECRET_STUDIO_DEFAULT_CODE = "ROBEANNYBASTARDO";
-export { SECRET_STUDIO_FALLBACK_REFERENCES, getStudioProviderLabel };
-export type { StudioAspectRatio, StudioProvider };
-export type { SecretStudioCreativePlan };
+export { SECRET_STUDIO_LEGACY_FACE_FALLBACK, getStudioProviderLabel };
+export type { StudioAspectRatio, StudioProvider, StudioStyleBrief };
+
+/** Carpeta pública donde Robeanny coloca sus fotos NUEVAS de rostro (post-nariz). */
+export const SECRET_STUDIO_IDENTITY_DIR = "robeanny-face";
 
 const disallowedPromptTerms = [
   "desnuda",
@@ -33,143 +37,32 @@ const disallowedPromptTerms = [
   "labios genitales",
 ];
 
-const creativeDirections = [
-  "same woman from the references in a grounded studio fashion portrait",
-  "same woman from the references in a clean studio model portrait",
-  "same woman from the references in a real beauty portrait session",
-  "same woman from the references in a minimal studio fashion story",
-  "same woman from the references in a modern catalogue portrait",
-  "same woman from the references in a neutral daylight studio shoot",
-  "same woman from the references in a soft contemporary studio frame",
-  "same woman from the references in a fresh lookbook session",
-  "same woman from the references in a high-fidelity studio model portrait",
-];
-
-const wardrobeIdeas = [
-  "a fitted monochrome bodysuit with cool sneakers and minimal jewelry",
-  "a soft champagne slip dress with delicate gold jewelry and casual sandals",
-  "a crisp white crop top with clean denim and trendy sneakers",
-  "a fitted espresso knit dress with fresh modern accessories",
-  "a trendy mini dress with a cool silhouette and long clean lines",
-  "a trendy bandeau top with a flowy matching skirt and casual heels",
-  "a minimalist ribbed set with a body-skimming top and fitted skirt",
-  "a sleek satin set with effortless youthful styling",
-  "a simple but cool knit dress with long clean lines and minimal jewelry",
-  "a trendy leather-accent look with youthful studio styling",
-  "a simple slip-inspired look with casual heels and minimal accessories",
-  "a cool studio look with a body-conscious silhouette and fresh styling",
-];
-
-const poseIdeas = [
-  "standing with one shoulder angled toward camera, confident posture, subtle movement in the hips",
-  "seated on a clean studio cube with relaxed youthful posture and relaxed hands",
-  "walking mid-step as if captured during a real studio session",
-  "close beauty crop with a soft head tilt and direct gaze",
-  "leaning lightly against a textured wall with effortless cool confidence",
-  "three-quarter pose emphasizing long lines and natural posture",
-  "casual floor pose that remains tasteful, cool, and fully clothed",
-  "natural candid pose adjusting the jacket while looking past the lens",
-];
-
-const hairIdeas = [
-  "blonde soft natural waves with clean volume and warm honey highlights",
-  "blonde sleek straight blowout with healthy golden shine",
-  "blonde casual high ponytail with face-framing strands and warm highlights",
-  "blonde glossy loose curls with natural movement and honey tones",
-  "blonde effortless messy bun with delicate tendrils and warm highlights",
-  "blonde brushed-back casual finish with natural golden tones",
-  "blonde effortless half-up style with soft texture and warm highlights",
-  "blonde smooth side-parted hair with honey highlights",
-];
-
-const lightingIdeas = [
-  "controlled studio softbox lighting with natural highlight rolloff and believable skin texture",
-  "soft diffused studio lighting with clean facial highlights and realistic shadow falloff",
-  "bright daylight entering from one side",
-  "cinematic golden-hour light with gentle contrast",
-  "clean white seamless studio lighting with subtle but believable shadow definition",
-  "warm interior studio lighting with restrained specular highlights",
-  "beauty-dish lighting with realistic skin texture and precise facial definition",
-  "moody but clean side lighting with accurate skin tones and natural contrast",
-  "sunset rim light with balanced facial exposure",
-];
-
-const locationIdeas = [
-  "a clean white seamless studio with subtle sculpted shadows",
-  "a clean white cyc studio",
-  "a warm beige studio set with textured walls",
-  "a bright contemporary penthouse interior",
-  "a cool modern interior with restrained styling",
-  "a minimal concrete rooftop at blue hour",
-  "a softly lit dressing room with restrained styling",
-  "a sunlit Mediterranean-inspired terrace",
-  "a clean neutral backdrop with subtle shadows",
-];
-
-const lensIdeas = [
-  "captured like a real professional studio photograph with natural depth of field, crisp focus on the eyes, and believable lens behavior",
-  "captured on an 85mm portrait lens with realistic depth of field",
-  "captured on a 50mm fashion lens with crisp eyes and natural perspective",
-  "captured on a 70mm editorial lens with restrained commercial sharpness",
-  "captured like a high-end portrait session with detailed skin texture and believable optics",
-];
-
-const framingIdeas = [
-  "full-body frame with natural posture and clean negative space",
-  "three-quarter portrait emphasizing silhouette and styling",
-  "waist-up fashion portrait with direct youthful presence",
-  "beauty close-up centered on face, hair, and makeup",
-  "seated composition with full outfit clearly visible",
-  "walking fashion frame with movement in fabric and hair",
-  "side profile crop with strong jawline and posture",
-  "over-the-shoulder portrait with grounded studio energy",
-];
-
-const expressionIdeas = [
-  "soft confident gaze",
-  "subtle half-smile",
-  "serious cool expression",
-  "fresh natural beauty expression",
-  "playful but cool attitude",
-  "calm natural confidence",
-  "quiet confident energy",
-  "magazine-cover presence",
-];
-
-const polishRules = [
+const qualityRules = [
   "photorealistic",
   "light professional retouching while keeping natural skin texture",
   "accurate anatomy",
   "realistic hands and fingers",
-  "tasteful editorial styling",
   "no text or logos",
   "no watermark",
   "no extra people",
   "no distorted garments",
   "no duplicated limbs",
   "no uncanny eyes",
-  "no plastic skin",
+  "no plastic or waxy skin",
   "no CGI look",
   "no doll-like facial symmetry",
-  "no mannequin pose",
-  "no overly smooth gradient background",
   "keep natural fabric folds and believable garment wrinkles",
-  "NEVER dress her as a businesswoman, executive, office worker, marketing professional, or corporate woman",
-  "NEVER put her in a black blazer, suit jacket, structured blazer, business suit, slacks, modest office sweaters, or officewear of any kind",
-  "NEVER create a LinkedIn headshot, corporate portrait, graduation photo, or business-casual look",
-  "She is a 20 year old Gen-Z young woman. She must look 20, youthful, fresh — NEVER aged, mature, mid-30s, 40s, or older-looking",
-  "No wrinkles, no expression lines, no forehead lines, no crow's feet, no nasolabial folds on her face",
-  "OUTFIT RULE: Strictly follow the explicitly requested wardrobe. Do not default to streetwear or jeans unless asked. No millennial-core outfits, no mature lady clothing, no modest beige slacks.",
 ];
 
-const stylingNotesIdeas = [
-  "clean studio set, restrained retouching, believable beauty finish, natural but real commercial result",
-  "minimal jewelry, clean manicure, natural studio realism",
-  "minimalist styling, clean silhouette, grounded catalogue energy",
-  "soft glam makeup, restrained accessories, modern youthful realism",
-  "sleek fashion styling, restrained palette, believable beauty detail",
-  "cool commercial styling with real fabric texture and crisp finish",
-  "youthful fresh textures and believable studio realism",
+/**
+ * Direcciones de toma por defecto. Se usan cuando el planner no devuelve
+ * direcciones propias (p. ej. sin referencias de estilo o si falla la visión).
+ */
+const defaultShotDirections = [
+  "Opening hero frame: facing the camera with direct eye contact, waist-up or three-quarter crop, clean posture, strongest identity match.",
+  "Different angle: three-quarter body turned slightly away with the head looking back over the shoulder, different crop than shot 1.",
+  "Movement frame: walking mid-step or adjusting the outfit with visible body movement, full-body or knee-up crop, different silhouette.",
+  "Close portrait: tight beauty crop from the chest up, soft head tilt, different expression, maximum facial detail.",
 ];
 
 const openAiSizeByAspectRatio: Record<StudioAspectRatio, "1024x1024" | "1024x1536" | "1536x1024"> = {
@@ -227,15 +120,48 @@ export function getSecretStudioCorsHeaders(request: Request) {
   };
 }
 
+/**
+ * Lee la carpeta `public/robeanny-face/` y devuelve las rutas públicas de las
+ * fotos de identidad. Si está vacía, cae a las fotos viejas (nariz previa) y
+ * marca `source: "legacy"` para que la UI avise.
+ */
+export function getRobeannyIdentityReferences(): {
+  references: string[];
+  source: "folder" | "legacy";
+} {
+  try {
+    const dir = path.join(process.cwd(), "public", SECRET_STUDIO_IDENTITY_DIR);
+    const files = readdirSync(dir)
+      .filter((file) => /\.(jpe?g|png|webp)$/i.test(file))
+      .sort((left, right) => left.localeCompare(right));
+
+    if (files.length) {
+      return {
+        references: files.map((file) => `/${SECRET_STUDIO_IDENTITY_DIR}/${file}`),
+        source: "folder",
+      };
+    }
+  } catch {
+    // La carpeta puede no existir todavía: caemos al fallback.
+  }
+
+  return {
+    references: [...SECRET_STUDIO_LEGACY_FACE_FALLBACK],
+    source: "legacy",
+  };
+}
+
 export function getAvailableStudioProviders(): StudioProvider[] {
   const providers: StudioProvider[] = [];
 
-  if (hasVertexAiConfiguration()) {
-    providers.push("google");
-  }
-
+  // OpenAI (GPT Image 2) es el motor principal: va primero para que sea el
+  // proveedor por defecto cuando su API key está configurada.
   if (process.env.OPENAI_API_KEY) {
     providers.push("openai");
+  }
+
+  if (hasVertexAiConfiguration()) {
+    providers.push("google");
   }
 
   return providers;
@@ -395,177 +321,135 @@ export function assertSafeCreativeNotes(notes: string) {
   }
 }
 
-function pickVariant(options: string[], offset: number) {
-  return options[((offset % options.length) + options.length) % options.length];
+export function getDefaultShotDirection(shotIndex: number) {
+  return (
+    defaultShotDirections[shotIndex] ||
+    defaultShotDirections[defaultShotDirections.length - 1]
+  );
 }
 
-function hashText(text: string) {
-  return Array.from(text).reduce((sum, char, index) => sum + char.charCodeAt(0) * (index + 1), 0);
+/**
+ * Normaliza el brief que devuelve el planner de estilo hacia un objeto seguro,
+ * con exactamente `albumSize` direcciones de toma.
+ */
+export function normalizeStyleBrief(
+  value: unknown,
+  albumSize: number,
+  fallbackNotes = ""
+): StudioStyleBrief {
+  const candidate =
+    value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+
+  const asText = (raw: unknown, fallback: string) => {
+    const text = typeof raw === "string" ? raw.trim() : "";
+    return text || fallback;
+  };
+
+  const notesHint = fallbackNotes.trim();
+
+  const rawShots = Array.isArray(candidate.shots)
+    ? candidate.shots.filter((item): item is string => typeof item === "string")
+    : [];
+
+  const shots = Array.from({ length: albumSize }, (_, index) => {
+    const provided = rawShots[index]?.trim();
+    return provided || getDefaultShotDirection(index);
+  });
+
+  return {
+    wardrobe: asText(
+      candidate.wardrobe,
+      notesHint || "the same outfit shown in the style references, reproduced faithfully"
+    ),
+    setDesign: asText(
+      candidate.setDesign,
+      "the same set, backdrop and location shown in the style references"
+    ),
+    lighting: asText(
+      candidate.lighting,
+      "the same lighting quality and direction shown in the style references"
+    ),
+    mood: asText(candidate.mood, "the same overall mood and energy as the style references"),
+    colorPalette: asText(
+      candidate.colorPalette,
+      "the same color palette as the style references"
+    ),
+    styling: asText(
+      candidate.styling,
+      "the same hair, makeup and accessory styling as the style references"
+    ),
+    shots,
+  };
 }
 
-function normalizePlanValue(value: string | undefined, fallback: string) {
-  const normalized = value?.trim();
-  return normalized ? normalized : fallback;
+function buildIdentityLock(faceLockStrong: boolean) {
+  if (!faceLockStrong) {
+    return "Keep her recognizable identity from the IDENTITY reference photos while allowing some creative freedom.";
+  }
+
+  return [
+    "ABSOLUTE PRIORITY: facial identity preservation is the #1 constraint, above every styling or creative direction.",
+    "This must be the exact same real woman shown in the IDENTITY reference photos — not a reinterpretation, lookalike, twin, or inspired-by version.",
+    "Her face comes ENTIRELY from the IDENTITY reference photos. Reproduce her exact face shape, brow structure, eyelid shape, lip shape, smile line, cheek volume, jawline, chin, hairline and skin tone.",
+    "Reproduce the exact shape of her NOSE as it appears in the IDENTITY reference photos — the nose bridge, nose tip and nostrils must match those photos. Do NOT use any generic, remembered or averaged nose, and never take the nose from the style references.",
+    "Preserve subtle asymmetries and recognizable beauty details visible in the IDENTITY references. Do not beautify by changing ethnicity, age, eye shape, lip fullness, bone structure or facial proportions.",
+    "Match her REAL body shape and proportions from the IDENTITY references — keep her actual figure and weight. Do NOT make her look heavier, curvier, thinner, taller or shorter than she is, and do not exaggerate any body part.",
+    "She is in her early 20s and looks very young and baby-faced. Never age her: no wrinkles, no expression lines, no forehead lines, no crow's feet, no nasolabial folds, no hollow cheeks, no thinning lips.",
+    "Her eyes must remain dark brown — never hazel, green, blue or gray.",
+    "If you cannot match the identity exactly, err on the side of copying the face from the IDENTITY references more literally rather than less.",
+  ].join(" ");
 }
 
-function getAlbumSlotInstruction(shotIndex: number) {
-  const slotInstructions = [
-    "Shot 1 of 4: opening hero frame. Standing pose facing the camera with direct eye contact, waist-up or three-quarter crop, clean posture, and the strongest identity match.",
-    "Shot 2 of 4: clearly different angle. Three-quarter body turned away from the camera with the head looking back over the shoulder, different crop than shot 1.",
-    "Shot 3 of 4: movement frame. Walking mid-step or adjusting clothing with visible body movement, full-body or knee-up crop, different silhouette from earlier shots.",
-    "Shot 4 of 4: close portrait. Tight beauty crop from chest up or face-only close-up, soft head tilt, different expression from earlier shots, maximum facial detail.",
-    "Bonus shot: unique variation unlike any earlier image. Choose a novel body line, unusual crop, or asymmetric composition.",
-  ];
-
-  return slotInstructions[shotIndex] || slotInstructions[slotInstructions.length - 1];
-}
-
+/**
+ * Construye el prompt de una toma en modo "réplica de estilo":
+ * la identidad sale de las fotos de Robeanny; el look sale del brief de estilo.
+ */
 export function buildSecretStudioPrompt({
   provider,
   faceLockStrong = true,
-  plan,
+  brief,
   notes,
-  direction,
   aspectRatio,
-  iteration,
-  albumSeed = "",
-  variantOffset = 0,
   shotIndex = 0,
 }: {
   provider: StudioProvider;
   faceLockStrong?: boolean;
-  plan?: Partial<SecretStudioCreativePlan>;
+  brief: StudioStyleBrief;
   notes: string;
-  direction: string;
   aspectRatio: StudioAspectRatio;
-  iteration: number;
-  albumSeed?: string;
-  variantOffset?: number;
   shotIndex?: number;
 }) {
   assertSafeCreativeNotes(notes);
 
-  const baseOffset =
-    hashText(`${provider}|${direction}|${notes}|${aspectRatio}|${albumSeed}`) +
-    iteration * 97 +
-    variantOffset * 211;
-  const creativeDirection = normalizePlanValue(
-    plan?.creativeDirection,
-    pickVariant(creativeDirections, baseOffset)
-  );
-  const wardrobe = normalizePlanValue(
-    plan?.wardrobe,
-    pickVariant(wardrobeIdeas, baseOffset + 1)
-  );
-  const basePose = normalizePlanValue(
-    plan?.albumPose,
-    pickVariant(poseIdeas, baseOffset + 2)
-  );
-  const hair = normalizePlanValue(
-    plan?.hair,
-    pickVariant(hairIdeas, baseOffset + 3)
-  );
-  const lighting = normalizePlanValue(
-    plan?.lighting,
-    pickVariant(lightingIdeas, baseOffset + 4)
-  );
-  const location = normalizePlanValue(
-    plan?.location,
-    pickVariant(locationIdeas, baseOffset + 5)
-  );
-  const baseLens = normalizePlanValue(
-    plan?.lens,
-    pickVariant(lensIdeas, baseOffset + 6)
-  );
-  const stylingNotes = normalizePlanValue(
-    plan?.stylingNotes,
-    pickVariant(stylingNotesIdeas, baseOffset + 7)
-  );
-  const framing = pickVariant(framingIdeas, baseOffset + shotIndex);
-  const expression = pickVariant(expressionIdeas, baseOffset + shotIndex + 2);
-  const shotPose = pickVariant(poseIdeas, baseOffset + 2 + shotIndex);
-  const shotLens =
-    shotIndex % 2 === 0
-      ? baseLens
-      : pickVariant(lensIdeas, baseOffset + 6 + shotIndex);
-  const albumSlotInstruction = getAlbumSlotInstruction(shotIndex);
-  const identityLockInstructions = faceLockStrong
-    ? [
-      "ABSOLUTE PRIORITY: Facial identity preservation is the #1 constraint, above all creative or styling direction.",
-      "Treat facial identity preservation as the top priority.",
-      "This must be the exact same real woman from the references, not a reinterpretation or inspired-by version.",
-      "Preserve her exact face shape, brow structure, eyelid shape, nose bridge, nose tip, lip shape, smile line, cheek volume, jawline, chin, hairline, and skin tone.",
-      "Preserve subtle asymmetries and recognizable beauty details visible in the references.",
-      "Do not beautify by changing ethnicity, age, eye shape, lip fullness, bone structure, or facial proportions.",
-      "Match the same apparent age visible in the references — she is in her 20s but looks very young, baby-faced. Never age her up, mature her features, or add older facial lines.",
-      "HARD NEGATIVE ON AGE: She looks like a young woman in her early 20s or late teens. She must NEVER look 30, 35, 40, or older. No mature skin, no expression lines, no forehead wrinkles, no crow's feet, no nasolabial folds, no sagging, no hollow cheeks, no thinning lips.",
-      "Preserve youthful cheek fullness, smooth under-eyes, soft facial contours, plump healthy skin, and the exact same feminine facial balance from the references.",
-      "Maintain exact facial geometry and lip shape from the high-resolution reference.",
-      "Do not enlarge the lips, do not create filler-like lips, and do not increase lip volume beyond what is visible in the references.",
-      "Do not sharpen, hollow, or age the cheeks, jawline, mouth area, or under-eyes.",
-      "Do not average, blend, or generalize identity across references. The primary face anchor defines who she is.",
-      "If you cannot match the identity exactly, err on the side of copying the face more literally rather than less.",
-      "Her eyes must remain dark brown, never hazel, green, blue, or gray.",
-      "Her hair must remain blonde with warm honey/golden highlights as visible in the references. Never change her hair to dark brown, black, red, or any non-blonde color.",
-      "Maintain dark-brown irises and blonde hair consistently across every image in the album.",
-    ].join(" ")
-    : "";
+  const shotDirection =
+    brief.shots[shotIndex]?.trim() || getDefaultShotDirection(shotIndex);
+  const identityLock = buildIdentityLock(faceLockStrong);
   const openAiIdentityLock =
     provider === "openai"
-      ? [
-        "Use the first reference image as the primary face identity anchor and treat the remaining references as support for angle and consistency.",
-        "Identity accuracy is MORE IMPORTANT than styling creativity. When in doubt, copy the face more literally.",
-        "This must be the exact same real woman from the references, not a lookalike, twin, or inspired-by version.",
-        "Do not change her face shape, eyes, nose, lips, smile line, brow structure, cheek volume, jawline, hairline, or skin tone.",
-        "Preserve recognizable beauty details and subtle asymmetries whenever visible in the references.",
-        "Keep the face highly faithful across all images in the album even when pose, framing, or camera angle changes.",
-        "If any creative instruction conflicts with facial identity, always prioritize the face from the reference.",
-      ].join(" ")
+      ? "Use the IDENTITY reference image(s) as the primary face anchor. Identity accuracy is more important than styling creativity. When in doubt, copy her face — including her nose — more literally."
       : "";
 
   const prompt = [
-    "Create a believable professional studio fashion photo of the same adult woman shown in the reference images.",
-    "IDENTITY IS THE #1 PRIORITY. The output must be unmistakably, recognizably the same person from the references.",
-    "Preserve her exact identity, facial structure, skin tone, body proportions, smile, and beauty details so she remains unmistakably the same person.",
-    identityLockInstructions,
+    "Create a believable professional photograph of the SAME real adult woman shown in the IDENTITY reference photos.",
+    "IDENTITY IS THE #1 PRIORITY. The output must be unmistakably, recognizably the same person from the IDENTITY references.",
+    identityLock,
     openAiIdentityLock,
-    "Visual target: a real studio photograph by a top commercial photographer, not CGI, not synthetic, not beauty-filtered, and not overly airbrushed.",
-    `Creative direction: ${creativeDirection}.`,
-    `Wardrobe: ${wardrobe}. STRICT OBEDIENCE REQUIRED: You must generate EXACTLY this wardrobe. Do not ignore it. Do not default to generic casual clothes or streetwear.`,
-    `Album continuity rule: keep the exact same wardrobe, same outfit pieces, same accessories, same makeup direction, and same hairstyle across every image in this album.`,
-    `Hair continuity rule: keep the exact same blonde hair color, hair length, parting, texture, and styling across every image in this album. Her hair is BLONDE with warm honey highlights — never dark brown, black, or any non-blonde color.`,
-    `Pose: ${shotPose}.`,
-    `Hair styling: ${hair}.`,
-    `Lighting: ${lighting}.`,
-    `Location: ${location}.`,
-    `Camera: ${shotLens}.`,
-    `Styling notes: ${stylingNotes}.`,
-    `Framing: ${framing}.`,
-    `Expression: ${expression}.`,
+    "STYLE TARGET: faithfully reproduce the wardrobe, set, lighting, color, mood and overall composition of the STYLE reference images — but replace whoever appears in them with the woman from the IDENTITY references.",
+    `Wardrobe to reproduce: ${brief.wardrobe}.`,
+    `Set / location to reproduce: ${brief.setDesign}.`,
+    `Lighting to reproduce: ${brief.lighting}.`,
+    `Mood / vibe: ${brief.mood}.`,
+    `Color palette: ${brief.colorPalette}.`,
+    `Styling details (hair, makeup, accessories): ${brief.styling}.`,
+    `This shot: ${shotDirection}.`,
     `Aspect ratio target: ${aspectRatio}.`,
-    albumSlotInstruction,
-    "Eye color must be dark brown.",
-    "Use grounded realism over stylized glamour.",
-    "Keep facial proportions natural, skin pores visible, studio shadows believable, and clothing construction realistic.",
-    "Keep the lips at their exact natural volume from the references. No lip filler effect, no inflated mouth shape, no overlined-lip look.",
-    "Keep the face young (she looks like late teens / early 20s), soft, and faithful to the references. No mature beauty campaign face and no executive portrait face. She must never look older than early 20s.",
-    "HARD NEGATIVE ON AGE: Do not add wrinkles, expression lines, forehead lines, crow's feet, nasolabial folds, or any sign of aging. Keep her skin smooth, plump, and baby-faced like the references.",
-    "Keep her body proportions youthful and toned — no mature body language, no stiff corporate posture, no middle-aged woman energy.",
-    "Avoid generic AI fashion look, waxy skin, over-designed wardrobe, fake facial symmetry, and synthetic background gradients.",
-    "Only the pose, framing, expression, and camera crop may change from shot to shot. Do not change haircut, hair styling, wardrobe, set concept, or beauty styling within the album.",
-    "Every photo in the album must be recognizably different from the others in pose, angle, crop, and gesture. Never duplicate a previous frame.",
-    "Prefer a clean studio environment, clean seamless backdrop, controlled shadows, restrained contrast, crisp facial detail, and realistic beauty finish.",
-    "The final image must look like a real contemporary fashion photoshoot, fully clothed, tasteful, youthful, and commercially usable.",
-    "Keep the styling youthful and believable. Add natural micro-details in skin, hair, fabric texture, seams, folds, and lighting falloff.",
-    "HARD NEGATIVE ON STYLING: Never make her look like a sophisticated mature woman. She is a 20-year-old Instagram influencer. Keep her youthful and fresh.",
-    "Avoid corporate wardrobe, officewear, business-casual styling, graduation-photo energy, or LinkedIn portrait vibes unless the user explicitly asks for that.",
-    "HARD NEGATIVE: She is NOT a businesswoman, NOT a marketing executive, NOT a corporate professional, NOT an office worker. She is a 20-year-old Gen-Z fashion influencer.",
-    "NEVER dress her in a black blazer, suit jacket, structured blazer, pencil skirt, button-down shirt, slacks, modest office sweaters, business suit, or any executive/office wardrobe.",
-    "NEVER create imagery that looks like a corporate headshot, LinkedIn photo, real estate agent portrait, or business-team photo.",
-    "If the styling starts to look corporate, office-like, or executive, adjust it to be fresh and youthful, BUT ALWAYS keep the exact garments requested in the Wardrobe.",
-    "Do NOT default to streetwear, jeans, or tank tops unless explicitly requested in the Wardrobe. Follow the specific Wardrobe description strictly.",
-    "Sensual energy is allowed only when it remains fully clothed, non-explicit, editorial, and tasteful. No nudity, no transparent garments, no explicit exposure.",
-    `Follow these quality rules: ${polishRules.join(", ")}.`,
+    "Album continuity: keep the exact same wardrobe, hairstyle, makeup and set across all images in this album. Only the pose, framing, angle and expression may change from shot to shot.",
+    "Never copy the FACE, nose or head identity from the STYLE references — those images are only for wardrobe, set, lighting, color and mood.",
+    "Never copy the CLOTHING from the IDENTITY references — those images are only for her face and body identity.",
+    "Prefer grounded realism: believable skin texture with visible pores, natural studio/scene shadows, realistic clothing construction and natural human anatomy.",
+    "Sensual energy is allowed only when it stays fully clothed, non-explicit, editorial and tasteful. No nudity, no transparent garments, no explicit exposure.",
+    "The final image must look like a real contemporary fashion photograph, fully clothed, youthful and commercially usable.",
+    `Follow these quality rules: ${qualityRules.join(", ")}.`,
     notes ? `Extra creative notes from the user: ${notes.trim()}.` : "",
   ]
     .filter(Boolean)
@@ -574,17 +458,13 @@ export function buildSecretStudioPrompt({
   return {
     prompt,
     recipe: {
-      creativeDirection,
-      wardrobe,
-      pose: shotPose,
-      albumPose: basePose,
-      hair,
-      lighting,
-      location,
-      lens: baseLens,
-      stylingNotes,
-      framing,
-      expression,
+      wardrobe: brief.wardrobe,
+      setDesign: brief.setDesign,
+      lighting: brief.lighting,
+      mood: brief.mood,
+      colorPalette: brief.colorPalette,
+      styling: brief.styling,
+      shot: shotDirection,
       eyeColor: "dark brown",
       faceLock: faceLockStrong ? "strong" : "standard",
     },
