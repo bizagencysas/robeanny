@@ -1021,8 +1021,10 @@ export async function POST(request: NextRequest) {
     }
 
     // 1) Identidad de Robeanny (rostro + cuerpo) desde la carpeta pública.
+    // Usamos SOLO las 2 primeras (01 rostro, 02 cuerpo): pocas y consistentes
+    // dan mejor identidad. Mezclar muchas caras distintas la promedia y cambia.
     const identity = getRobeannyIdentityReferences();
-    const identityReferences = Array.from(new Set(identity.references)).slice(0, 5);
+    const identityReferences = Array.from(new Set(identity.references)).slice(0, 2);
 
     // 2) Referencias de estilo (el look) que subió el usuario.
     const styleSources = Array.from(new Set(incomingStyleReferences)).slice(
@@ -1077,7 +1079,8 @@ export async function POST(request: NextRequest) {
     // Las primeras fotos de la carpeta son: 01 rostro, 02 cuerpo, 03 ángulo.
     // Usamos varias (no solo la cara) para que respete su cuerpo real.
     const perCallCap = maxImagesPerCall[requestedProvider];
-    const identityAnchors = preparedIdentity.slice(0, 3);
+    // Solo 2 anclas de identidad: 01 rostro (ancla facial) + 02 cuerpo.
+    const identityAnchors = preparedIdentity.slice(0, 2);
     const styleAnchors = preparedStyle.slice(0, 3);
 
     const buildFirstBundle = (): ReferenceBundle => {

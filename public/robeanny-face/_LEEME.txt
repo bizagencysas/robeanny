@@ -5,12 +5,18 @@ Pon aquí las fotos NUEVAS del rostro de Robeanny (post-operación de nariz).
 Estas imágenes son el ancla de identidad: de aquí sale su cara, su nariz,
 sus ojos, etc. El estudio NUNCA copia la ropa de estas fotos, solo la cara.
 
-Recomendado:
-- 3 a 5 fotos nítidas, buena luz, cara despejada.
-- Frente, 3/4 y perfil ayudan a fijar mejor la nariz nueva.
-- Formatos aceptados: .jpg .jpeg .png .webp
-- El orden es alfabético; la PRIMERA foto (por nombre) se usa como ancla
-  facial principal. Nómbrala p.ej. 01-frente.jpg, 02-tresquartos.jpg, 03-perfil.jpg
+IMPORTANTE — el motor usa SOLO las 2 primeras fotos (orden alfabético):
+  - 01-rostro.jpg  -> ancla FACIAL principal (una cara clara, frontal, nítida)
+  - 02-cuerpo.jpg  -> proporciones de CUERPO
+Pocas y CONSISTENTES dan mejor identidad. Si pones muchas caras distintas
+(pelo/maquillaje/ángulos diferentes), el modelo las promedia y sale una cara
+"diferente". Por eso las demás fotos quedan como "unused-..." (no se usan).
+
+Para cambiar la cara: renombra la que quieras a 01-rostro.jpg (que quede primera).
+Formatos: .jpg .jpeg .png .webp
+
+Mientras esta carpeta esté vacía, el motor cae a las fotos viejas
+(FotoPrueba*) y la UI avisa que todavía está usando la nariz vieja.
 
 Mientras esta carpeta esté vacía, el motor cae a las fotos viejas
 (FotoPrueba*) y la UI avisa que todavía está usando la nariz vieja.
