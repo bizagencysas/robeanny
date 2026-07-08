@@ -15,4 +15,12 @@ Recomendado:
 Mientras esta carpeta esté vacía, el motor cae a las fotos viejas
 (FotoPrueba*) y la UI avisa que todavía está usando la nariz vieja.
 
+OJO CON EL FORMATO:
+- El modelo de imagen NO acepta MPO (JPEG multi-imagen que hacen algunos
+  iPhone/cámaras, aunque tenga extensión .jpg) y da "Unsupported image format: mpo".
+- Si agregas fotos nuevas y alguna es MPO, re-codifícala a JPEG normal antes.
+  En Mac: sips -s format jpeg -s formatOptions best FOTO.jpg --out FOTO.jpg
+  (o ábrela en Vista Previa y expórtala como JPEG). Si tienes dudas,
+  pídemelo y las re-codifico.
+
 Este archivo .txt se ignora (solo se leen imágenes).
