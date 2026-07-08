@@ -126,6 +126,11 @@ const OPENAI_IMAGE_MODEL =
   process.env.SS_OPENAI_IMAGE_MODEL || "gpt-image-2";
 // Alias de respaldo por si el ID fijo no está habilitado en la cuenta.
 const OPENAI_IMAGE_MODEL_FALLBACK = "chatgpt-image-latest";
+// Calidad de imagen. "high" es la que se veía bien; si vuelve a haber timeouts,
+// se puede bajar a "medium" (más rápida) con SS_OPENAI_IMAGE_QUALITY=medium.
+const OPENAI_IMAGE_QUALITY = (
+  process.env.SS_OPENAI_IMAGE_QUALITY || "high"
+).toLowerCase();
 
 const VERTEX_GEMINI_MODEL =
   process.env.VERTEX_GEMINI_MODEL || "gemini-2.5-flash";
@@ -300,7 +305,12 @@ function toVertexCompatibleReferenceUrl(url: string) {
     return url;
   }
 
-  return url.replace("/image/upload/", "/image/upload/f_jpg,q_auto/");
+  // Convierte a JPEG y LIMITA a 1280px: referencias más livianas = llamadas más
+  // rápidas al modelo (menos payload) sin perder identidad/estilo relevante.
+  return url.replace(
+    "/image/upload/",
+    "/image/upload/f_jpg,q_auto,w_1280,c_limit/"
+  );
 }
 
 function createVertexSeed(...parts: Array<string | number>) {
@@ -474,7 +484,7 @@ async function generateWithOpenAi({
       model,
       prompt: [prompt, bucketNote].join(" "),
       size: getOpenAiImageSize(aspectRatio),
-      quality: "high",
+      quality: OPENAI_IMAGE_QUALITY,
       output_format: "jpeg",
       output_compression: 90,
       images: references.map((reference) => ({
@@ -557,7 +567,8 @@ async function generateWithOpenAiWithRetry(
     aspectRatio: StudioAspectRatio;
     bundle: ReferenceBundle;
   },
-  attempts = 3
+  attempts = 2,
+  deadlineAt?: number
 ) {
   let lastError: unknown;
 
@@ -569,9 +580,11 @@ async function generateWithOpenAiWithRetry(
 
       if (attempt < attempts - 1) {
         const waitMs = Math.min(
-          15000,
-          1500 * 2 ** attempt + Math.floor(Math.random() * 800)
+          6000,
+          1200 * 2 ** attempt + Math.floor(Math.random() * 500)
         );
+        // No reintentar si ya no queda tiempo antes del límite de la función.
+        if (deadlineAt && Date.now() + waitMs > deadlineAt) break;
         await sleep(waitMs);
         continue;
       }
@@ -1344,12 +1357,19 @@ export async function POST(request: NextRequest) {
               cloudinaryFolder: string;
               prompt: string;
             }> = [];
+            // Límite interno (250s) < 300s de Vercel: al acercarnos, dejamos de
+            // reintentar/rescatar y devolvemos lo que haya. Así nunca da 0 fotos.
+            const deadlineAt = Date.now() + 250000;
             const firstPrompt = prompts[0];
-            const firstDataUrl = await generateWithOpenAiWithRetry({
-              prompt: firstPrompt.prompt,
-              aspectRatio: effectiveAspectRatio,
-              bundle: buildFirstBundle(),
-            });
+            const firstDataUrl = await generateWithOpenAiWithRetry(
+              {
+                prompt: firstPrompt.prompt,
+                aspectRatio: effectiveAspectRatio,
+                bundle: buildFirstBundle(),
+              },
+              2,
+              deadlineAt
+            );
             const albumAnchorReference = dataUrlToReference(
               firstDataUrl,
               "openai-album-anchor"
@@ -1389,11 +1409,15 @@ export async function POST(request: NextRequest) {
                 const index = offset + 1;
 
                 try {
-                  const generatedDataUrl = await generateWithOpenAiWithRetry({
-                    prompt: item.prompt,
-                    aspectRatio: effectiveAspectRatio,
-                    bundle: buildFollowupBundle(albumAnchorReference),
-                  });
+                  const generatedDataUrl = await generateWithOpenAiWithRetry(
+                    {
+                      prompt: item.prompt,
+                      aspectRatio: effectiveAspectRatio,
+                      bundle: buildFollowupBundle(albumAnchorReference),
+                    },
+                    2,
+                    deadlineAt
+                  );
                   const uploaded = await uploadGeneratedImageToCloudinary({
                     file: generatedDataUrl,
                     filename: `shot-${index + 1}-${Date.now()}-${Math.random()
@@ -1413,7 +1437,7 @@ export async function POST(request: NextRequest) {
                   return null;
                 }
               }),
-              3,
+              2,
               (result) => {
                 if (!result) return;
                 completed += 1;
@@ -1440,6 +1464,9 @@ export async function POST(request: NextRequest) {
               .filter((_, offset) => !remainingResults[offset]);
 
             for (const missingShot of missingShots) {
+              // Si ya casi no queda tiempo, no arriesgamos el timeout: cerramos
+              // con las fotos que sí salieron.
+              if (Date.now() > deadlineAt) break;
               try {
                 const generatedDataUrl = await generateWithOpenAiWithRetry(
                   {
@@ -1447,7 +1474,8 @@ export async function POST(request: NextRequest) {
                     aspectRatio: effectiveAspectRatio,
                     bundle: buildFollowupBundle(albumAnchorReference),
                   },
-                  3
+                  2,
+                  deadlineAt
                 );
                 const uploaded = await uploadGeneratedImageToCloudinary({
                   file: generatedDataUrl,
@@ -1492,10 +1520,15 @@ export async function POST(request: NextRequest) {
         throw new Error("No pude completar el álbum en esta generación.");
       }
 
+      // Álbum parcial (menos de 4) NO es error: entregamos lo que salió para no
+      // descartar fotos ya generadas. Solo 0 fotos se considera fallo.
       if (images.length < albumSize) {
-        throw new Error(
-          `Solo pude completar ${images.length} de ${albumSize} fotos antes de que se cortara la generación.`
-        );
+        send({
+          type: "progress",
+          completed: images.length,
+          total: albumSize,
+          stage: `Álbum parcial: ${images.length} de ${albumSize} fotos.`,
+        });
       }
 
       send({
